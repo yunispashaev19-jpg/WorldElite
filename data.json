@@ -1,0 +1,96 @@
+{
+  "lastUpdated": "2026-07-27",
+  "source": "WorldElite",
+  "billionaires": [
+    {
+      "id": 1,
+      "name": "Elon Musk",
+      "company": "Tesla / SpaceX",
+      "netWorth": "$715.6B",
+      "worth": 715.6,
+      "country": "USA",
+      "flag": "🇺🇸"
+    },
+    {
+      "id": 2,
+      "name": "Larry Page",
+      "company": "Google",
+      "netWorth": "$268.8B",
+      "worth": 268.8,
+      "country": "USA",
+      "flag": "🇺🇸"
+    },
+    {
+      "id": 3,
+      "name": "Sergey Brin",
+      "company": "Google",
+      "netWorth": "$248.0B",
+      "worth": 248.0,
+      "country": "USA",
+      "flag": "🇺🇸"
+    },
+    {
+      "id": 4,
+      "name": "Jeff Bezos",
+      "company": "Amazon",
+      "netWorth": "$242.6B",
+      "worth": 242.6,
+      "country": "USA",
+      "flag": "🇺🇸"
+    },
+    {
+      "id": 5,
+      "name": "Michael Dell",
+      "company": "Dell Technologies",
+      "netWorth": "$234.4B",
+      "worth": 234.4,
+      "country": "USA",
+      "flag": "🇺🇸"
+    },
+    {
+      "id": 6,
+      "name": "Mark Zuckerberg",
+      "company": "Meta",
+      "netWorth": "$203.9B",
+      "worth": 203.9,
+      "country": "USA",
+      "flag": "🇺🇸"
+    },
+    {
+      "id": 7,
+      "name": "Jensen Huang",
+      "company": "NVIDIA",
+      "netWorth": "$170.0B",
+      "worth": 170.0,
+      "country": "USA",
+      "flag": "🇺🇸"
+    },
+    {
+      "id": 8,
+      "name": "Larry Ellison",
+      "company": "Oracle",
+      "netWorth": "$156.9B",
+      "worth": 156.9,
+      "country": "USA",
+      "flag": "🇺🇸"
+    },
+    {
+      "id": 9,
+      "name": "Bernard Arnault",
+      "company": "LVMH",
+      "netWorth": "$142.7B",
+      "worth": 142.7,
+      "country": "France",
+      "flag": "🇫🇷"
+    },
+    {
+      "id": 10,
+      "name": "Warren Buffett",
+      "company": "Berkshire Hathaway",
+      "netWorth": "$141.2B",
+      "worth": 141.2,
+      "country": "USA",
+      "flag": "🇺🇸"
+    }
+  ]
+}

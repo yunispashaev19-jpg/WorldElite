@@ -1,0 +1,530 @@
+/* =====================================
+   WORLDELITE
+   COMPLETE CSS
+===================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100%;
+    background:
+        radial-gradient(
+            circle at top,
+            #172554 0%,
+            #050816 45%,
+            #020617 100%
+        );
+
+    color: white;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    text-align: center;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+button,
+input,
+select {
+    font-family: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+#app {
+    width: 100%;
+    min-height: 100vh;
+    padding-bottom: 100px;
+}
+
+/* =====================================
+   CONTAINER
+===================================== */
+
+.container {
+    width: calc(100% - 32px);
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 30px 0 120px;
+}
+
+/* =====================================
+   START / LOGIN
+===================================== */
+
+.loading-screen {
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 25px;
+}
+
+.loading-screen .container {
+    padding: 0;
+}
+
+.logo {
+    width: 90px;
+    height: 90px;
+
+    margin: 0 auto 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 25px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #7c3aed
+        );
+
+    font-size: 30px;
+    font-weight: 900;
+
+    box-shadow:
+        0 15px 40px
+        rgba(37, 99, 235, 0.35);
+}
+
+/* =====================================
+   TEXT
+===================================== */
+
+h1 {
+    font-size: 42px;
+    line-height: 1.05;
+    margin-bottom: 14px;
+}
+
+h2 {
+    font-size: 22px;
+    margin: 28px 0 12px;
+}
+
+p {
+    color: #cbd5e1;
+    line-height: 1.5;
+}
+
+.top-section {
+    margin-bottom: 25px;
+}
+
+.top-section h1 {
+    font-size: 38px;
+}
+
+.top-section p {
+    margin-bottom: 8px;
+}
+
+/* =====================================
+   INPUT
+===================================== */
+
+input,
+select {
+    width: 100%;
+
+    padding: 16px;
+
+    margin-top: 12px;
+
+    border-radius: 14px;
+
+    border: 1px solid
+        rgba(255,255,255,0.08);
+
+    background: #111827;
+
+    color: white;
+
+    font-size: 17px;
+
+    outline: none;
+}
+
+input:focus,
+select:focus {
+    border-color: #3b82f6;
+}
+
+/* =====================================
+   BUTTON
+===================================== */
+
+button {
+    width: 100%;
+
+    padding: 16px;
+
+    margin-top: 12px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    background: #2563eb;
+
+    color: white;
+
+    font-size: 17px;
+
+    font-weight: 700;
+
+    transition:
+        transform 0.15s,
+        opacity 0.15s;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:hover {
+    opacity: 0.92;
+}
+
+.secondary-btn {
+    background: #334155;
+}
+
+.back-btn {
+    background: transparent;
+    border: 1px solid #334155;
+    margin-bottom: 18px;
+}
+
+/* =====================================
+   CARDS
+===================================== */
+
+.card {
+    position: relative;
+
+    width: 100%;
+
+    padding: 22px;
+
+    margin-top: 16px;
+
+    border-radius: 20px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(30,41,59,0.96),
+            rgba(15,23,42,0.96)
+        );
+
+    border: 1px solid
+        rgba(255,255,255,0.06);
+
+    box-shadow:
+        0 12px 35px
+        rgba(0,0,0,0.20);
+
+    text-align: left;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.clickable:hover {
+    border-color: #2563eb;
+    transform: translateY(-2px);
+}
+
+.card-title {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.card-subtitle {
+    color: #94a3b8;
+    margin-bottom: 8px;
+}
+
+.money {
+    font-size: 27px;
+    font-weight: 900;
+    margin: 10px 0;
+}
+
+.rank {
+    color: #60a5fa;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+/* =====================================
+   STATS
+===================================== */
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 12px;
+
+    margin-top: 16px;
+}
+
+.stat {
+    padding: 20px;
+
+    border-radius: 18px;
+
+    background: #111827;
+
+    border: 1px solid
+        rgba(255,255,255,0.06);
+}
+
+.stat-number {
+    font-size: 30px;
+    font-weight: 900;
+}
+
+.stat-label {
+    margin-top: 5px;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+/* =====================================
+   CONTROLS
+===================================== */
+
+.controls {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 10px;
+
+    margin-top: 12px;
+}
+
+.controls select {
+    margin-top: 0;
+}
+
+/* =====================================
+   FAVORITE
+===================================== */
+
+.favorite {
+    position: absolute;
+
+    top: 10px;
+    right: 10px;
+
+    width: 48px;
+    height: 42px;
+
+    margin: 0;
+
+    padding: 0;
+
+    background: transparent;
+
+    font-size: 24px;
+
+    z-index: 2;
+}
+
+/* =====================================
+   PROFILE
+===================================== */
+
+.profile-card {
+    padding: 30px 20px;
+
+    margin-bottom: 16px;
+
+    border-radius: 24px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #172554,
+            #111827
+        );
+
+    border: 1px solid
+        rgba(255,255,255,0.07);
+}
+
+.profile-icon {
+    width: 80px;
+    height: 80px;
+
+    margin: 0 auto 15px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 50%;
+
+    background: #1e3a8a;
+
+    font-size: 38px;
+}
+
+.big-money {
+    font-size: 42px;
+    font-weight: 900;
+    margin: 18px 0 8px;
+}
+
+/* =====================================
+   EMPTY
+===================================== */
+
+.empty {
+    padding: 30px 10px;
+}
+
+/* =====================================
+   BOTTOM NAV
+===================================== */
+
+.bottom-nav {
+    position: fixed;
+
+    left: 50%;
+    bottom: 12px;
+
+    transform: translateX(-50%);
+
+    width: calc(100% - 24px);
+    max-width: 520px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 5px;
+
+    padding: 8px;
+
+    background:
+        rgba(15,23,42,0.96);
+
+    border:
+        1px solid
+        rgba(255,255,255,0.08);
+
+    border-radius: 22px;
+
+    backdrop-filter: blur(15px);
+
+    z-index: 1000;
+}
+
+.nav-item {
+    margin: 0;
+
+    padding: 10px 4px;
+
+    background: transparent;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+
+    border-radius: 15px;
+}
+
+.nav-item.active {
+    background: #2563eb;
+    color: white;
+}
+
+.nav-icon {
+    display: block;
+    font-size: 21px;
+    margin-bottom: 3px;
+}
+
+/* =====================================
+   SEARCH RESULTS
+===================================== */
+
+#globalResults,
+#billionaireList,
+#companyList,
+#favoriteList {
+    width: 100%;
+}
+
+/* =====================================
+   RESPONSIVE
+===================================== */
+
+@media (max-width: 380px) {
+
+    h1 {
+        font-size: 35px;
+    }
+
+    .money {
+        font-size: 23px;
+    }
+
+    .card-title {
+        font-size: 19px;
+    }
+
+    .nav-item {
+        font-size: 10px;
+    }
+
+}
+
+/* =====================================
+   SCROLLBAR
+===================================== */
+
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: #020617;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 10px;
+}
+

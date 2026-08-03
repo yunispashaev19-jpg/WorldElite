@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="theme-color"
+        content="#050816"
+    >
+
+    <meta
+        name="mobile-web-app-capable"
+        content="yes"
+    >
+
+    <meta
+        name="apple-mobile-web-app-capable"
+        content="yes"
+    >
+
+    <meta
+        name="apple-mobile-web-app-status-bar-style"
+        content="black-translucent"
+    >
+
+    <meta
+        name="description"
+        content="WorldElite — global wealth, business and billionaire intelligence."
+    >
+
+    <title>WorldElite</title>
+
+
+    <!-- PWA -->
+
+    <link
+        rel="manifest"
+        href="./manifest.json"
+    >
+
+
+    <!-- CSS -->
+
+    <link
+        rel="stylesheet"
+        href="./style.css"
+    >
+
+
+</head>
+
+
+<body>
+
+
+    <!-- MAIN APP -->
+
+    <main id="app">
+
+        <div class="loading-screen">
+
+            <div class="container">
+
+                <div class="logo">
+                    WE
+                </div>
+
+                <h1>
+                    WORLD ELITE
+                </h1>
+
+                <p>
+                    Wealth. Business. Power.
+                </p>
+
+                <button
+                    id="startBtn"
+                >
+                    START
+                </button>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script
+        src="./script.js"
+        defer
+    ></script>
+
+
+    <!-- SERVICE WORKER -->
+
+    <script>
+
+        if ("serviceWorker" in navigator) {
+
+            window.addEventListener(
+                "load",
+                function () {
+
+                    navigator.serviceWorker
+                        .register("./sw.js")
+                        .then(
+                            function () {
+
+                                console.log(
+                                    "WorldElite Offline Mode: ON"
+                                );
+
+                            }
+                        )
+                        .catch(
+                            function (error) {
+
+                                console.log(
+                                    "Service Worker Error:",
+                                    error
+                                );
+
+                            }
+                        );
+
+                }
+            );
+
+        }
+
+    </script>
+
+
+</body>
+
+</html>
