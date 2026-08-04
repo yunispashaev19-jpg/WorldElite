@@ -2,7 +2,34 @@
    WORLD ELITE — MAIN SCRIPT
 ========================================= */
 
-const app = document.getElementById("app");
+const app = document.getElementById("app");let liveData = null;
+
+async function loadLiveData() {
+    try {
+        const response = await fetch(
+            "data.json?v=" + Date.now()
+        );
+
+        if (!response.ok) {
+            throw new Error("Data loading failed");
+        }
+
+        liveData = await response.json();
+
+        console.log(
+            "WorldElite data loaded:",
+            liveData.lastUpdated
+        );
+
+    } catch (error) {
+
+        console.error(
+            "WorldElite data error:",
+            error
+        );
+
+    }
+}
 
 let currentUser =
     localStorage.getItem("worldEliteUser") || "";
