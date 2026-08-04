@@ -1,286 +1,246 @@
+/* =========================================
+   WORLDELITE
+   MAIN APPLICATION
+========================================= */
+
 const app = document.getElementById("app");
 
+const DATA_URL = "data.json";
 
-/* ==============================
-   USER
-============================== */
+let data = {
+    billionaires: [],
+    companies: [],
+    countries: []
+};
 
 let currentUser =
     localStorage.getItem("worldEliteUser") || "";
 
 let favorites =
     JSON.parse(
-        localStorage.getItem("worldEliteFavorites") || "[]"
+        localStorage.getItem(
+            "worldEliteFavorites"
+        ) || "[]"
     );
 
 
-/* ==============================
-   DATA
-============================== */
-
-const billionaires = [
-
-    {
-        id: 1,
-        name: "Elon Musk",
-        company: "Tesla / SpaceX",
-        netWorth: "$715.6B",
-        worth: 715.6,
-        country: "USA",
-        flag: "🇺🇸"
-    },
-
-    {
-        id: 2,
-        name: "Larry Page",
-        company: "Google",
-        netWorth: "$268.8B",
-        worth: 268.8,
-        country: "USA",
-        flag: "🇺🇸"
-    },
-
-    {
-        id: 3,
-        name: "Sergey Brin",
-        company: "Google",
-        netWorth: "$248.0B",
-        worth: 248,
-        country: "USA",
-        flag: "🇺🇸"
-    },
-
-    {
-        id: 4,
-        name: "Jeff Bezos",
-        company: "Amazon",
-        netWorth: "$242.6B",
-        worth: 242.6,
-        country: "USA",
-        flag: "🇺🇸"
-    },
-
-    {
-        id: 5,
-        name: "Michael Dell",
-        company: "Dell Technologies",
-        netWorth: "$234.4B",
-        worth: 234.4,
-        country: "USA",
-        flag: "🇺🇸"
-    },
-
-    {
-        id: 6,
-        name: "Mark Zuckerberg",
-        company: "Meta",
-        netWorth: "$203.9B",
-        worth: 203.9,
-        country: "USA",
-        flag: "🇺🇸"
-    },
-
-    {
-        id: 7,
-        name: "Jensen Huang",
-        company: "NVIDIA",
-        netWorth: "$170.0B",
-        worth: 170,
-        country: "USA",
-        flag: "🇺🇸"
-    },
-
-    {
-        id: 8,
-        name: "Larry Ellison",
-        company: "Oracle",
-        netWorth: "$156.9B",
-        worth: 156.9,
-        country: "USA",
-        flag: "🇺🇸"
-    },
-
-    {
-        id: 9,
-        name: "Bernard Arnault",
-        company: "LVMH",
-        netWorth: "$142.7B",
-        worth: 142.7,
-        country: "France",
-        flag: "🇫🇷"
-    },
-
-    {
-        id: 10,
-        name: "Warren Buffett",
-        company: "Berkshire Hathaway",
-        netWorth: "$141.2B",
-        worth: 141.2,
-        country: "USA",
-        flag: "🇺🇸"
-    }
-
-];
-
-
-const companies = [
-
-    {
-        name: "Tesla",
-        sector: "Automotive / AI",
-        founder: "Elon Musk"
-    },
-
-    {
-        name: "SpaceX",
-        sector: "Aerospace",
-        founder: "Elon Musk"
-    },
-
-    {
-        name: "Amazon",
-        sector: "Technology / E-commerce",
-        founder: "Jeff Bezos"
-    },
-
-    {
-        name: "Meta",
-        sector: "Technology / Social Media",
-        founder: "Mark Zuckerberg"
-    },
-
-    {
-        name: "NVIDIA",
-        sector: "Semiconductors / AI",
-        founder: "Jensen Huang"
-    },
-
-    {
-        name: "Oracle",
-        sector: "Cloud / Software",
-        founder: "Larry Ellison"
-    },
-
-    {
-        name: "Google",
-        sector: "Technology / Internet",
-        founder: "Larry Page & Sergey Brin"
-    },
-
-    {
-        name: "LVMH",
-        sector: "Luxury",
-        founder: "Bernard Arnault"
-    }
-
-];
-
-
-/* ==============================
+/* =========================================
    START
-============================== */
+========================================= */
 
 showStart();
 
+
+/* =========================================
+   START PAGE
+========================================= */
 
 function showStart() {
 
     app.innerHTML = `
 
-        <div class="loading-screen">
+        <div class="start-page">
 
-            <div class="container">
+            <header class="topbar">
 
                 <div class="logo">
-                    WE
+                    WorldElite
                 </div>
 
-                <p>
-                    THE WORLD'S
-                    MOST POWERFUL
-                    PEOPLE
-                </p>
+                <div class="top-actions">
 
-                <h1>
-                    WORLD<br>
-                    ELITE
-                </h1>
+                    <button
+                        onclick="showLogin()"
+                    >
+                        Log In
+                    </button>
 
-                <p>
-                    Wealth • Business • Power
-                </p>
+                    <button
+                        class="signup-btn"
+                        onclick="showSignUp()"
+                    >
+                        Sign Up
+                    </button>
 
-                <br>
+                </div>
 
-                <button id="startBtn">
-                    ENTER WORLD ELITE
-                </button>
+            </header>
 
-            </div>
+
+            <main class="hero">
+
+                <div class="hero-content">
+
+                    <div class="badge">
+                        GLOBAL WEALTH & BUSINESS
+                    </div>
+
+                    <h1>
+                        Explore the world's
+                        <span>
+                            most powerful
+                        </span>
+                        people & companies.
+                    </h1>
+
+                    <p>
+                        Discover billionaires,
+                        companies and global
+                        business intelligence
+                        in one place.
+                    </p>
+
+
+                    <div class="hero-buttons">
+
+                        <button
+                            class="primary-btn"
+                            onclick="showBillionaires()"
+                        >
+                            Explore Billionaires
+                        </button>
+
+
+                        <button
+                            class="secondary-btn"
+                            onclick="showCompanies()"
+                        >
+                            Explore Companies
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </main>
+
+
+            <section class="features">
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        💰
+                    </div>
+
+                    <h3>
+                        Billionaires
+                    </h3>
+
+                    <p>
+                        Track the world's
+                        wealthiest people
+                        and their rankings.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        🏢
+                    </div>
+
+                    <h3>
+                        Companies
+                    </h3>
+
+                    <p>
+                        Explore major global
+                        companies and
+                        business leaders.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        📈
+                    </div>
+
+                    <h3>
+                        Intelligence
+                    </h3>
+
+                    <p>
+                        Follow wealth,
+                        business and
+                        global economic data.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <footer>
+
+                <div>
+                    © 2026 WorldElite
+                </div>
+
+                <div>
+                    Global Wealth Intelligence
+                </div>
+
+            </footer>
 
         </div>
 
     `;
-
-
-    document
-        .getElementById("startBtn")
-        .onclick = showLogin;
 }
 
 
-/* ==============================
+/* =========================================
    LOGIN
-============================== */
+========================================= */
 
 function showLogin() {
 
     app.innerHTML = `
 
-        <div class="loading-screen">
+        <div class="container">
 
-            <div class="container">
+            <h1>
+                Login
+            </h1>
 
-                <div class="logo">
-                    WE
-                </div>
+            <p>
+                Enter WorldElite
+            </p>
 
-                <h1>
-                    Welcome Back
-                </h1>
 
-                <p>
-                    Enter WorldElite
-                </p>
+            <input
+                id="loginEmail"
+                type="email"
+                placeholder="Email"
+            >
 
-                <input
-                    id="loginEmail"
-                    type="email"
-                    placeholder="Email"
-                >
 
-                <input
-                    id="loginPassword"
-                    type="password"
-                    placeholder="Password"
-                >
+            <input
+                id="loginPassword"
+                type="password"
+                placeholder="Password"
+            >
 
-                <br><br>
 
-                <button id="loginBtn">
-                    LOGIN
-                </button>
+            <button
+                class="primary-btn"
+                id="loginBtn"
+            >
+                LOGIN
+            </button>
 
-                <br>
 
-                <button
-                    id="signupBtn"
-                    class="secondary-btn"
-                >
-                    CREATE ACCOUNT
-                </button>
-
-            </div>
+            <button
+                class="secondary-btn"
+                id="backStartBtn"
+            >
+                BACK
+            </button>
 
         </div>
 
@@ -300,7 +260,9 @@ function showLogin() {
 
             if (!email) {
 
-                alert("Enter your email.");
+                alert(
+                    "Please enter your email."
+                );
 
                 return;
             }
@@ -313,70 +275,71 @@ function showLogin() {
                 currentUser
             );
 
-            showHome();
 
+            showHome();
         };
 
 
     document
-        .getElementById("signupBtn")
-        .onclick = showSignUp;
+        .getElementById("backStartBtn")
+        .onclick = showStart;
 }
 
 
-/* ==============================
+/* =========================================
    SIGN UP
-============================== */
+========================================= */
 
 function showSignUp() {
 
     app.innerHTML = `
 
-        <div class="loading-screen">
+        <div class="container">
 
-            <div class="container">
+            <h1>
+                Create Account
+            </h1>
 
-                <div class="logo">
-                    WE
-                </div>
+            <p>
+                Join WorldElite
+            </p>
 
-                <h1>
-                    Create Account
-                </h1>
 
-                <input
-                    id="signupName"
-                    placeholder="Name"
-                >
+            <input
+                id="signupName"
+                type="text"
+                placeholder="Name"
+            >
 
-                <input
-                    id="signupEmail"
-                    type="email"
-                    placeholder="Email"
-                >
 
-                <input
-                    id="signupPassword"
-                    type="password"
-                    placeholder="Password"
-                >
+            <input
+                id="signupEmail"
+                type="email"
+                placeholder="Email"
+            >
 
-                <br>
 
-                <button id="createBtn">
-                    CREATE ACCOUNT
-                </button>
+            <input
+                id="signupPassword"
+                type="password"
+                placeholder="Password"
+            >
 
-                <br>
 
-                <button
-                    id="backLogin"
-                    class="secondary-btn"
-                >
-                    BACK
-                </button>
+            <button
+                class="primary-btn"
+                id="createAccountBtn"
+            >
+                CREATE ACCOUNT
+            </button>
 
-            </div>
+
+            <button
+                class="secondary-btn"
+                id="backSignupBtn"
+            >
+                BACK
+            </button>
 
         </div>
 
@@ -384,7 +347,9 @@ function showSignUp() {
 
 
     document
-        .getElementById("createBtn")
+        .getElementById(
+            "createAccountBtn"
+        )
         .onclick = function () {
 
             const name =
@@ -392,6 +357,7 @@ function showSignUp() {
                 .getElementById("signupName")
                 .value
                 .trim();
+
 
             const email =
                 document
@@ -403,7 +369,7 @@ function showSignUp() {
             if (!name || !email) {
 
                 alert(
-                    "Enter your name and email."
+                    "Please enter your name and email."
                 );
 
                 return;
@@ -417,28 +383,30 @@ function showSignUp() {
                 currentUser
             );
 
-            showHome();
 
+            showHome();
         };
 
 
     document
-        .getElementById("backLogin")
-        .onclick = showLogin;
+        .getElementById(
+            "backSignupBtn"
+        )
+        .onclick = showStart;
 }
 
 
-/* ==============================
+/* =========================================
    HOME
-============================== */
+========================================= */
 
 function showHome() {
 
     const richest =
-        [...billionaires]
+        [...data.billionaires]
         .sort(
             (a, b) =>
-                b.worth - a.worth
+                getWorth(b) - getWorth(a)
         )[0];
 
 
@@ -446,46 +414,54 @@ function showHome() {
 
         <div class="container">
 
-            <div class="top-section">
+            <p>
+                WELCOME TO
+            </p>
 
-                <p>
-                    WORLD ELITE
-                </p>
+            <h1>
+                WorldElite
+            </h1>
 
-                <h1>
-                    Global Power
-                </h1>
-
-                <p>
-                    Discover the world's
-                    wealthiest people,
-                    companies and leaders.
-                </p>
-
-            </div>
+            <p>
+                Global wealth and
+                business intelligence.
+            </p>
 
 
-            <div class="card clickable"
-                 id="richestCard">
+            ${
+                richest
+                ? `
+                    <div class="card">
 
-                <div class="rank">
-                    #1 GLOBAL RANKING
-                </div>
+                        <div class="rank">
+                            #1 RICHEST
+                        </div>
 
-                <div class="card-title">
-                    ${richest.flag}
-                    ${richest.name}
-                </div>
+                        <div class="card-title">
+                            ${richest.flag || "🌍"}
+                            ${escapeHTML(
+                                richest.name || "Unknown"
+                            )}
+                        </div>
 
-                <div class="money">
-                    ${richest.netWorth}
-                </div>
+                        <div class="money">
+                            ${formatMoney(
+                                richest.netWorth
+                            )}
+                        </div>
 
-                <p>
-                    ${richest.company}
-                </p>
+                        <p>
+                            ${
+                                escapeHTML(
+                                    richest.company || ""
+                                )
+                            }
+                        </p>
 
-            </div>
+                    </div>
+                `
+                : ""
+            }
 
 
             <div class="stat-grid">
@@ -493,19 +469,20 @@ function showHome() {
                 <div class="stat">
 
                     <div class="stat-number">
-                        ${billionaires.length}
+                        ${data.billionaires.length}
                     </div>
 
                     <div class="stat-label">
-                        People
+                        Billionaires
                     </div>
 
                 </div>
 
+
                 <div class="stat">
 
                     <div class="stat-number">
-                        ${companies.length}
+                        ${data.companies.length}
                     </div>
 
                     <div class="stat-label">
@@ -519,16 +496,15 @@ function showHome() {
 
             <div
                 class="card clickable"
-                id="rankingCard"
+                onclick="showBillionaires()"
             >
 
                 <div class="card-title">
-                    🏆 Rankings
+                    🏆 Billionaires
                 </div>
 
                 <p>
-                    Explore the world's
-                    wealthiest people.
+                    Explore global wealth rankings.
                 </p>
 
             </div>
@@ -536,7 +512,7 @@ function showHome() {
 
             <div
                 class="card clickable"
-                id="companyCard"
+                onclick="showCompanies()"
             >
 
                 <div class="card-title">
@@ -544,92 +520,26 @@ function showHome() {
                 </div>
 
                 <p>
-                    Explore major global
-                    businesses.
-                </p>
-
-            </div>
-
-
-            <div
-                class="card clickable"
-                id="searchCard"
-            >
-
-                <div class="card-title">
-                    🔎 Search
-                </div>
-
-                <p>
-                    Find people and companies.
-                </p>
-
-            </div>
-
-
-            <div
-                class="card clickable"
-                id="newsCard"
-            >
-
-                <div class="card-title">
-                    📰 WorldElite News
-                </div>
-
-                <p>
-                    Business and wealth
-                    intelligence.
+                    Explore major global companies.
                 </p>
 
             </div>
 
         </div>
 
+
         ${navigation("home")}
 
     `;
-
-
-    document
-        .getElementById("richestCard")
-        .onclick =
-        () =>
-            showBillionaireDetails(
-                richest
-            );
-
-
-    document
-        .getElementById("rankingCard")
-        .onclick =
-        showBillionaires;
-
-
-    document
-        .getElementById("companyCard")
-        .onclick =
-        showCompanies;
-
-
-    document
-        .getElementById("searchCard")
-        .onclick =
-        showGlobalSearch;
-
-
-    document
-        .getElementById("newsCard")
-        .onclick =
-        showNews;
 
 
     setupNavigation();
 }
 
 
-/* ==============================
-   RANKINGS
-============================== */
+/* =========================================
+   BILLIONAIRES
+========================================= */
 
 function showBillionaires() {
 
@@ -638,59 +548,27 @@ function showBillionaires() {
         <div class="container">
 
             <h1>
-                Rankings
+                Billionaires
             </h1>
 
             <p>
                 World's wealthiest people
             </p>
 
+
             <input
-                id="searchInput"
+                id="billionaireSearch"
+                type="search"
                 placeholder="🔎 Search billionaire"
             >
 
-            <div class="controls">
 
-                <select id="countryFilter">
-
-                    <option value="all">
-                        🌍 All Countries
-                    </option>
-
-                    <option value="USA">
-                        🇺🇸 USA
-                    </option>
-
-                    <option value="France">
-                        🇫🇷 France
-                    </option>
-
-                </select>
-
-
-                <select id="sortSelect">
-
-                    <option value="high">
-                        Highest
-                    </option>
-
-                    <option value="low">
-                        Lowest
-                    </option>
-
-                    <option value="name">
-                        A-Z
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div id="billionaireList"></div>
+            <div
+                id="billionaireList"
+            ></div>
 
         </div>
+
 
         ${navigation("billionaires")}
 
@@ -698,20 +576,10 @@ function showBillionaires() {
 
 
     document
-        .getElementById("searchInput")
+        .getElementById(
+            "billionaireSearch"
+        )
         .oninput =
-        renderBillionaires;
-
-
-    document
-        .getElementById("countryFilter")
-        .onchange =
-        renderBillionaires;
-
-
-    document
-        .getElementById("sortSelect")
-        .onchange =
         renderBillionaires;
 
 
@@ -725,85 +593,36 @@ function renderBillionaires() {
 
     const search =
         document
-        .getElementById("searchInput")
+        .getElementById(
+            "billionaireSearch"
+        )
         .value
         .toLowerCase()
         .trim();
 
 
-    const country =
-        document
-        .getElementById("countryFilter")
-        .value;
+    let people =
+        [...data.billionaires];
 
 
-    const sort =
-        document
-        .getElementById("sortSelect")
-        .value;
-
-
-    let list =
-        billionaires.filter(
+    people =
+        people.filter(
             person => {
 
                 const text =
-                    (
-                        person.name +
-                        " " +
-                        person.company
-                    )
+                    JSON.stringify(person)
                     .toLowerCase();
 
 
-                return (
-
-                    text.includes(search)
-
-                    &&
-
-                    (
-                        country === "all"
-                        ||
-                        person.country === country
-                    )
-
-                );
-
+                return text.includes(search);
             }
         );
 
 
-    if (sort === "high") {
-
-        list.sort(
-            (a,b) =>
-                b.worth - a.worth
-        );
-
-    }
-
-
-    if (sort === "low") {
-
-        list.sort(
-            (a,b) =>
-                a.worth - b.worth
-        );
-
-    }
-
-
-    if (sort === "name") {
-
-        list.sort(
-            (a,b) =>
-                a.name.localeCompare(
-                    b.name
-                )
-        );
-
-    }
+    people.sort(
+        (a, b) =>
+            getWorth(b) - getWorth(a)
+    );
 
 
     const container =
@@ -812,94 +631,187 @@ function renderBillionaires() {
         );
 
 
-    container.innerHTML = "";
+    if (!people.length) {
+
+        container.innerHTML = `
+            <div class="empty">
+                <p>
+                    No billionaires found.
+                </p>
+            </div>
+        `;
+
+        return;
+    }
 
 
-    list.forEach(
-        (person,index) => {
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-
-            card.className =
-                "card clickable";
-
-
-            card.innerHTML = `
-
-                <button
-                    class="favorite"
-                >
-                    ${
-                        favorites.includes(
-                            person.id
-                        )
-                        ? "⭐"
-                        : "☆"
-                    }
-                </button>
-
-                <div class="rank">
-                    #${index + 1}
-                </div>
-
-                <div class="card-title">
-                    ${person.flag}
-                    ${person.name}
-                </div>
-
-                <div class="card-subtitle">
-                    ${person.company}
-                </div>
-
-                <div class="money">
-                    ${person.netWorth}
-                </div>
-
-            `;
+    container.innerHTML =
+        people
+        .map(
+            (person, index) =>
+                billionaireCard(
+                    person,
+                    index
+                )
+        )
+        .join("");
 
 
-            card.querySelector(
-                ".favorite"
-            ).onclick =
-            function(e) {
+    document
+        .querySelectorAll(
+            "[data-person-id]"
+        )
+        .forEach(
+            card => {
 
-                e.stopPropagation();
+                card.onclick =
+                    function () {
 
-                toggleFavorite(
-                    person.id
-                );
-
-                renderBillionaires();
-
-            };
-
-
-            card.onclick =
-                () =>
-                    showBillionaireDetails(
-                        person
-                    );
+                        const id =
+                            Number(
+                                card.dataset
+                                .personId
+                            );
 
 
-            container.appendChild(card);
+                        const person =
+                            data.billionaires
+                            .find(
+                                item =>
+                                    Number(
+                                        item.id
+                                    ) === id
+                            );
 
-        }
-    );
+
+                        if (person) {
+
+                            showBillionaireDetails(
+                                person
+                            );
+                        }
+                    };
+            }
+        );
 }
 
 
-/* ==============================
-   DETAILS
-============================== */
+function billionaireCard(
+    person,
+    index
+) {
 
-function showBillionaireDetails(person) {
+    const id =
+        Number(
+            person.id ??
+            index + 1
+        );
+
 
     const favorite =
-        favorites.includes(person.id);
+        favorites.includes(id);
+
+
+    return `
+
+        <div
+            class="card clickable"
+            data-person-id="${id}"
+        >
+
+            <button
+                class="favorite"
+                data-favorite="${id}"
+                onclick="
+                    event.stopPropagation();
+                    toggleFavorite(${id});
+                    renderBillionaires();
+                "
+            >
+                ${
+                    favorite
+                    ? "⭐"
+                    : "☆"
+                }
+            </button>
+
+
+            <div class="rank">
+                #${index + 1}
+            </div>
+
+
+            <div class="card-title">
+
+                ${
+                    person.flag ||
+                    "🌍"
+                }
+
+                ${
+                    escapeHTML(
+                        person.name ||
+                        "Unknown"
+                    )
+                }
+
+            </div>
+
+
+            <div class="card-subtitle">
+
+                ${
+                    escapeHTML(
+                        person.company ||
+                        ""
+                    )
+                }
+
+            </div>
+
+
+            <div class="money">
+
+                ${
+                    formatMoney(
+                        person.netWorth
+                    )
+                }
+
+            </div>
+
+
+            <p>
+
+                ${
+                    escapeHTML(
+                        person.country ||
+                        ""
+                    )
+                }
+
+            </p>
+
+        </div>
+
+    `;
+}
+
+
+/* =========================================
+   DETAILS
+========================================= */
+
+function showBillionaireDetails(
+    person
+) {
+
+    const id =
+        Number(person.id);
+
+
+    const favorite =
+        favorites.includes(id);
 
 
     app.innerHTML = `
@@ -907,43 +819,77 @@ function showBillionaireDetails(person) {
         <div class="container">
 
             <button
-                class="back-btn"
-                id="backBtn"
+                class="secondary-btn"
+                onclick="showBillionaires()"
             >
                 ← Rankings
             </button>
 
+
             <div class="profile-card">
 
                 <div class="profile-icon">
-                    ${person.flag}
+                    ${
+                        person.flag ||
+                        "🌍"
+                    }
                 </div>
+
 
                 <h1>
-                    ${person.name}
+                    ${
+                        escapeHTML(
+                            person.name ||
+                            "Unknown"
+                        )
+                    }
                 </h1>
 
+
                 <p>
-                    ${person.country}
+                    ${
+                        escapeHTML(
+                            person.country ||
+                            ""
+                        )
+                    }
                 </p>
 
+
                 <div class="big-money">
-                    ${person.netWorth}
+                    ${
+                        formatMoney(
+                            person.netWorth
+                        )
+                    }
                 </div>
+
 
                 <p>
                     Estimated Net Worth
                 </p>
 
-                <br>
 
                 <p>
-                    🏢 ${person.company}
+                    🏢
+                    ${
+                        escapeHTML(
+                            person.company ||
+                            ""
+                        )
+                    }
                 </p>
 
-                <br>
 
-                <button id="favoriteBtn">
+                <button
+                    class="primary-btn"
+                    onclick="
+                        toggleFavorite(${id});
+                        showBillionaireDetails(
+                            ${JSON.stringify(person).replace(/"/g, "&quot;")}
+                        );
+                    "
+                >
                     ${
                         favorite
                         ? "⭐ Remove Favorite"
@@ -955,40 +901,19 @@ function showBillionaireDetails(person) {
 
         </div>
 
+
         ${navigation("billionaires")}
 
     `;
-
-
-    document
-        .getElementById("backBtn")
-        .onclick =
-        showBillionaires;
-
-
-    document
-        .getElementById("favoriteBtn")
-        .onclick =
-        function() {
-
-            toggleFavorite(
-                person.id
-            );
-
-            showBillionaireDetails(
-                person
-            );
-
-        };
 
 
     setupNavigation();
 }
 
 
-/* ==============================
+/* =========================================
    COMPANIES
-============================== */
+========================================= */
 
 function showCompanies() {
 
@@ -1001,17 +926,23 @@ function showCompanies() {
             </h1>
 
             <p>
-                Global businesses
+                Major global businesses
             </p>
+
 
             <input
                 id="companySearch"
+                type="search"
                 placeholder="🔎 Search company"
             >
 
-            <div id="companyList"></div>
+
+            <div
+                id="companyList"
+            ></div>
 
         </div>
+
 
         ${navigation("companies")}
 
@@ -1019,7 +950,9 @@ function showCompanies() {
 
 
     document
-        .getElementById("companySearch")
+        .getElementById(
+            "companySearch"
+        )
         .oninput =
         renderCompanies;
 
@@ -1032,12 +965,27 @@ function showCompanies() {
 
 function renderCompanies() {
 
-    const query =
+    const search =
         document
-        .getElementById("companySearch")
+        .getElementById(
+            "companySearch"
+        )
         .value
         .toLowerCase()
         .trim();
+
+
+    const list =
+        data.companies.filter(
+            company => {
+
+                return JSON.stringify(
+                    company
+                )
+                .toLowerCase()
+                .includes(search);
+            }
+        );
 
 
     const container =
@@ -1046,418 +994,106 @@ function renderCompanies() {
         );
 
 
-    container.innerHTML = "";
+    if (!list.length) {
 
-
-    companies
-        .filter(company =>
-
-            (
-                company.name +
-                company.sector +
-                company.founder
-            )
-            .toLowerCase()
-            .includes(query)
-
-        )
-        .forEach(company => {
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-
-            card.className = "card";
-
-
-            card.innerHTML = `
-
-                <div class="card-title">
-                    🏢 ${company.name}
-                </div>
-
-                <div class="card-subtitle">
-                    ${company.sector}
-                </div>
-
-                <p>
-                    Founder / Leader:
-                    ${company.founder}
-                </p>
-
-            `;
-
-
-            container.appendChild(card);
-
-        });
-}
-
-
-/* ==============================
-   SEARCH
-============================== */
-
-function showGlobalSearch() {
-
-    app.innerHTML = `
-
-        <div class="container">
-
-            <button
-                class="back-btn"
-                id="backHome"
-            >
-                ← Home
-            </button>
-
-            <h1>
-                Search
-            </h1>
-
-            <p>
-                Search WorldElite
-            </p>
-
-            <input
-                id="globalSearch"
-                placeholder="🔎 Search people or companies"
-            >
-
-            <div id="globalResults"></div>
-
-        </div>
-
-        ${navigation("home")}
-
-    `;
-
-
-    document
-        .getElementById("backHome")
-        .onclick =
-        showHome;
-
-
-    document
-        .getElementById("globalSearch")
-        .oninput =
-        renderGlobalResults;
-
-
-    renderGlobalResults();
-
-    setupNavigation();
-}
-
-
-function renderGlobalResults() {
-
-    const query =
-        document
-        .getElementById("globalSearch")
-        .value
-        .toLowerCase()
-        .trim();
-
-
-    const results =
-        document.getElementById(
-            "globalResults"
-        );
-
-
-    results.innerHTML = "";
-
-
-    if (!query) {
-
-        results.innerHTML = `
-
+        container.innerHTML = `
             <div class="empty">
-
                 <p>
-                    Start typing to search.
+                    No companies found.
                 </p>
-
             </div>
-
         `;
 
         return;
     }
 
 
-    billionaires
-        .filter(person =>
+    container.innerHTML =
+        list
+        .map(
+            company => `
 
-            (
-                person.name +
-                person.company +
-                person.country
-            )
-            .toLowerCase()
-            .includes(query)
+                <div class="card">
 
+                    <div class="card-title">
+                        🏢
+                        ${
+                            escapeHTML(
+                                company.name ||
+                                "Company"
+                            )
+                        }
+                    </div>
+
+                    <div class="card-subtitle">
+                        ${
+                            escapeHTML(
+                                company.sector ||
+                                company.industry ||
+                                ""
+                            )
+                        }
+                    </div>
+
+                    <p>
+                        ${
+                            escapeHTML(
+                                company.founder ||
+                                company.ceo ||
+                                ""
+                            )
+                        }
+                    </p>
+
+                </div>
+
+            `
         )
-        .forEach(person => {
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-
-            card.className =
-                "card clickable";
-
-
-            card.innerHTML = `
-
-                <div class="card-title">
-                    ${person.flag}
-                    ${person.name}
-                </div>
-
-                <div class="card-subtitle">
-                    ${person.company}
-                </div>
-
-                <div class="money">
-                    ${person.netWorth}
-                </div>
-
-            `;
-
-
-            card.onclick =
-                () =>
-                    showBillionaireDetails(
-                        person
-                    );
-
-
-            results.appendChild(card);
-
-        });
-
-
-    companies
-        .filter(company =>
-
-            (
-                company.name +
-                company.sector +
-                company.founder
-            )
-            .toLowerCase()
-            .includes(query)
-
-        )
-        .forEach(company => {
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-
-            card.className = "card";
-
-
-            card.innerHTML = `
-
-                <div class="card-title">
-                    🏢 ${company.name}
-                </div>
-
-                <div class="card-subtitle">
-                    ${company.sector}
-                </div>
-
-                <p>
-                    ${company.founder}
-                </p>
-
-            `;
-
-
-            results.appendChild(card);
-
-        });
-
+        .join("");
 }
 
 
-/* ==============================
-   NEWS
-============================== */
+/* =========================================
+   FAVORITES
+========================================= */
 
-function showNews() {
+function toggleFavorite(id) {
 
-    app.innerHTML = `
-
-        <div class="container">
-
-            <h1>
-                News
-            </h1>
-
-            <p>
-                Business & wealth intelligence
-            </p>
-
-            <div class="card">
-
-                <div class="card-title">
-                    📰 WorldElite News
-                </div>
-
-                <p>
-                    News integration will be
-                    connected to live data.
-                </p>
-
-            </div>
-
-            <div class="card">
-
-                <div class="card-title">
-                    💰 Wealth
-                </div>
-
-                <p>
-                    Track global wealth
-                    and rankings.
-                </p>
-
-            </div>
-
-        </div>
-
-        ${navigation("home")}
-
-    `;
-
-    setupNavigation();
-}
+    id = Number(id);
 
 
-/* ==============================
-   PROFILE
-============================== */
+    if (
+        favorites.includes(id)
+    ) {
 
-function showProfile() {
-
-    app.innerHTML = `
-
-        <div class="container">
-
-            <div class="profile-card">
-
-                <div class="profile-icon">
-                    👤
-                </div>
-
-                <h1>
-                    ${currentUser || "Guest"}
-                </h1>
-
-                <p>
-                    WorldElite Member
-                </p>
-
-            </div>
-
-            <div class="stat-grid">
-
-                <div class="stat">
-
-                    <div class="stat-number">
-                        ${favorites.length}
-                    </div>
-
-                    <div class="stat-label">
-                        Favorites
-                    </div>
-
-                </div>
-
-                <div class="stat">
-
-                    <div class="stat-number">
-                        ${billionaires.length}
-                    </div>
-
-                    <div class="stat-label">
-                        People
-                    </div>
-
-                </div>
-
-            </div>
-
-            <br>
-
-            <button id="favoritesBtn">
-                ⭐ My Favorites
-            </button>
-
-            <br>
-
-            <button
-                id="logoutBtn"
-                class="secondary-btn"
-            >
-                LOG OUT
-            </button>
-
-        </div>
-
-        ${navigation("profile")}
-
-    `;
-
-
-    document
-        .getElementById("favoritesBtn")
-        .onclick =
-        showFavorites;
-
-
-    document
-        .getElementById("logoutBtn")
-        .onclick =
-        function() {
-
-            localStorage.removeItem(
-                "worldEliteUser"
+        favorites =
+            favorites.filter(
+                item =>
+                    item !== id
             );
 
-            currentUser = "";
+    } else {
 
-            showLogin();
+        favorites.push(id);
+    }
 
-        };
 
-
-    setupNavigation();
+    localStorage.setItem(
+        "worldEliteFavorites",
+        JSON.stringify(
+            favorites
+        )
+    );
 }
 
-
-/* ==============================
-   FAVORITES
-============================== */
 
 function showFavorites() {
 
     const list =
-        billionaires.filter(
+        data.billionaires.filter(
             person =>
                 favorites.includes(
-                    person.id
+                    Number(person.id)
                 )
         );
 
@@ -1474,9 +1110,11 @@ function showFavorites() {
                 Your saved people
             </p>
 
+
             <div id="favoriteList"></div>
 
         </div>
+
 
         ${navigation("profile")}
 
@@ -1489,7 +1127,7 @@ function showFavorites() {
         );
 
 
-    if (list.length === 0) {
+    if (!list.length) {
 
         container.innerHTML = `
 
@@ -1499,9 +1137,10 @@ function showFavorites() {
                     No favorites yet.
                 </p>
 
-                <br>
-
-                <button id="exploreBtn">
+                <button
+                    class="primary-btn"
+                    onclick="showBillionaires()"
+                >
                     Explore Rankings
                 </button>
 
@@ -1509,96 +1148,134 @@ function showFavorites() {
 
         `;
 
-
-        document
-            .getElementById("exploreBtn")
-            .onclick =
-            showBillionaires;
-
-
         setupNavigation();
 
         return;
     }
 
 
-    list.forEach(person => {
-
-        const card =
-            document.createElement(
-                "div"
-            );
-
-
-        card.className =
-            "card clickable";
-
-
-        card.innerHTML = `
-
-            <div class="card-title">
-                ${person.flag}
-                ${person.name}
-            </div>
-
-            <div class="money">
-                ${person.netWorth}
-            </div>
-
-            <p>
-                ${person.company}
-            </p>
-
-        `;
-
-
-        card.onclick =
-            () =>
-                showBillionaireDetails(
-                    person
-                );
-
-
-        container.appendChild(card);
-
-    });
+    container.innerHTML =
+        list
+        .map(
+            (person, index) =>
+                billionaireCard(
+                    person,
+                    index
+                )
+        )
+        .join("");
 
 
     setupNavigation();
 }
 
 
-/* ==============================
-   FAVORITE SYSTEM
-============================== */
+/* =========================================
+   PROFILE
+========================================= */
 
-function toggleFavorite(id) {
+function showProfile() {
 
-    if (favorites.includes(id)) {
+    app.innerHTML = `
 
-        favorites =
-            favorites.filter(
-                item =>
-                    item !== id
-            );
+        <div class="container">
 
-    } else {
+            <div class="profile-card">
 
-        favorites.push(id);
-
-    }
+                <div class="profile-icon">
+                    👤
+                </div>
 
 
-    localStorage.setItem(
-        "worldEliteFavorites",
-        JSON.stringify(favorites)
-    );
+                <h1>
+                    ${
+                        escapeHTML(
+                            currentUser ||
+                            "Guest"
+                        )
+                    }
+                </h1>
+
+
+                <p>
+                    WorldElite Member
+                </p>
+
+            </div>
+
+
+            <div class="stat-grid">
+
+                <div class="stat">
+
+                    <div class="stat-number">
+                        ${favorites.length}
+                    </div>
+
+                    <div class="stat-label">
+                        Favorites
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div class="stat-number">
+                        ${data.billionaires.length}
+                    </div>
+
+                    <div class="stat-label">
+                        Billionaires
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <button
+                class="primary-btn"
+                onclick="showFavorites()"
+            >
+                ⭐ My Favorites
+            </button>
+
+
+            <button
+                class="secondary-btn"
+                onclick="logout()"
+            >
+                LOG OUT
+            </button>
+
+        </div>
+
+
+        ${navigation("profile")}
+
+    `;
+
+
+    setupNavigation();
 }
 
 
-/* ==============================
+function logout() {
+
+    localStorage.removeItem(
+        "worldEliteUser"
+    );
+
+    currentUser = "";
+
+    showStart();
+}
+
+
+/* =========================================
    NAVIGATION
-============================== */
+========================================= */
 
 function navigation(active) {
 
@@ -1607,62 +1284,86 @@ function navigation(active) {
         <div class="bottom-nav">
 
             <button
-                class="nav-item ${
-                    active === "home"
-                    ? "active"
-                    : ""
-                }"
+                class="
+                    nav-item
+                    ${
+                        active === "home"
+                        ? "active"
+                        : ""
+                    }
+                "
                 data-nav="home"
             >
+
                 <span class="nav-icon">
                     🏠
                 </span>
+
                 Home
+
             </button>
 
 
             <button
-                class="nav-item ${
-                    active === "billionaires"
-                    ? "active"
-                    : ""
-                }"
+                class="
+                    nav-item
+                    ${
+                        active === "billionaires"
+                        ? "active"
+                        : ""
+                    }
+                "
                 data-nav="billionaires"
             >
+
                 <span class="nav-icon">
                     🏆
                 </span>
+
                 Rankings
+
             </button>
 
 
             <button
-                class="nav-item ${
-                    active === "companies"
-                    ? "active"
-                    : ""
-                }"
+                class="
+                    nav-item
+                    ${
+                        active === "companies"
+                        ? "active"
+                        : ""
+                    }
+                "
                 data-nav="companies"
             >
+
                 <span class="nav-icon">
                     🏢
                 </span>
+
                 Companies
+
             </button>
 
 
             <button
-                class="nav-item ${
-                    active === "profile"
-                    ? "active"
-                    : ""
-                }"
+                class="
+                    nav-item
+                    ${
+                        active === "profile"
+                        ? "active"
+                        : ""
+                    }
+                "
                 data-nav="profile"
             >
+
                 <span class="nav-icon">
                     👤
                 </span>
+
                 Profile
+
             </button>
 
         </div>
@@ -1674,29 +1375,294 @@ function navigation(active) {
 function setupNavigation() {
 
     document
-        .querySelectorAll("[data-nav]")
-        .forEach(button => {
+        .querySelectorAll(
+            "[data-nav]"
+        )
+        .forEach(
+            button => {
 
-            button.onclick =
-                function() {
+                button.onclick =
+                    function () {
 
-                    const page =
-                        button.dataset.nav;
+                        const page =
+                            button.dataset.nav;
 
 
-                    if (page === "home")
-                        showHome();
+                        if (
+                            page === "home"
+                        ) {
 
-                    if (page === "billionaires")
-                        showBillionaires();
+                            showHome();
 
-                    if (page === "companies")
-                        showCompanies();
+                        }
 
-                    if (page === "profile")
-                        showProfile();
 
-                };
+                        if (
+                            page ===
+                            "billionaires"
+                        ) {
 
-        });
+                            showBillionaires();
+
+                        }
+
+
+                        if (
+                            page ===
+                            "companies"
+                        ) {
+
+                            showCompanies();
+
+                        }
+
+
+                        if (
+                            page ===
+                            "profile"
+                        ) {
+
+                            showProfile();
+
+                        }
+
+                    };
+            }
+        );
 }
+
+
+/* =========================================
+   DATA
+========================================= */
+
+async function loadData() {
+
+    try {
+
+        const response =
+            await fetch(
+                DATA_URL,
+                {
+                    cache: "no-store"
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "data.json could not be loaded"
+            );
+        }
+
+
+        const json =
+            await response.json();
+
+
+        if (
+            Array.isArray(json)
+        ) {
+
+            data.billionaires =
+                json;
+
+        } else {
+
+            data =
+                {
+                    billionaires:
+                        json.billionaires ||
+                        [],
+
+                    companies:
+                        json.companies ||
+                        [],
+
+                    countries:
+                        json.countries ||
+                        []
+                };
+        }
+
+
+        console.log(
+            "WorldElite data loaded."
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Data error:",
+            error
+        );
+
+        data = {
+            billionaires: [],
+            companies: [],
+            countries: []
+        };
+    }
+}
+
+
+/* =========================================
+   HELPERS
+========================================= */
+
+function getWorth(person) {
+
+    if (!person) return 0;
+
+    return parseFloat(
+        String(
+            person.netWorth ||
+            person.worth ||
+            0
+        )
+        .replace(/[^0-9.]/g, "")
+    ) || 0;
+}
+
+
+function formatMoney(value) {
+
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
+
+        return "—";
+    }
+
+
+    if (
+        typeof value === "string" &&
+        (
+            value.includes("$") ||
+            value.includes("€") ||
+            value.includes("£") ||
+            value.includes("B") ||
+            value.includes("M")
+        )
+    ) {
+
+        return escapeHTML(value);
+    }
+
+
+    const number =
+        Number(value);
+
+
+    if (isNaN(number)) {
+
+        return escapeHTML(
+            String(value)
+        );
+    }
+
+
+    if (
+        number >=
+        1000000000000
+    ) {
+
+        return (
+            "$" +
+            (
+                number /
+                1000000000000
+            ).toFixed(2) +
+            "T"
+        );
+    }
+
+
+    if (
+        number >=
+        1000000000
+    ) {
+
+        return (
+            "$" +
+            (
+                number /
+                1000000000
+            ).toFixed(2) +
+            "B"
+        );
+    }
+
+
+    if (
+        number >=
+        1000000
+    ) {
+
+        return (
+            "$" +
+            (
+                number /
+                1000000
+            ).toFixed(2) +
+            "M"
+        );
+    }
+
+
+    return (
+        "$" +
+        number.toLocaleString(
+            "en-US"
+        )
+    );
+}
+
+
+function escapeHTML(value) {
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+}
+
+
+/* =========================================
+   LOAD DATA THEN SHOW START
+========================================= */
+
+loadData()
+    .then(
+        () => {
+
+            showStart();
+
+        }
+    );
