@@ -1101,4 +1101,4 @@ function setupNavigation() {
                     showProfile();
             };
         });
-}
+}loadLiveData();
