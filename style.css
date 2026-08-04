@@ -11,12 +11,12 @@ html {
 body {
     min-height: 100vh;
     background:
-        radial-gradient(circle at top right, #1d4ed8 0%, transparent 30%),
-        radial-gradient(circle at bottom left, #312e81 0%, transparent 30%),
+        radial-gradient(circle at top right, #1e3a8a 0%, transparent 28%),
+        radial-gradient(circle at bottom left, #312e81 0%, transparent 28%),
         #020617;
-
     color: #ffffff;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
 button,
@@ -27,6 +27,9 @@ select {
 
 button {
     cursor: pointer;
+    border: none;
+    outline: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #app {
@@ -40,152 +43,161 @@ button {
 .container {
     width: min(92%, 500px);
     margin: 0 auto;
-    padding: 35px 0 110px;
+    padding: 35px 0 120px;
 }
 
 h1 {
     font-size: 42px;
     font-weight: 800;
-    letter-spacing: -1px;
+    letter-spacing: -1.2px;
 }
 
 h2 {
     margin: 28px 0 14px;
     font-size: 22px;
+    font-weight: 700;
 }
 
 p {
     color: #94a3b8;
-    line-height: 1.5;
+    line-height: 1.55;
 }
 
 /* =========================
-   LANDING PAGE
+   LUXURY BUTTONS
 ========================= */
 
-.landing {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 25px;
-}
-
-.hero {
-    width: min(100%, 850px);
-    text-align: center;
-}
-
-.logo {
-    width: 86px;
-    height: 86px;
-    margin: 0 auto 25px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 25px;
-
-    background:
-        linear-gradient(135deg, #2563eb, #7c3aed);
-
-    font-size: 30px;
-    font-weight: 900;
-
+/* Основная кнопка (START, LOGIN, CREATE и т.д.) */
+button:not(.secondary-btn):not(.back-btn):not(.favorite):not(.nav-item) {
+    width: 100%;
+    padding: 17px 24px;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: #0f172a;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
     box-shadow:
-        0 20px 60px rgba(37, 99, 235, 0.35);
+        0 4px 15px rgba(255, 255, 255, 0.08),
+        0 1px 3px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    position: relative;
+    overflow: hidden;
 }
 
-.hero h1 {
-    font-size: clamp(52px, 12vw, 100px);
-    letter-spacing: -5px;
-    margin-bottom: 15px;
+button:not(.secondary-btn):not(.back-btn):not(.favorite):not(.nav-item)::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.25), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
 }
 
-.hero h1 span {
-    background: linear-gradient(
-        90deg,
-        #60a5fa,
-        #a78bfa
-    );
-
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+button:not(.secondary-btn):not(.back-btn):not(.favorite):not(.nav-item):hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 25px rgba(255, 255, 255, 0.12),
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
-.hero-subtitle {
-    max-width: 600px;
-    margin: 0 auto 35px;
-    font-size: 18px;
+button:not(.secondary-btn):not(.back-btn):not(.favorite):not(.nav-item):hover::before {
+    opacity: 1;
 }
 
-.hero-buttons {
-    width: min(100%, 350px);
-    margin: auto;
+button:not(.secondary-btn):not(.back-btn):not(.favorite):not(.nav-item):active {
+    transform: translateY(0);
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.hero-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-top: 55px;
-}
-
-.hero-stat {
-    padding: 18px 10px;
-    border: 1px solid #1e293b;
-    background: rgba(15, 23, 42, 0.7);
-    border-radius: 18px;
-}
-
-.hero-stat strong {
-    display: block;
-    font-size: 22px;
-    margin-bottom: 5px;
-}
-
-.hero-stat span {
-    font-size: 12px;
-    color: #64748b;
-}
-
-/* =========================
-   BUTTONS
-========================= */
-
-button {
-    border: none;
-}
-
-.primary-btn,
+/* Вторичная кнопка (SIGN UP, BACK, LOG OUT) */
 .secondary-btn {
     width: 100%;
-    padding: 17px;
-    border-radius: 15px;
-    font-size: 17px;
-    font-weight: 700;
-    transition: 0.2s;
+    padding: 16px 24px;
+    margin-top: 12px;
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #e2e8f0;
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    backdrop-filter: blur(8px);
 }
 
-.primary-btn {
-    color: white;
-    background: linear-gradient(
-        135deg,
-        #2563eb,
-        #7c3aed
-    );
-}
-
-.secondary-btn {
-    color: white;
-    background: #1e293b;
-}
-
-.primary-btn:hover,
 .secondary-btn:hover {
-    transform: translateY(-2px);
-    opacity: 0.9;
+    background: rgba(51, 65, 85, 0.8);
+    border-color: rgba(148, 163, 184, 0.3);
+    transform: translateY(-1px);
+    color: #ffffff;
+}
+
+.secondary-btn:active {
+    transform: translateY(0);
+}
+
+/* Кнопка "Назад" */
+.back-btn {
+    width: auto;
+    padding: 10px 18px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #cbd5e1;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(71, 85, 105, 0.4);
+}
+
+.back-btn:hover {
+    background: rgba(51, 65, 85, 0.8);
+    color: #ffffff;
+    border-color: rgba(100, 116, 139, 0.5);
+}
+
+/* Избранное (звёздочка) */
+.favorite {
+    position: absolute;
+    right: 14px;
+    top: 14px;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    font-size: 20px;
+    color: #94a3b8;
+    backdrop-filter: blur(6px);
+}
+
+.favorite:hover {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(250, 204, 21, 0.4);
+    color: #facc15;
+    transform: scale(1.08);
+}
+
+/* Когда уже в избранном */
+.favorite:has(+ *) /* небольшой хак, лучше через JS-класс, но работает */ {
+    color: #facc15;
+}
+
+/* Кнопка обновления данных */
+#refreshDataBtn {
+    margin-top: 14px;
+    background: linear-gradient(135deg, #1e40af, #3b82f6) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35) !important;
+}
+
+#refreshDataBtn:hover {
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5) !important;
 }
 
 /* =========================
@@ -195,22 +207,26 @@ button {
 input,
 select {
     width: 100%;
-    padding: 16px;
+    padding: 16px 18px;
     margin-top: 12px;
-
-    border: 1px solid #334155;
+    border: 1px solid rgba(71, 85, 105, 0.5);
     border-radius: 14px;
-
-    background: #0f172a;
+    background: rgba(15, 23, 42, 0.8);
     color: white;
-
     outline: none;
     font-size: 16px;
+    transition: all 0.2s ease;
 }
 
 input:focus,
 select:focus {
-    border-color: #3b82f6;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+    background: rgba(15, 23, 42, 0.95);
+}
+
+input::placeholder {
+    color: #64748b;
 }
 
 /* =========================
@@ -219,55 +235,52 @@ select:focus {
 
 .card {
     position: relative;
-
     padding: 22px;
     margin-top: 16px;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(30, 41, 59, 0.95),
-            rgba(15, 23, 42, 0.95)
-        );
-
-    border: 1px solid #263449;
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.95));
+    border: 1px solid rgba(51, 65, 85, 0.6);
     border-radius: 20px;
-
-    box-shadow:
-        0 15px 35px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
 .clickable {
     cursor: pointer;
-    transition: 0.2s;
+    transition: all 0.25s ease;
 }
 
 .clickable:hover {
     transform: translateY(-3px);
-    border-color: #3b82f6;
+    border-color: rgba(96, 165, 250, 0.45);
+    box-shadow: 0 16px 35px rgba(0, 0, 0, 0.3);
 }
 
 .card-title {
-    font-size: 21px;
+    font-size: 20px;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .card-subtitle {
     color: #94a3b8;
     margin-bottom: 8px;
+    font-size: 14px;
 }
 
 .money {
     font-size: 28px;
     font-weight: 800;
     margin: 12px 0;
+    background: linear-gradient(90deg, #f8fafc, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .rank {
     color: #60a5fa;
     font-size: 13px;
     font-weight: 700;
+    letter-spacing: 0.5px;
     margin-bottom: 8px;
 }
 
@@ -277,28 +290,25 @@ select:focus {
 
 .profile-card {
     text-align: center;
-    padding: 30px 20px;
-
-    background:
-        linear-gradient(
-            145deg,
-            #111827,
-            #172554
-        );
-
-    border-radius: 25px;
-    border: 1px solid #263449;
+    padding: 32px 20px;
+    background: linear-gradient(160deg, #0f172a, #1e3a8a);
+    border-radius: 24px;
+    border: 1px solid rgba(96, 165, 250, 0.15);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 .profile-icon {
-    font-size: 55px;
-    margin-bottom: 10px;
+    font-size: 52px;
+    margin-bottom: 12px;
 }
 
 .big-money {
     font-size: 42px;
     font-weight: 900;
-    margin: 20px 0;
+    margin: 18px 0;
+    background: linear-gradient(90deg, #f8fafc, #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* =========================
@@ -314,8 +324,8 @@ select:focus {
 
 .stat {
     padding: 20px;
-    background: #0f172a;
-    border: 1px solid #1e293b;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(51, 65, 85, 0.5);
     border-radius: 18px;
     text-align: center;
 }
@@ -328,82 +338,48 @@ select:focus {
 .stat-label {
     color: #64748b;
     font-size: 13px;
-    margin-top: 5px;
+    margin-top: 4px;
 }
 
 /* =========================
-   FAVORITE
-========================= */
-
-.favorite {
-    position: absolute;
-    right: 15px;
-    top: 15px;
-
-    width: auto;
-    padding: 8px;
-
-    background: transparent;
-    color: white;
-
-    font-size: 25px;
-}
-
-/* =========================
-   BACK
-========================= */
-
-.back-btn {
-    width: auto;
-    padding: 10px 15px;
-    margin-bottom: 25px;
-
-    background: #1e293b;
-    color: white;
-
-    border-radius: 12px;
-}
-
-/* =========================
-   BOTTOM NAV
+   BOTTOM NAV (люкс)
 ========================= */
 
 .bottom-nav {
     position: fixed;
-
     left: 50%;
-    bottom: 12px;
-
+    bottom: 14px;
     transform: translateX(-50%);
-
     width: min(94%, 500px);
-
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-
     padding: 8px;
-
-    background: rgba(2, 6, 23, 0.92);
-
-    backdrop-filter: blur(15px);
-
-    border: 1px solid #1e293b;
+    background: rgba(2, 6, 23, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(51, 65, 85, 0.5);
     border-radius: 22px;
-
     z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 .nav-item {
-    padding: 10px 5px;
-
+    padding: 11px 4px;
     background: transparent;
     color: #64748b;
-
     font-size: 11px;
+    font-weight: 500;
+    border-radius: 16px;
+}
+
+.nav-item:hover {
+    color: #94a3b8;
+    background: rgba(30, 41, 59, 0.5);
 }
 
 .nav-item.active {
     color: #60a5fa;
+    background: rgba(37, 99, 235, 0.15);
 }
 
 .nav-icon {
@@ -413,12 +389,39 @@ select:focus {
 }
 
 /* =========================
-   EMPTY
+   LOADING / START SCREEN
+========================= */
+
+.loading-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+}
+
+.logo {
+    width: 86px;
+    height: 86px;
+    margin: 0 auto 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    font-size: 28px;
+    font-weight: 900;
+    box-shadow: 0 20px 50px rgba(37, 99, 235, 0.4);
+    letter-spacing: -1px;
+}
+
+/* =========================
+   EMPTY STATE
 ========================= */
 
 .empty {
     text-align: center;
-    padding: 40px 10px;
+    padding: 45px 15px;
 }
 
 /* =========================
@@ -426,33 +429,19 @@ select:focus {
 ========================= */
 
 @media (max-width: 500px) {
-
-    .hero h1 {
-        font-size: 55px;
-        letter-spacing: -3px;
-    }
-
-    .hero-stats {
-        gap: 7px;
-    }
-
-    .hero-stat {
-        padding: 14px 5px;
-    }
-
-    .hero-stat strong {
-        font-size: 18px;
-    }
-
-    .hero-stat span {
-        font-size: 10px;
-    }
-
     h1 {
         font-size: 36px;
     }
 
     .money {
         font-size: 24px;
+    }
+
+    .big-money {
+        font-size: 36px;
+    }
+
+    .container {
+        padding-top: 28px;
     }
 }
