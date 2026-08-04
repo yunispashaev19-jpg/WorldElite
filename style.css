@@ -1,1668 +1,661 @@
-/* =========================================
-   WORLDELITE
-   MAIN APPLICATION
-========================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-const app = document.getElementById("app");
+html {
+    scroll-behavior: smooth;
+}
 
-const DATA_URL = "data.json";
+body {
+    background: #05070b;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+}
 
-let data = {
-    billionaires: [],
-    companies: [],
-    countries: []
-};
+button,
+input,
+select {
+    font-family: inherit;
+}
 
-let currentUser =
-    localStorage.getItem("worldEliteUser") || "";
+button {
+    cursor: pointer;
+}
 
-let favorites =
-    JSON.parse(
-        localStorage.getItem(
-            "worldEliteFavorites"
-        ) || "[]"
-    );
-
-
-/* =========================================
-   START
-========================================= */
-
-showStart();
+#app {
+    min-height: 100vh;
+}
 
 
-/* =========================================
+/* =========================
    START PAGE
-========================================= */
+========================= */
 
-function showStart() {
+.start-page {
+    min-height: 100vh;
 
-    app.innerHTML = `
-
-        <div class="start-page">
-
-            <header class="topbar">
-
-                <div class="logo">
-                    WorldElite
-                </div>
-
-                <div class="top-actions">
-
-                    <button
-                        onclick="showLogin()"
-                    >
-                        Log In
-                    </button>
-
-                    <button
-                        class="signup-btn"
-                        onclick="showSignUp()"
-                    >
-                        Sign Up
-                    </button>
-
-                </div>
-
-            </header>
-
-
-            <main class="hero">
-
-                <div class="hero-content">
-
-                    <div class="badge">
-                        GLOBAL WEALTH & BUSINESS
-                    </div>
-
-                    <h1>
-                        Explore the world's
-                        <span>
-                            most powerful
-                        </span>
-                        people & companies.
-                    </h1>
-
-                    <p>
-                        Discover billionaires,
-                        companies and global
-                        business intelligence
-                        in one place.
-                    </p>
-
-
-                    <div class="hero-buttons">
-
-                        <button
-                            class="primary-btn"
-                            onclick="showBillionaires()"
-                        >
-                            Explore Billionaires
-                        </button>
-
-
-                        <button
-                            class="secondary-btn"
-                            onclick="showCompanies()"
-                        >
-                            Explore Companies
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </main>
-
-
-            <section class="features">
-
-                <div class="feature-card">
-
-                    <div class="feature-icon">
-                        💰
-                    </div>
-
-                    <h3>
-                        Billionaires
-                    </h3>
-
-                    <p>
-                        Track the world's
-                        wealthiest people
-                        and their rankings.
-                    </p>
-
-                </div>
-
-
-                <div class="feature-card">
-
-                    <div class="feature-icon">
-                        🏢
-                    </div>
-
-                    <h3>
-                        Companies
-                    </h3>
-
-                    <p>
-                        Explore major global
-                        companies and
-                        business leaders.
-                    </p>
-
-                </div>
-
-
-                <div class="feature-card">
-
-                    <div class="feature-icon">
-                        📈
-                    </div>
-
-                    <h3>
-                        Intelligence
-                    </h3>
-
-                    <p>
-                        Follow wealth,
-                        business and
-                        global economic data.
-                    </p>
-
-                </div>
-
-            </section>
-
-
-            <footer>
-
-                <div>
-                    © 2026 WorldElite
-                </div>
-
-                <div>
-                    Global Wealth Intelligence
-                </div>
-
-            </footer>
-
-        </div>
-
-    `;
+    background:
+        radial-gradient(
+            circle at 50% 10%,
+            rgba(70, 90, 140, 0.22),
+            transparent 35%
+        ),
+        #05070b;
 }
 
 
-/* =========================================
-   LOGIN
-========================================= */
+/* =========================
+   TOP BAR
+========================= */
 
-function showLogin() {
+.topbar {
+    height: 80px;
+    padding: 0 7%;
 
-    app.innerHTML = `
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-        <div class="container">
+    border-bottom:
+        1px solid rgba(255,255,255,0.08);
+}
 
-            <h1>
-                Login
-            </h1>
+.logo {
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
 
-            <p>
-                Enter WorldElite
-            </p>
+.top-actions {
+    display: flex;
+    gap: 10px;
+}
 
+.top-actions button {
+    padding: 11px 20px;
 
-            <input
-                id="loginEmail"
-                type="email"
-                placeholder="Email"
-            >
+    border-radius: 10px;
 
+    background: transparent;
+    color: white;
 
-            <input
-                id="loginPassword"
-                type="password"
-                placeholder="Password"
-            >
+    border:
+        1px solid rgba(255,255,255,0.15);
 
+    font-size: 14px;
+}
 
-            <button
-                class="primary-btn"
-                id="loginBtn"
-            >
-                LOGIN
-            </button>
-
-
-            <button
-                class="secondary-btn"
-                id="backStartBtn"
-            >
-                BACK
-            </button>
-
-        </div>
-
-    `;
-
-
-    document
-        .getElementById("loginBtn")
-        .onclick = function () {
-
-            const email =
-                document
-                .getElementById("loginEmail")
-                .value
-                .trim();
-
-
-            if (!email) {
-
-                alert(
-                    "Please enter your email."
-                );
-
-                return;
-            }
-
-
-            currentUser = email;
-
-            localStorage.setItem(
-                "worldEliteUser",
-                currentUser
-            );
-
-
-            showHome();
-        };
-
-
-    document
-        .getElementById("backStartBtn")
-        .onclick = showStart;
+.top-actions .signup-btn {
+    background: white;
+    color: black;
 }
 
 
-/* =========================================
-   SIGN UP
-========================================= */
+/* =========================
+   HERO
+========================= */
 
-function showSignUp() {
+.hero {
+    min-height: 570px;
 
-    app.innerHTML = `
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
-        <div class="container">
+    text-align: center;
 
-            <h1>
-                Create Account
-            </h1>
+    padding: 60px 20px;
+}
 
-            <p>
-                Join WorldElite
-            </p>
+.hero-content {
+    width: 100%;
+    max-width: 850px;
+}
 
+.badge {
+    display: inline-block;
 
-            <input
-                id="signupName"
-                type="text"
-                placeholder="Name"
-            >
+    padding: 8px 15px;
 
+    border:
+        1px solid rgba(255,255,255,0.15);
 
-            <input
-                id="signupEmail"
-                type="email"
-                placeholder="Email"
-            >
+    border-radius: 50px;
 
+    color: #9da7b8;
 
-            <input
-                id="signupPassword"
-                type="password"
-                placeholder="Password"
-            >
+    font-size: 12px;
 
+    letter-spacing: 2px;
 
-            <button
-                class="primary-btn"
-                id="createAccountBtn"
-            >
-                CREATE ACCOUNT
-            </button>
+    margin-bottom: 25px;
+}
 
+.hero h1 {
+    font-size: clamp(42px, 8vw, 80px);
 
-            <button
-                class="secondary-btn"
-                id="backSignupBtn"
-            >
-                BACK
-            </button>
+    line-height: 1.02;
 
-        </div>
+    letter-spacing: -4px;
+}
 
-    `;
+.hero h1 span {
+    color: #8ea8ff;
+}
 
+.hero p {
+    max-width: 650px;
 
-    document
-        .getElementById(
-            "createAccountBtn"
-        )
-        .onclick = function () {
+    margin: 28px auto;
 
-            const name =
-                document
-                .getElementById("signupName")
-                .value
-                .trim();
+    color: #9da5b4;
 
+    font-size: 18px;
 
-            const email =
-                document
-                .getElementById("signupEmail")
-                .value
-                .trim();
+    line-height: 1.6;
+}
 
+.hero-buttons {
+    display: flex;
 
-            if (!name || !email) {
+    justify-content: center;
 
-                alert(
-                    "Please enter your name and email."
-                );
+    gap: 15px;
 
-                return;
-            }
+    flex-wrap: wrap;
 
-
-            currentUser = name;
-
-            localStorage.setItem(
-                "worldEliteUser",
-                currentUser
-            );
-
-
-            showHome();
-        };
-
-
-    document
-        .getElementById(
-            "backSignupBtn"
-        )
-        .onclick = showStart;
+    margin-top: 35px;
 }
 
 
-/* =========================================
-   HOME
-========================================= */
+/* =========================
+   BUTTONS
+========================= */
 
-function showHome() {
+.primary-btn,
+.secondary-btn {
+    padding: 15px 25px;
 
-    const richest =
-        [...data.billionaires]
-        .sort(
-            (a, b) =>
-                getWorth(b) - getWorth(a)
-        )[0];
+    border-radius: 12px;
 
+    font-size: 15px;
 
-    app.innerHTML = `
+    font-weight: 600;
+}
 
-        <div class="container">
+.primary-btn {
+    background: white;
+    color: black;
 
-            <p>
-                WELCOME TO
-            </p>
+    border: none;
+}
 
-            <h1>
-                WorldElite
-            </h1>
+.secondary-btn {
+    background: transparent;
 
-            <p>
-                Global wealth and
-                business intelligence.
-            </p>
+    color: white;
 
-
-            ${
-                richest
-                ? `
-                    <div class="card">
-
-                        <div class="rank">
-                            #1 RICHEST
-                        </div>
-
-                        <div class="card-title">
-                            ${richest.flag || "🌍"}
-                            ${escapeHTML(
-                                richest.name || "Unknown"
-                            )}
-                        </div>
-
-                        <div class="money">
-                            ${formatMoney(
-                                richest.netWorth
-                            )}
-                        </div>
-
-                        <p>
-                            ${
-                                escapeHTML(
-                                    richest.company || ""
-                                )
-                            }
-                        </p>
-
-                    </div>
-                `
-                : ""
-            }
-
-
-            <div class="stat-grid">
-
-                <div class="stat">
-
-                    <div class="stat-number">
-                        ${data.billionaires.length}
-                    </div>
-
-                    <div class="stat-label">
-                        Billionaires
-                    </div>
-
-                </div>
-
-
-                <div class="stat">
-
-                    <div class="stat-number">
-                        ${data.companies.length}
-                    </div>
-
-                    <div class="stat-label">
-                        Companies
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div
-                class="card clickable"
-                onclick="showBillionaires()"
-            >
-
-                <div class="card-title">
-                    🏆 Billionaires
-                </div>
-
-                <p>
-                    Explore global wealth rankings.
-                </p>
-
-            </div>
-
-
-            <div
-                class="card clickable"
-                onclick="showCompanies()"
-            >
-
-                <div class="card-title">
-                    🏢 Companies
-                </div>
-
-                <p>
-                    Explore major global companies.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        ${navigation("home")}
-
-    `;
-
-
-    setupNavigation();
+    border:
+        1px solid rgba(255,255,255,0.18);
 }
 
 
-/* =========================================
-   BILLIONAIRES
-========================================= */
+/* =========================
+   FEATURES
+========================= */
 
-function showBillionaires() {
+.features {
+    width: 100%;
 
-    app.innerHTML = `
+    max-width: 1100px;
 
-        <div class="container">
+    margin: auto;
 
-            <h1>
-                Billionaires
-            </h1>
+    padding: 20px 25px 80px;
 
-            <p>
-                World's wealthiest people
-            </p>
+    display: grid;
 
+    grid-template-columns:
+        repeat(3, 1fr);
 
-            <input
-                id="billionaireSearch"
-                type="search"
-                placeholder="🔎 Search billionaire"
-            >
+    gap: 18px;
+}
 
+.feature-card {
+    padding: 28px;
 
-            <div
-                id="billionaireList"
-            ></div>
+    background:
+        rgba(255,255,255,0.035);
 
-        </div>
+    border:
+        1px solid rgba(255,255,255,0.08);
 
+    border-radius: 18px;
+}
 
-        ${navigation("billionaires")}
+.feature-icon {
+    font-size: 30px;
 
-    `;
+    margin-bottom: 15px;
+}
 
+.feature-card h3 {
+    margin-bottom: 10px;
 
-    document
-        .getElementById(
-            "billionaireSearch"
-        )
-        .oninput =
-        renderBillionaires;
+    font-size: 20px;
+}
 
+.feature-card p {
+    margin: 0;
 
-    renderBillionaires();
+    color: #8f98a8;
 
-    setupNavigation();
+    line-height: 1.5;
 }
 
 
-function renderBillionaires() {
+/* =========================
+   FOOTER
+========================= */
 
-    const search =
-        document
-        .getElementById(
-            "billionaireSearch"
-        )
-        .value
-        .toLowerCase()
-        .trim();
+footer {
+    padding: 25px 7%;
 
+    display: flex;
 
-    let people =
-        [...data.billionaires];
+    justify-content: space-between;
 
+    color: #697180;
 
-    people =
-        people.filter(
-            person => {
+    font-size: 13px;
 
-                const text =
-                    JSON.stringify(person)
-                    .toLowerCase();
-
-
-                return text.includes(search);
-            }
-        );
-
-
-    people.sort(
-        (a, b) =>
-            getWorth(b) - getWorth(a)
-    );
-
-
-    const container =
-        document.getElementById(
-            "billionaireList"
-        );
-
-
-    if (!people.length) {
-
-        container.innerHTML = `
-            <div class="empty">
-                <p>
-                    No billionaires found.
-                </p>
-            </div>
-        `;
-
-        return;
-    }
-
-
-    container.innerHTML =
-        people
-        .map(
-            (person, index) =>
-                billionaireCard(
-                    person,
-                    index
-                )
-        )
-        .join("");
-
-
-    document
-        .querySelectorAll(
-            "[data-person-id]"
-        )
-        .forEach(
-            card => {
-
-                card.onclick =
-                    function () {
-
-                        const id =
-                            Number(
-                                card.dataset
-                                .personId
-                            );
-
-
-                        const person =
-                            data.billionaires
-                            .find(
-                                item =>
-                                    Number(
-                                        item.id
-                                    ) === id
-                            );
-
-
-                        if (person) {
-
-                            showBillionaireDetails(
-                                person
-                            );
-                        }
-                    };
-            }
-        );
+    border-top:
+        1px solid rgba(255,255,255,0.08);
 }
 
 
-function billionaireCard(
-    person,
-    index
-) {
+/* =========================
+   APP CONTAINER
+========================= */
 
-    const id =
-        Number(
-            person.id ??
-            index + 1
-        );
+.container {
+    width: 92%;
 
+    max-width: 850px;
 
-    const favorite =
-        favorites.includes(id);
+    margin: 0 auto;
 
+    padding: 40px 0 120px;
+}
 
-    return `
+.container h1 {
+    font-size: 42px;
 
-        <div
-            class="card clickable"
-            data-person-id="${id}"
-        >
+    margin-bottom: 10px;
+}
 
-            <button
-                class="favorite"
-                data-favorite="${id}"
-                onclick="
-                    event.stopPropagation();
-                    toggleFavorite(${id});
-                    renderBillionaires();
-                "
-            >
-                ${
-                    favorite
-                    ? "⭐"
-                    : "☆"
-                }
-            </button>
+.container > p {
+    color: #9da5b4;
 
-
-            <div class="rank">
-                #${index + 1}
-            </div>
-
-
-            <div class="card-title">
-
-                ${
-                    person.flag ||
-                    "🌍"
-                }
-
-                ${
-                    escapeHTML(
-                        person.name ||
-                        "Unknown"
-                    )
-                }
-
-            </div>
-
-
-            <div class="card-subtitle">
-
-                ${
-                    escapeHTML(
-                        person.company ||
-                        ""
-                    )
-                }
-
-            </div>
-
-
-            <div class="money">
-
-                ${
-                    formatMoney(
-                        person.netWorth
-                    )
-                }
-
-            </div>
-
-
-            <p>
-
-                ${
-                    escapeHTML(
-                        person.country ||
-                        ""
-                    )
-                }
-
-            </p>
-
-        </div>
-
-    `;
+    margin-bottom: 25px;
 }
 
 
-/* =========================================
-   DETAILS
-========================================= */
+/* =========================
+   INPUTS
+========================= */
 
-function showBillionaireDetails(
-    person
-) {
+input,
+select {
+    width: 100%;
 
-    const id =
-        Number(person.id);
+    padding: 15px;
 
+    margin-bottom: 15px;
 
-    const favorite =
-        favorites.includes(id);
+    border-radius: 12px;
 
+    border:
+        1px solid rgba(255,255,255,0.1);
 
-    app.innerHTML = `
+    background: #11151d;
 
-        <div class="container">
+    color: white;
 
-            <button
-                class="secondary-btn"
-                onclick="showBillionaires()"
-            >
-                ← Rankings
-            </button>
+    outline: none;
 
+    font-size: 16px;
+}
 
-            <div class="profile-card">
-
-                <div class="profile-icon">
-                    ${
-                        person.flag ||
-                        "🌍"
-                    }
-                </div>
-
-
-                <h1>
-                    ${
-                        escapeHTML(
-                            person.name ||
-                            "Unknown"
-                        )
-                    }
-                </h1>
-
-
-                <p>
-                    ${
-                        escapeHTML(
-                            person.country ||
-                            ""
-                        )
-                    }
-                </p>
-
-
-                <div class="big-money">
-                    ${
-                        formatMoney(
-                            person.netWorth
-                        )
-                    }
-                </div>
-
-
-                <p>
-                    Estimated Net Worth
-                </p>
-
-
-                <p>
-                    🏢
-                    ${
-                        escapeHTML(
-                            person.company ||
-                            ""
-                        )
-                    }
-                </p>
-
-
-                <button
-                    class="primary-btn"
-                    onclick="
-                        toggleFavorite(${id});
-                        showBillionaireDetails(
-                            ${JSON.stringify(person).replace(/"/g, "&quot;")}
-                        );
-                    "
-                >
-                    ${
-                        favorite
-                        ? "⭐ Remove Favorite"
-                        : "☆ Add Favorite"
-                    }
-                </button>
-
-            </div>
-
-        </div>
-
-
-        ${navigation("billionaires")}
-
-    `;
-
-
-    setupNavigation();
+input:focus,
+select:focus {
+    border-color: #7188ff;
 }
 
 
-/* =========================================
-   COMPANIES
-========================================= */
+/* =========================
+   CARDS
+========================= */
 
-function showCompanies() {
+.card {
+    position: relative;
 
-    app.innerHTML = `
+    padding: 22px;
 
-        <div class="container">
+    margin: 16px 0;
 
-            <h1>
-                Companies
-            </h1>
+    border-radius: 18px;
 
-            <p>
-                Major global businesses
-            </p>
+    background: #11151d;
 
+    border:
+        1px solid rgba(255,255,255,0.08);
 
-            <input
-                id="companySearch"
-                type="search"
-                placeholder="🔎 Search company"
-            >
+    transition: 0.2s;
+}
 
+.card:hover {
+    transform: translateY(-2px);
 
-            <div
-                id="companyList"
-            ></div>
+    border-color:
+        rgba(255,255,255,0.18);
+}
 
-        </div>
+.clickable {
+    cursor: pointer;
+}
 
+.card-title {
+    font-size: 21px;
 
-        ${navigation("companies")}
+    font-weight: 700;
 
-    `;
+    margin-bottom: 8px;
+}
 
+.card-subtitle {
+    color: #8f98a8;
 
-    document
-        .getElementById(
-            "companySearch"
-        )
-        .oninput =
-        renderCompanies;
+    margin-bottom: 10px;
+}
 
+.money {
+    font-size: 27px;
 
-    renderCompanies();
+    font-weight: 800;
 
-    setupNavigation();
+    margin: 8px 0;
+}
+
+.rank {
+    color: #8ea8ff;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    margin-bottom: 8px;
 }
 
 
-function renderCompanies() {
+/* =========================
+   RANKING
+========================= */
 
-    const search =
-        document
-        .getElementById(
-            "companySearch"
-        )
-        .value
-        .toLowerCase()
-        .trim();
+.controls {
+    display: grid;
 
+    grid-template-columns: 1fr 1fr;
 
-    const list =
-        data.companies.filter(
-            company => {
-
-                return JSON.stringify(
-                    company
-                )
-                .toLowerCase()
-                .includes(search);
-            }
-        );
-
-
-    const container =
-        document.getElementById(
-            "companyList"
-        );
-
-
-    if (!list.length) {
-
-        container.innerHTML = `
-            <div class="empty">
-                <p>
-                    No companies found.
-                </p>
-            </div>
-        `;
-
-        return;
-    }
-
-
-    container.innerHTML =
-        list
-        .map(
-            company => `
-
-                <div class="card">
-
-                    <div class="card-title">
-                        🏢
-                        ${
-                            escapeHTML(
-                                company.name ||
-                                "Company"
-                            )
-                        }
-                    </div>
-
-                    <div class="card-subtitle">
-                        ${
-                            escapeHTML(
-                                company.sector ||
-                                company.industry ||
-                                ""
-                            )
-                        }
-                    </div>
-
-                    <p>
-                        ${
-                            escapeHTML(
-                                company.founder ||
-                                company.ceo ||
-                                ""
-                            )
-                        }
-                    </p>
-
-                </div>
-
-            `
-        )
-        .join("");
+    gap: 12px;
 }
 
 
-/* =========================================
-   FAVORITES
-========================================= */
+/* =========================
+   FAVORITE
+========================= */
 
-function toggleFavorite(id) {
+.favorite {
+    position: absolute;
 
-    id = Number(id);
+    right: 15px;
 
+    top: 15px;
 
-    if (
-        favorites.includes(id)
-    ) {
+    width: auto;
 
-        favorites =
-            favorites.filter(
-                item =>
-                    item !== id
-            );
+    padding: 6px 10px;
 
-    } else {
+    border-radius: 10px;
 
-        favorites.push(id);
-    }
+    background: #1c2330;
 
+    color: white;
 
-    localStorage.setItem(
-        "worldEliteFavorites",
-        JSON.stringify(
-            favorites
-        )
-    );
+    border: none;
+
+    font-size: 18px;
 }
 
 
-function showFavorites() {
-
-    const list =
-        data.billionaires.filter(
-            person =>
-                favorites.includes(
-                    Number(person.id)
-                )
-        );
-
-
-    app.innerHTML = `
-
-        <div class="container">
-
-            <h1>
-                Favorites
-            </h1>
-
-            <p>
-                Your saved people
-            </p>
-
-
-            <div id="favoriteList"></div>
-
-        </div>
-
-
-        ${navigation("profile")}
-
-    `;
-
-
-    const container =
-        document.getElementById(
-            "favoriteList"
-        );
-
-
-    if (!list.length) {
-
-        container.innerHTML = `
-
-            <div class="empty">
-
-                <p>
-                    No favorites yet.
-                </p>
-
-                <button
-                    class="primary-btn"
-                    onclick="showBillionaires()"
-                >
-                    Explore Rankings
-                </button>
-
-            </div>
-
-        `;
-
-        setupNavigation();
-
-        return;
-    }
-
-
-    container.innerHTML =
-        list
-        .map(
-            (person, index) =>
-                billionaireCard(
-                    person,
-                    index
-                )
-        )
-        .join("");
-
-
-    setupNavigation();
-}
-
-
-/* =========================================
+/* =========================
    PROFILE
-========================================= */
+========================= */
 
-function showProfile() {
+.profile-card {
+    padding: 30px;
 
-    app.innerHTML = `
+    text-align: center;
 
-        <div class="container">
+    border-radius: 22px;
 
-            <div class="profile-card">
+    background: #11151d;
 
-                <div class="profile-icon">
-                    👤
-                </div>
+    border:
+        1px solid rgba(255,255,255,0.08);
 
+    margin-bottom: 20px;
+}
 
-                <h1>
-                    ${
-                        escapeHTML(
-                            currentUser ||
-                            "Guest"
-                        )
-                    }
-                </h1>
+.profile-icon {
+    font-size: 60px;
 
+    margin-bottom: 15px;
+}
 
-                <p>
-                    WorldElite Member
-                </p>
+.big-money {
+    font-size: 40px;
 
-            </div>
+    font-weight: 800;
 
-
-            <div class="stat-grid">
-
-                <div class="stat">
-
-                    <div class="stat-number">
-                        ${favorites.length}
-                    </div>
-
-                    <div class="stat-label">
-                        Favorites
-                    </div>
-
-                </div>
-
-
-                <div class="stat">
-
-                    <div class="stat-number">
-                        ${data.billionaires.length}
-                    </div>
-
-                    <div class="stat-label">
-                        Billionaires
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <button
-                class="primary-btn"
-                onclick="showFavorites()"
-            >
-                ⭐ My Favorites
-            </button>
-
-
-            <button
-                class="secondary-btn"
-                onclick="logout()"
-            >
-                LOG OUT
-            </button>
-
-        </div>
-
-
-        ${navigation("profile")}
-
-    `;
-
-
-    setupNavigation();
+    margin: 20px 0;
 }
 
 
-function logout() {
+/* =========================
+   STATS
+========================= */
 
-    localStorage.removeItem(
-        "worldEliteUser"
-    );
+.stat-grid {
+    display: grid;
 
-    currentUser = "";
+    grid-template-columns: 1fr 1fr;
 
-    showStart();
+    gap: 15px;
+
+    margin: 20px 0;
+}
+
+.stat {
+    padding: 20px;
+
+    border-radius: 16px;
+
+    background: #11151d;
+
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 30px;
+
+    font-weight: 800;
+}
+
+.stat-label {
+    margin-top: 6px;
+
+    color: #8f98a8;
 }
 
 
-/* =========================================
-   NAVIGATION
-========================================= */
+/* =========================
+   BOTTOM NAV
+========================= */
 
-function navigation(active) {
+.bottom-nav {
+    position: fixed;
 
-    return `
+    left: 50%;
 
-        <div class="bottom-nav">
+    bottom: 15px;
 
-            <button
-                class="
-                    nav-item
-                    ${
-                        active === "home"
-                        ? "active"
-                        : ""
-                    }
-                "
-                data-nav="home"
-            >
+    transform: translateX(-50%);
 
-                <span class="nav-icon">
-                    🏠
-                </span>
+    width: min(92%, 650px);
 
-                Home
+    display: grid;
 
-            </button>
+    grid-template-columns:
+        repeat(4, 1fr);
 
+    padding: 8px;
 
-            <button
-                class="
-                    nav-item
-                    ${
-                        active === "billionaires"
-                        ? "active"
-                        : ""
-                    }
-                "
-                data-nav="billionaires"
-            >
+    background:
+        rgba(15,18,25,0.96);
 
-                <span class="nav-icon">
-                    🏆
-                </span>
+    border:
+        1px solid rgba(255,255,255,0.1);
 
-                Rankings
+    border-radius: 20px;
 
-            </button>
+    backdrop-filter: blur(15px);
 
+    z-index: 1000;
+}
 
-            <button
-                class="
-                    nav-item
-                    ${
-                        active === "companies"
-                        ? "active"
-                        : ""
-                    }
-                "
-                data-nav="companies"
-            >
+.nav-item {
+    border: none;
 
-                <span class="nav-icon">
-                    🏢
-                </span>
+    background: transparent;
 
-                Companies
+    color: #7f8795;
 
-            </button>
+    padding: 10px 5px;
 
+    border-radius: 14px;
 
-            <button
-                class="
-                    nav-item
-                    ${
-                        active === "profile"
-                        ? "active"
-                        : ""
-                    }
-                "
-                data-nav="profile"
-            >
+    font-size: 12px;
+}
 
-                <span class="nav-icon">
-                    👤
-                </span>
+.nav-item.active {
+    color: white;
 
-                Profile
+    background:
+        rgba(255,255,255,0.08);
+}
 
-            </button>
+.nav-icon {
+    display: block;
 
-        </div>
+    font-size: 20px;
 
-    `;
+    margin-bottom: 3px;
 }
 
 
-function setupNavigation() {
+/* =========================
+   EMPTY / ERROR
+========================= */
 
-    document
-        .querySelectorAll(
-            "[data-nav]"
-        )
-        .forEach(
-            button => {
+.empty,
+.error-box {
+    padding: 35px;
 
-                button.onclick =
-                    function () {
+    text-align: center;
 
-                        const page =
-                            button.dataset.nav;
+    background: #11151d;
 
+    border-radius: 18px;
 
-                        if (
-                            page === "home"
-                        ) {
+    margin-top: 20px;
+}
 
-                            showHome();
-
-                        }
-
-
-                        if (
-                            page ===
-                            "billionaires"
-                        ) {
-
-                            showBillionaires();
-
-                        }
-
-
-                        if (
-                            page ===
-                            "companies"
-                        ) {
-
-                            showCompanies();
-
-                        }
-
-
-                        if (
-                            page ===
-                            "profile"
-                        ) {
-
-                            showProfile();
-
-                        }
-
-                    };
-            }
-        );
+.error-box {
+    color: #ff7777;
 }
 
 
-/* =========================================
-   DATA
-========================================= */
+/* =========================
+   MOBILE
+========================= */
 
-async function loadData() {
+@media (max-width: 700px) {
 
-    try {
-
-        const response =
-            await fetch(
-                DATA_URL,
-                {
-                    cache: "no-store"
-                }
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "data.json could not be loaded"
-            );
-        }
-
-
-        const json =
-            await response.json();
-
-
-        if (
-            Array.isArray(json)
-        ) {
-
-            data.billionaires =
-                json;
-
-        } else {
-
-            data =
-                {
-                    billionaires:
-                        json.billionaires ||
-                        [],
-
-                    companies:
-                        json.companies ||
-                        [],
-
-                    countries:
-                        json.countries ||
-                        []
-                };
-        }
-
-
-        console.log(
-            "WorldElite data loaded."
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "Data error:",
-            error
-        );
-
-        data = {
-            billionaires: [],
-            companies: [],
-            countries: []
-        };
-    }
-}
-
-
-/* =========================================
-   HELPERS
-========================================= */
-
-function getWorth(person) {
-
-    if (!person) return 0;
-
-    return parseFloat(
-        String(
-            person.netWorth ||
-            person.worth ||
-            0
-        )
-        .replace(/[^0-9.]/g, "")
-    ) || 0;
-}
-
-
-function formatMoney(value) {
-
-    if (
-        value === null ||
-        value === undefined ||
-        value === ""
-    ) {
-
-        return "—";
+    .topbar {
+        padding: 0 20px;
     }
 
-
-    if (
-        typeof value === "string" &&
-        (
-            value.includes("$") ||
-            value.includes("€") ||
-            value.includes("£") ||
-            value.includes("B") ||
-            value.includes("M")
-        )
-    ) {
-
-        return escapeHTML(value);
+    .logo {
+        font-size: 21px;
     }
 
-
-    const number =
-        Number(value);
-
-
-    if (isNaN(number)) {
-
-        return escapeHTML(
-            String(value)
-        );
+    .top-actions button {
+        padding: 9px 12px;
     }
 
-
-    if (
-        number >=
-        1000000000000
-    ) {
-
-        return (
-            "$" +
-            (
-                number /
-                1000000000000
-            ).toFixed(2) +
-            "T"
-        );
+    .hero {
+        min-height: 500px;
     }
 
-
-    if (
-        number >=
-        1000000000
-    ) {
-
-        return (
-            "$" +
-            (
-                number /
-                1000000000
-            ).toFixed(2) +
-            "B"
-        );
+    .hero h1 {
+        letter-spacing: -2px;
     }
 
-
-    if (
-        number >=
-        1000000
-    ) {
-
-        return (
-            "$" +
-            (
-                number /
-                1000000
-            ).toFixed(2) +
-            "M"
-        );
+    .hero p {
+        font-size: 16px;
     }
 
+    .features {
+        grid-template-columns: 1fr;
 
-    return (
-        "$" +
-        number.toLocaleString(
-            "en-US"
-        )
-    );
+        padding: 20px 20px 60px;
+    }
+
+    footer {
+        flex-direction: column;
+
+        gap: 8px;
+
+        padding: 25px 20px;
+    }
+
+    .container {
+        padding-top: 25px;
+    }
+
+    .container h1 {
+        font-size: 34px;
+    }
+
+    .controls {
+        grid-template-columns: 1fr;
+    }
+
+    .bottom-nav {
+        bottom: 10px;
+    }
 }
-
-
-function escapeHTML(value) {
-
-    return String(value)
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-}
-
-
-/* =========================================
-   LOAD DATA THEN SHOW START
-========================================= */
-
-loadData()
-    .then(
-        () => {
-
-            showStart();
-
-        }
-    );
