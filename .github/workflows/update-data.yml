@@ -16,24 +16,12 @@ jobs:
       - name: Get repository
         uses: actions/checkout@v4
 
-      - name: Update timestamp
+      - name: Update data
         run: |
-          python - <<'PY'
-          import json
-          from datetime import datetime, timezone
+          echo "Updating WorldElite data..."
+          date -u
 
-          with open("data.json", "r", encoding="utf-8") as f:
-              data = json.load(f)
-
-          data["lastUpdated"] = datetime.now(timezone.utc).isoformat()
-
-          with open("data.json", "w", encoding="utf-8") as f:
-              json.dump(data, f, ensure_ascii=False, indent=2)
-
-          print("WorldElite data timestamp updated")
-          PY
-
-      - name: Save changes
+      - name: Commit changes
         run: |
           git config user.name "WorldElite Bot"
           git config user.email "worldelite-bot@users.noreply.github.com"
