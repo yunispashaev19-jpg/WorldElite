@@ -3,7 +3,7 @@ name: Update WorldElite Data
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 6 * * *"
+    - cron: "0 7 * * *"
 
 permissions:
   contents: write
@@ -15,7 +15,7 @@ jobs:
 
     steps:
 
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -23,179 +23,177 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Update data
+      - name: Download billionaire data
+        run: |
+          python - <<'PY'
+          import urllib.request
+          import json
+
+          url = "https://raw.githubusercontent.com/komed3/rtb-api/main/api/list/latest.json"
+
+          print("Downloading WorldElite data...")
+
+          request = urllib.request.Request(
+              url,
+              headers={
+                  "User-Agent": "WorldElite/1.0"
+              }
+          )
+
+          with urllib.request.urlopen(request, timeout=30) as response:
+              raw = response.read()
+
+          data = json.loads(raw)
+
+          print("Downloaded successfully.")
+          print(type(data))
+
+          with open("rtb_raw.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+          PY
+
+      - name: Convert data
         run: |
           python - <<'PY'
           import json
           from datetime import datetime, timezone
 
-          data = {
-              "source": "WorldElite",
-              "lastUpdated": datetime.now(timezone.utc).isoformat(),
+          with open("rtb_raw.json", "r", encoding="utf-8") as f:
+              raw = json.load(f)
 
-              "billionaires": [
-                  {
-                      "id": 1,
-                      "name": "Elon Musk",
-                      "company": "Tesla / SpaceX",
-                      "netWorth": "$715.6B",
-                      "worth": 715.6,
-                      "country": "USA",
-                      "flag": "🇺🇸"
-                  },
-                  {
-                      "id": 2,
-                      "name": "Larry Page",
-                      "company": "Google",
-                      "netWorth": "$268.8B",
-                      "worth": 268.8,
-                      "country": "USA",
-                      "flag": "🇺🇸"
-                  },
-                  {
-                      "id": 3,
-                      "name": "Sergey Brin",
-                      "company": "Google",
-                      "netWorth": "$248.0B",
-                      "worth": 248.0,
-                      "country": "USA",
-                      "flag": "🇺🇸"
-                  },
-                  {
-                      "id": 4,
-                      "name": "Jeff Bezos",
-                      "company": "Amazon",
-                      "netWorth": "$242.6B",
-                      "worth": 242.6,
-                      "country": "USA",
-                      "flag": "🇺🇸"
-                  },
-                  {
-                      "id": 5,
-                      "name": "Michael Dell",
-                      "company": "Dell Technologies",
-                      "netWorth": "$234.4B",
-                      "worth": 234.4,
-                      "country": "USA",
-                      "flag": "🇺🇸"
-                  },
-                  {
-                      "id": 6,
-                      "name": "Mark Zuckerberg",
-                      "company": "Meta",
-                      "netWorth": "$203.9B",
-                      "worth": 203.9,
-                      "country": "USA",
-                      "flag": "🇺🇸"
-                  },
-                  {
-                      "id": 7,
-                      "name": "Jensen Huang",
-                      "company": "NVIDIA",
-                      "netWorth": "$170.0B",
-                      "worth": 170.0,
-                      "country": "USA",
-                      "flag": "🇺🇸"
-                  },
-                  {
-                      "id": 8,
-                      "name": "Larry Ellison",
-                      "company": "Oracle",
-                      "netWorth": "$156.9B",
-                      "worth": 156.9,
-                      "country": "USA",
-                      "flag": "🇺🇸"
-                  },
-                  {
-                      "id": 9,
-                      "name": "Bernard Arnault",
-                      "company": "LVMH",
-                      "netWorth": "$142.7B",
-                      "worth": 142.7,
-                      "country": "France",
-                      "flag": "🇫🇷"
-                  },
-                  {
-                      "id": 10,
-                      "name": "Warren Buffett",
-                      "company": "Berkshire Hathaway",
-                      "netWorth": "$141.2B",
-                      "worth": 141.2,
-                      "country": "USA",
-                      "flag": "🇺🇸"
-                  }
-              ],
+          if isinstance(raw, dict):
 
-              "companies": [
-                  {
-                      "name": "Tesla",
-                      "sector": "Automotive / AI",
-                      "founder": "Elon Musk"
-                  },
-                  {
-                      "name": "SpaceX",
-                      "sector": "Aerospace",
-                      "founder": "Elon Musk"
-                  },
-                  {
-                      "name": "Amazon",
-                      "sector": "Technology / E-commerce",
-                      "founder": "Jeff Bezos"
-                  },
-                  {
-                      "name": "Meta",
-                      "sector": "Technology / Social Media",
-                      "founder": "Mark Zuckerberg"
-                  },
-                  {
-                      "name": "NVIDIA",
-                      "sector": "Semiconductors / AI",
-                      "founder": "Jensen Huang"
-                  },
-                  {
-                      "name": "Oracle",
-                      "sector": "Cloud / Software",
-                      "founder": "Larry Ellison"
-                  },
-                  {
-                      "name": "Google",
-                      "sector": "Technology / Internet",
-                      "founder": "Larry Page & Sergey Brin"
-                  },
-                  {
-                      "name": "LVMH",
-                      "sector": "Luxury",
-                      "founder": "Bernard Arnault"
-                  }
-              ]
+              if "data" in raw:
+                  people = raw["data"]
+
+              elif "billionaires" in raw:
+                  people = raw["billionaires"]
+
+              elif "list" in raw:
+                  people = raw["list"]
+
+              else:
+                  people = []
+
+          elif isinstance(raw, list):
+              people = raw
+
+          else:
+              people = []
+
+          result = []
+
+          for index, person in enumerate(people, start=1):
+
+              name = (
+                  person.get("name")
+                  or person.get("fullName")
+                  or person.get("personName")
+                  or person.get("person")
+                  or "Unknown"
+              )
+
+              company = (
+                  person.get("company")
+                  or person.get("source")
+                  or person.get("sourceOfWealth")
+                  or ""
+              )
+
+              worth = (
+                  person.get("netWorth")
+                  or person.get("worth")
+                  or person.get("net_worth")
+                  or 0
+              )
+
+              if isinstance(worth, str):
+
+                  cleaned = (
+                      worth
+                      .replace("$", "")
+                      .replace(",", "")
+                      .replace("B", "")
+                      .strip()
+                  )
+
+                  try:
+                      worth_number = float(cleaned)
+                  except:
+                      worth_number = 0
+
+              else:
+                  try:
+                      worth_number = float(worth)
+                  except:
+                      worth_number = 0
+
+              result.append({
+                  "id": index,
+                  "name": name,
+                  "company": company,
+                  "netWorth": "$" + str(worth),
+                  "worth": worth_number,
+                  "country": person.get("country", ""),
+                  "flag": ""
+              })
+
+          result.sort(
+              key=lambda x: x["worth"],
+              reverse=True
+          )
+
+          for index, person in enumerate(result, start=1):
+              person["id"] = index
+
+          output = {
+              "source": "Forbes via RTB API",
+              "lastUpdated": datetime.now(
+                  timezone.utc
+              ).isoformat(),
+
+              "billionaires": result,
+
+              "companies": []
           }
 
-          with open("data.json", "w", encoding="utf-8") as f:
+          with open(
+              "data.json",
+              "w",
+              encoding="utf-8"
+          ) as f:
+
               json.dump(
-                  data,
+                  output,
                   f,
                   ensure_ascii=False,
                   indent=2
               )
 
-          print("WorldElite data.json updated successfully.")
+          print(
+              "WorldElite data.json created."
+          )
+
+          print(
+              "Billionaires:",
+              len(result)
+          )
           PY
 
-      - name: Check changes
+      - name: Remove temporary file
         run: |
-          git status
-          cat data.json | head -30
+          rm -f rtb_raw.json
 
-      - name: Commit changes
+      - name: Commit updated data
         run: |
           git config user.name "WorldElite Bot"
           git config user.email "worldelite-bot@users.noreply.github.com"
 
           git add data.json
 
-          git diff --cached --quiet || \
-          git commit -m "Update WorldElite data"
-
-      - name: Push changes
-        run: |
-          git push
+          if git diff --cached --quiet; then
+            echo "No changes."
+          else
+            git commit -m "Update billionaire data"
+            git push
+          fi
