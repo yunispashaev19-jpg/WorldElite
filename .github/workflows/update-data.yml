@@ -10,11 +10,9 @@ permissions:
 
 jobs:
   update-data:
-
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -29,24 +27,22 @@ jobs:
           import urllib.request
           import json
 
-          url = "https://raw.githubusercontent.com/komed3/rtb-api/main/api/list/latest.json"
+          # Правильный URL
+          url = "https://raw.githubusercontent.com/komed3/rtb-api/main/api/list/rtb/latest"
 
           print("Downloading WorldElite data...")
 
           request = urllib.request.Request(
               url,
-              headers={
-                  "User-Agent": "WorldElite/1.0"
-              }
+              headers={"User-Agent": "WorldElite/1.0"}
           )
 
-          with urllib.request.urlopen(request, timeout=30) as response:
+          with urllib.request.urlopen(request, timeout=60) as response:
               raw = response.read()
 
           data = json.loads(raw)
-
           print("Downloaded successfully.")
-          print(type(data))
+          print("Type:", type(data))
 
           with open("rtb_raw.json", "w", encoding="utf-8") as f:
               json.dump(data, f, ensure_ascii=False, indent=2)
@@ -61,128 +57,78 @@ jobs:
           with open("rtb_raw.json", "r", encoding="utf-8") as f:
               raw = json.load(f)
 
+          # API возвращает объект с ключом "list"
           if isinstance(raw, dict):
-
-              if "data" in raw:
-                  people = raw["data"]
-
-              elif "billionaires" in raw:
-                  people = raw["billionaires"]
-
-              elif "list" in raw:
-                  people = raw["list"]
-
-              else:
-                  people = []
-
+              people = raw.get("list") or raw.get("data") or raw.get("billionaires") or []
           elif isinstance(raw, list):
               people = raw
-
           else:
               people = []
 
           result = []
 
           for index, person in enumerate(people, start=1):
-
               name = (
                   person.get("name")
                   or person.get("fullName")
                   or person.get("personName")
-                  or person.get("person")
                   or "Unknown"
               )
 
-              company = (
-                  person.get("company")
-                  or person.get("source")
-                  or person.get("sourceOfWealth")
-                  or ""
-              )
-
-              worth = (
-                  person.get("netWorth")
-                  or person.get("worth")
-                  or person.get("net_worth")
-                  or 0
-              )
-
-              if isinstance(worth, str):
-
-                  cleaned = (
-                      worth
-                      .replace("$", "")
-                      .replace(",", "")
-                      .replace("B", "")
-                      .strip()
-                  )
-
-                  try:
-                      worth_number = float(cleaned)
-                  except:
-                      worth_number = 0
-
+              # source может быть списком
+              source = person.get("source") or person.get("company") or []
+              if isinstance(source, list):
+                  company = ", ".join(source) if source else ""
               else:
-                  try:
-                      worth_number = float(worth)
-                  except:
-                      worth_number = 0
+                  company = str(source)
+
+              # networth приходит в миллионах долларов
+              worth_raw = person.get("networth") or person.get("netWorth") or person.get("worth") or 0
+              try:
+                  worth_millions = float(worth_raw)
+                  worth_billions = round(worth_millions / 1000, 1)
+              except:
+                  worth_billions = 0
+
+              country = (
+                  person.get("citizenship")
+                  or person.get("country")
+                  or ""
+              ).upper()
 
               result.append({
                   "id": index,
                   "name": name,
                   "company": company,
-                  "netWorth": "$" + str(worth),
-                  "worth": worth_number,
-                  "country": person.get("country", ""),
-                  "flag": ""
+                  "netWorth": f"${worth_billions}B",
+                  "worth": worth_billions,
+                  "country": country,
+                  "flag": ""          # можно потом добавить маппинг флагов
               })
 
-          result.sort(
-              key=lambda x: x["worth"],
-              reverse=True
-          )
+          # Сортируем по состоянию
+          result.sort(key=lambda x: x["worth"], reverse=True)
 
-          for index, person in enumerate(result, start=1):
-              person["id"] = index
+          # Перенумеровываем id после сортировки
+          for i, person in enumerate(result, start=1):
+              person["id"] = i
 
           output = {
               "source": "Forbes via RTB API",
-              "lastUpdated": datetime.now(
-                  timezone.utc
-              ).isoformat(),
-
+              "lastUpdated": datetime.now(timezone.utc).isoformat(),
               "billionaires": result,
-
-              "companies": []
+              "companies": []          # пока оставляем пустым
           }
 
-          with open(
-              "data.json",
-              "w",
-              encoding="utf-8"
-          ) as f:
+          with open("data.json", "w", encoding="utf-8") as f:
+              json.dump(output, f, ensure_ascii=False, indent=2)
 
-              json.dump(
-                  output,
-                  f,
-                  ensure_ascii=False,
-                  indent=2
-              )
-
-          print(
-              "WorldElite data.json created."
-          )
-
-          print(
-              "Billionaires:",
-              len(result)
-          )
+          print("WorldElite data.json created.")
+          print("Billionaires:", len(result))
           PY
 
       - name: Remove temporary file
-        run: |
-          rm -f rtb_raw.json
+        run: rm -f rtb_raw.json
 
       - name: Commit updated data
         run: |
@@ -192,7 +138,7 @@ jobs:
           git add data.json
 
           if git diff --cached --quiet; then
-            echo "No changes."
+            echo "No changes detected."
           else
             git commit -m "Update billionaire data"
             git push
