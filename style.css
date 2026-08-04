@@ -9,10 +9,14 @@ html {
 }
 
 body {
-    background: #05070b;
-    color: #ffffff;
-    font-family: Arial, sans-serif;
     min-height: 100vh;
+    background:
+        radial-gradient(circle at top right, #1d4ed8 0%, transparent 30%),
+        radial-gradient(circle at bottom left, #312e81 0%, transparent 30%),
+        #020617;
+
+    color: #ffffff;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 button,
@@ -29,280 +33,160 @@ button {
     min-height: 100vh;
 }
 
-
 /* =========================
-   START PAGE
+   GENERAL
 ========================= */
 
-.start-page {
-    min-height: 100vh;
-
-    background:
-        radial-gradient(
-            circle at 50% 10%,
-            rgba(70, 90, 140, 0.22),
-            transparent 35%
-        ),
-        #05070b;
+.container {
+    width: min(92%, 500px);
+    margin: 0 auto;
+    padding: 35px 0 110px;
 }
 
-
-/* =========================
-   TOP BAR
-========================= */
-
-.topbar {
-    height: 80px;
-    padding: 0 7%;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    border-bottom:
-        1px solid rgba(255,255,255,0.08);
-}
-
-.logo {
-    font-size: 25px;
+h1 {
+    font-size: 42px;
     font-weight: 800;
     letter-spacing: -1px;
 }
 
-.top-actions {
-    display: flex;
-    gap: 10px;
+h2 {
+    margin: 28px 0 14px;
+    font-size: 22px;
 }
 
-.top-actions button {
-    padding: 11px 20px;
-
-    border-radius: 10px;
-
-    background: transparent;
-    color: white;
-
-    border:
-        1px solid rgba(255,255,255,0.15);
-
-    font-size: 14px;
+p {
+    color: #94a3b8;
+    line-height: 1.5;
 }
-
-.top-actions .signup-btn {
-    background: white;
-    color: black;
-}
-
 
 /* =========================
-   HERO
+   LANDING PAGE
 ========================= */
 
+.landing {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+}
+
 .hero {
-    min-height: 570px;
+    width: min(100%, 850px);
+    text-align: center;
+}
+
+.logo {
+    width: 86px;
+    height: 86px;
+    margin: 0 auto 25px;
 
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 
-    text-align: center;
+    border-radius: 25px;
 
-    padding: 60px 20px;
-}
+    background:
+        linear-gradient(135deg, #2563eb, #7c3aed);
 
-.hero-content {
-    width: 100%;
-    max-width: 850px;
-}
+    font-size: 30px;
+    font-weight: 900;
 
-.badge {
-    display: inline-block;
-
-    padding: 8px 15px;
-
-    border:
-        1px solid rgba(255,255,255,0.15);
-
-    border-radius: 50px;
-
-    color: #9da7b8;
-
-    font-size: 12px;
-
-    letter-spacing: 2px;
-
-    margin-bottom: 25px;
+    box-shadow:
+        0 20px 60px rgba(37, 99, 235, 0.35);
 }
 
 .hero h1 {
-    font-size: clamp(42px, 8vw, 80px);
-
-    line-height: 1.02;
-
-    letter-spacing: -4px;
+    font-size: clamp(52px, 12vw, 100px);
+    letter-spacing: -5px;
+    margin-bottom: 15px;
 }
 
 .hero h1 span {
-    color: #8ea8ff;
+    background: linear-gradient(
+        90deg,
+        #60a5fa,
+        #a78bfa
+    );
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.hero p {
-    max-width: 650px;
-
-    margin: 28px auto;
-
-    color: #9da5b4;
-
+.hero-subtitle {
+    max-width: 600px;
+    margin: 0 auto 35px;
     font-size: 18px;
-
-    line-height: 1.6;
 }
 
 .hero-buttons {
-    display: flex;
-
-    justify-content: center;
-
-    gap: 15px;
-
-    flex-wrap: wrap;
-
-    margin-top: 35px;
+    width: min(100%, 350px);
+    margin: auto;
 }
 
+.hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 55px;
+}
+
+.hero-stat {
+    padding: 18px 10px;
+    border: 1px solid #1e293b;
+    background: rgba(15, 23, 42, 0.7);
+    border-radius: 18px;
+}
+
+.hero-stat strong {
+    display: block;
+    font-size: 22px;
+    margin-bottom: 5px;
+}
+
+.hero-stat span {
+    font-size: 12px;
+    color: #64748b;
+}
 
 /* =========================
    BUTTONS
 ========================= */
 
-.primary-btn,
-.secondary-btn {
-    padding: 15px 25px;
-
-    border-radius: 12px;
-
-    font-size: 15px;
-
-    font-weight: 600;
-}
-
-.primary-btn {
-    background: white;
-    color: black;
-
+button {
     border: none;
 }
 
+.primary-btn,
 .secondary-btn {
-    background: transparent;
-
-    color: white;
-
-    border:
-        1px solid rgba(255,255,255,0.18);
-}
-
-
-/* =========================
-   FEATURES
-========================= */
-
-.features {
     width: 100%;
-
-    max-width: 1100px;
-
-    margin: auto;
-
-    padding: 20px 25px 80px;
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 18px;
+    padding: 17px;
+    border-radius: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    transition: 0.2s;
 }
 
-.feature-card {
-    padding: 28px;
-
-    background:
-        rgba(255,255,255,0.035);
-
-    border:
-        1px solid rgba(255,255,255,0.08);
-
-    border-radius: 18px;
+.primary-btn {
+    color: white;
+    background: linear-gradient(
+        135deg,
+        #2563eb,
+        #7c3aed
+    );
 }
 
-.feature-icon {
-    font-size: 30px;
-
-    margin-bottom: 15px;
+.secondary-btn {
+    color: white;
+    background: #1e293b;
 }
 
-.feature-card h3 {
-    margin-bottom: 10px;
-
-    font-size: 20px;
+.primary-btn:hover,
+.secondary-btn:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
 }
-
-.feature-card p {
-    margin: 0;
-
-    color: #8f98a8;
-
-    line-height: 1.5;
-}
-
-
-/* =========================
-   FOOTER
-========================= */
-
-footer {
-    padding: 25px 7%;
-
-    display: flex;
-
-    justify-content: space-between;
-
-    color: #697180;
-
-    font-size: 13px;
-
-    border-top:
-        1px solid rgba(255,255,255,0.08);
-}
-
-
-/* =========================
-   APP CONTAINER
-========================= */
-
-.container {
-    width: 92%;
-
-    max-width: 850px;
-
-    margin: 0 auto;
-
-    padding: 40px 0 120px;
-}
-
-.container h1 {
-    font-size: 42px;
-
-    margin-bottom: 10px;
-}
-
-.container > p {
-    color: #9da5b4;
-
-    margin-bottom: 25px;
-}
-
 
 /* =========================
    INPUTS
@@ -311,30 +195,23 @@ footer {
 input,
 select {
     width: 100%;
+    padding: 16px;
+    margin-top: 12px;
 
-    padding: 15px;
+    border: 1px solid #334155;
+    border-radius: 14px;
 
-    margin-bottom: 15px;
-
-    border-radius: 12px;
-
-    border:
-        1px solid rgba(255,255,255,0.1);
-
-    background: #11151d;
-
+    background: #0f172a;
     color: white;
 
     outline: none;
-
     font-size: 16px;
 }
 
 input:focus,
 select:focus {
-    border-color: #7188ff;
+    border-color: #3b82f6;
 }
-
 
 /* =========================
    CARDS
@@ -344,136 +221,85 @@ select:focus {
     position: relative;
 
     padding: 22px;
+    margin-top: 16px;
 
-    margin: 16px 0;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(30, 41, 59, 0.95),
+            rgba(15, 23, 42, 0.95)
+        );
 
-    border-radius: 18px;
+    border: 1px solid #263449;
+    border-radius: 20px;
 
-    background: #11151d;
-
-    border:
-        1px solid rgba(255,255,255,0.08);
-
-    transition: 0.2s;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-
-    border-color:
-        rgba(255,255,255,0.18);
+    box-shadow:
+        0 15px 35px rgba(0, 0, 0, 0.2);
 }
 
 .clickable {
     cursor: pointer;
+    transition: 0.2s;
+}
+
+.clickable:hover {
+    transform: translateY(-3px);
+    border-color: #3b82f6;
 }
 
 .card-title {
     font-size: 21px;
-
     font-weight: 700;
-
     margin-bottom: 8px;
 }
 
 .card-subtitle {
-    color: #8f98a8;
-
-    margin-bottom: 10px;
-}
-
-.money {
-    font-size: 27px;
-
-    font-weight: 800;
-
-    margin: 8px 0;
-}
-
-.rank {
-    color: #8ea8ff;
-
-    font-size: 13px;
-
-    font-weight: 700;
-
+    color: #94a3b8;
     margin-bottom: 8px;
 }
 
-
-/* =========================
-   RANKING
-========================= */
-
-.controls {
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    gap: 12px;
+.money {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 12px 0;
 }
 
-
-/* =========================
-   FAVORITE
-========================= */
-
-.favorite {
-    position: absolute;
-
-    right: 15px;
-
-    top: 15px;
-
-    width: auto;
-
-    padding: 6px 10px;
-
-    border-radius: 10px;
-
-    background: #1c2330;
-
-    color: white;
-
-    border: none;
-
-    font-size: 18px;
+.rank {
+    color: #60a5fa;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
 }
-
 
 /* =========================
    PROFILE
 ========================= */
 
 .profile-card {
-    padding: 30px;
-
     text-align: center;
+    padding: 30px 20px;
 
-    border-radius: 22px;
+    background:
+        linear-gradient(
+            145deg,
+            #111827,
+            #172554
+        );
 
-    background: #11151d;
-
-    border:
-        1px solid rgba(255,255,255,0.08);
-
-    margin-bottom: 20px;
+    border-radius: 25px;
+    border: 1px solid #263449;
 }
 
 .profile-icon {
-    font-size: 60px;
-
-    margin-bottom: 15px;
+    font-size: 55px;
+    margin-bottom: 10px;
 }
 
 .big-money {
-    font-size: 40px;
-
-    font-weight: 800;
-
+    font-size: 42px;
+    font-weight: 900;
     margin: 20px 0;
 }
-
 
 /* =========================
    STATS
@@ -481,36 +307,62 @@ select:focus {
 
 .stat-grid {
     display: grid;
-
     grid-template-columns: 1fr 1fr;
-
-    gap: 15px;
-
-    margin: 20px 0;
+    gap: 14px;
+    margin-top: 16px;
 }
 
 .stat {
     padding: 20px;
-
-    border-radius: 16px;
-
-    background: #11151d;
-
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 18px;
     text-align: center;
 }
 
 .stat-number {
-    font-size: 30px;
-
+    font-size: 28px;
     font-weight: 800;
 }
 
 .stat-label {
-    margin-top: 6px;
-
-    color: #8f98a8;
+    color: #64748b;
+    font-size: 13px;
+    margin-top: 5px;
 }
 
+/* =========================
+   FAVORITE
+========================= */
+
+.favorite {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+
+    width: auto;
+    padding: 8px;
+
+    background: transparent;
+    color: white;
+
+    font-size: 25px;
+}
+
+/* =========================
+   BACK
+========================= */
+
+.back-btn {
+    width: auto;
+    padding: 10px 15px;
+    margin-bottom: 25px;
+
+    background: #1e293b;
+    color: white;
+
+    border-radius: 12px;
+}
 
 /* =========================
    BOTTOM NAV
@@ -520,142 +372,87 @@ select:focus {
     position: fixed;
 
     left: 50%;
-
-    bottom: 15px;
+    bottom: 12px;
 
     transform: translateX(-50%);
 
-    width: min(92%, 650px);
+    width: min(94%, 500px);
 
     display: grid;
-
-    grid-template-columns:
-        repeat(4, 1fr);
+    grid-template-columns: repeat(4, 1fr);
 
     padding: 8px;
 
-    background:
-        rgba(15,18,25,0.96);
-
-    border:
-        1px solid rgba(255,255,255,0.1);
-
-    border-radius: 20px;
+    background: rgba(2, 6, 23, 0.92);
 
     backdrop-filter: blur(15px);
+
+    border: 1px solid #1e293b;
+    border-radius: 22px;
 
     z-index: 1000;
 }
 
 .nav-item {
-    border: none;
-
-    background: transparent;
-
-    color: #7f8795;
-
     padding: 10px 5px;
 
-    border-radius: 14px;
+    background: transparent;
+    color: #64748b;
 
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .nav-item.active {
-    color: white;
-
-    background:
-        rgba(255,255,255,0.08);
+    color: #60a5fa;
 }
 
 .nav-icon {
     display: block;
-
-    font-size: 20px;
-
+    font-size: 21px;
     margin-bottom: 3px;
 }
 
-
 /* =========================
-   EMPTY / ERROR
+   EMPTY
 ========================= */
 
-.empty,
-.error-box {
-    padding: 35px;
-
+.empty {
     text-align: center;
-
-    background: #11151d;
-
-    border-radius: 18px;
-
-    margin-top: 20px;
+    padding: 40px 10px;
 }
-
-.error-box {
-    color: #ff7777;
-}
-
 
 /* =========================
    MOBILE
 ========================= */
 
-@media (max-width: 700px) {
-
-    .topbar {
-        padding: 0 20px;
-    }
-
-    .logo {
-        font-size: 21px;
-    }
-
-    .top-actions button {
-        padding: 9px 12px;
-    }
-
-    .hero {
-        min-height: 500px;
-    }
+@media (max-width: 500px) {
 
     .hero h1 {
-        letter-spacing: -2px;
+        font-size: 55px;
+        letter-spacing: -3px;
     }
 
-    .hero p {
-        font-size: 16px;
+    .hero-stats {
+        gap: 7px;
     }
 
-    .features {
-        grid-template-columns: 1fr;
-
-        padding: 20px 20px 60px;
+    .hero-stat {
+        padding: 14px 5px;
     }
 
-    footer {
-        flex-direction: column;
-
-        gap: 8px;
-
-        padding: 25px 20px;
+    .hero-stat strong {
+        font-size: 18px;
     }
 
-    .container {
-        padding-top: 25px;
+    .hero-stat span {
+        font-size: 10px;
     }
 
-    .container h1 {
-        font-size: 34px;
+    h1 {
+        font-size: 36px;
     }
 
-    .controls {
-        grid-template-columns: 1fr;
-    }
-
-    .bottom-nav {
-        bottom: 10px;
+    .money {
+        font-size: 24px;
     }
 }
