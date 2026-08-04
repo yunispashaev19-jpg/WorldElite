@@ -1,96 +1,425 @@
-{
-  "lastUpdated": "2026-08-04",
-  "source": "WorldElite",
-  "billionaires": [
-    {
-      "id": 1,
-      "name": "Elon Musk",
-      "company": "Tesla / SpaceX",
-      "netWorth": "$715.6B",
-      "worth": 715.6,
-      "country": "USA",
-      "flag": "🇺🇸"
-    },
-    {
-      "id": 2,
-      "name": "Larry Page",
-      "company": "Google",
-      "netWorth": "$268.8B",
-      "worth": 268.8,
-      "country": "USA",
-      "flag": "🇺🇸"
-    },
-    {
-      "id": 3,
-      "name": "Sergey Brin",
-      "company": "Google",
-      "netWorth": "$248.0B",
-      "worth": 248.0,
-      "country": "USA",
-      "flag": "🇺🇸"
-    },
-    {
-      "id": 4,
-      "name": "Jeff Bezos",
-      "company": "Amazon",
-      "netWorth": "$242.6B",
-      "worth": 242.6,
-      "country": "USA",
-      "flag": "🇺🇸"
-    },
-    {
-      "id": 5,
-      "name": "Michael Dell",
-      "company": "Dell Technologies",
-      "netWorth": "$234.4B",
-      "worth": 234.4,
-      "country": "USA",
-      "flag": "🇺🇸"
-    },
-    {
-      "id": 6,
-      "name": "Mark Zuckerberg",
-      "company": "Meta",
-      "netWorth": "$203.9B",
-      "worth": 203.9,
-      "country": "USA",
-      "flag": "🇺🇸"
-    },
-    {
-      "id": 7,
-      "name": "Jensen Huang",
-      "company": "NVIDIA",
-      "netWorth": "$170.0B",
-      "worth": 170.0,
-      "country": "USA",
-      "flag": "🇺🇸"
-    },
-    {
-      "id": 8,
-      "name": "Larry Ellison",
-      "company": "Oracle",
-      "netWorth": "$156.9B",
-      "worth": 156.9,
-      "country": "USA",
-      "flag": "🇺🇸"
-    },
-    {
-      "id": 9,
-      "name": "Bernard Arnault",
-      "company": "LVMH",
-      "netWorth": "$142.7B",
-      "worth": 142.7,
-      "country": "France",
-      "flag": "🇫🇷"
-    },
-    {
-      "id": 10,
-      "name": "Warren Buffett",
-      "company": "Berkshire Hathaway",
-      "netWorth": "$141.2B",
-      "worth": 141.2,
-      "country": "USA",
-      "flag": "🇺🇸"
-    }
-  ]
-}
+name: Update WorldElite Data
+
+on:
+  schedule:
+    - cron: "15 6 * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout WorldElite
+        uses: actions/checkout@v4
+
+
+      - name: Download latest billionaire data
+        run: |
+
+          python - <<'PY'
+
+          import json
+          import urllib.request
+          from datetime import datetime, timezone
+
+          API = "https://cdn.statically.io/gh/komed3/rtb-api/v1/api/"
+
+          # Get available lists
+          index_url = API + "list/_index"
+
+          print("Downloading list index...")
+
+          with urllib.request.urlopen(
+              index_url,
+              timeout=30
+          ) as response:
+
+              index = json.loads(
+                  response.read().decode("utf-8")
+              )
+
+
+          print("Available list data downloaded.")
+
+          # Find the main global list
+          list_name = None
+
+          if isinstance(index, dict):
+
+              for key, value in index.items():
+
+                  text = str(
+                      key
+                  ).lower()
+
+                  if (
+                      "global" in text
+                      or "world" in text
+                      or "billion" in text
+                  ):
+
+                      list_name = key
+
+                      break
+
+
+          if not list_name:
+
+              raise Exception(
+                  "Could not identify the global billionaire list."
+              )
+
+
+          print(
+              "Using list:",
+              list_name
+          )
+
+
+          # Download latest list
+          latest_url = (
+              API
+              + "list/"
+              + str(list_name)
+              + "/latest"
+          )
+
+
+          print(
+              "Downloading:",
+              latest_url
+          )
+
+
+          with urllib.request.urlopen(
+              latest_url,
+              timeout=30
+          ) as response:
+
+              raw = json.loads(
+                  response.read().decode("utf-8")
+              )
+
+
+          print(
+              "Latest billionaire data downloaded."
+          )
+
+
+          # Try to locate the actual list
+          people = raw
+
+          if isinstance(raw, dict):
+
+              for key in [
+                  "data",
+                  "list",
+                  "results",
+                  "billionaires"
+              ]:
+
+                  if isinstance(
+                      raw.get(key),
+                      list
+                  ):
+
+                      people = raw[key]
+
+                      break
+
+
+          if not isinstance(
+              people,
+              list
+          ):
+
+              raise Exception(
+                  "Unexpected API response format."
+              )
+
+
+          billionaires = []
+
+
+          for index, person in enumerate(
+              people
+          ):
+
+              if not isinstance(
+                  person,
+                  dict
+              ):
+
+                  continue
+
+
+              name = (
+                  person.get("name")
+                  or person.get("fullName")
+                  or person.get("person")
+                  or "Unknown"
+              )
+
+
+              net_worth = (
+                  person.get("netWorth")
+                  or person.get("worth")
+                  or person.get("fortune")
+                  or 0
+              )
+
+
+              try:
+
+                  net_worth = float(
+                      str(
+                          net_worth
+                      )
+                      .replace(
+                          "$",
+                          ""
+                      )
+                      .replace(
+                          ",",
+                          ""
+                      )
+                  )
+
+              except:
+
+                  net_worth = 0
+
+
+              # API values may already be in billions
+              if net_worth > 10000:
+
+                  net_worth = (
+                      net_worth / 1_000_000_000
+                  )
+
+
+              company = (
+                  person.get("source")
+                  or person.get("company")
+                  or person.get("sourceOfWealth")
+                  or "Unknown"
+              )
+
+
+              country = (
+                  person.get("country")
+                  or person.get("citizenship")
+                  or "Unknown"
+              )
+
+
+              flag = "🌍"
+
+
+              country_flags = {
+
+                  "United States": "🇺🇸",
+                  "USA": "🇺🇸",
+
+                  "France": "🇫🇷",
+
+                  "India": "🇮🇳",
+
+                  "China": "🇨🇳",
+
+                  "Germany": "🇩🇪",
+
+                  "United Kingdom": "🇬🇧",
+                  "UK": "🇬🇧",
+
+                  "Canada": "🇨🇦",
+
+                  "Australia": "🇦🇺",
+
+                  "Italy": "🇮🇹",
+
+                  "Spain": "🇪🇸",
+
+                  "Japan": "🇯🇵",
+
+                  "South Korea": "🇰🇷",
+
+                  "Brazil": "🇧🇷",
+
+                  "Mexico": "🇲🇽",
+
+                  "Russia": "🇷🇺",
+
+                  "Ukraine": "🇺🇦"
+
+              }
+
+
+              flag = country_flags.get(
+                  country,
+                  "🌍"
+              )
+
+
+              billionaires.append({
+
+                  "name": name,
+
+                  "netWorth": round(
+                      net_worth,
+                      2
+                  ),
+
+                  "company": company,
+
+                  "country": country,
+
+                  "flag": flag,
+
+                  "rank": index + 1
+
+              })
+
+
+          if not billionaires:
+
+              raise Exception(
+                  "No billionaire records found."
+              )
+
+
+          # Sort by net worth
+          billionaires.sort(
+              key=lambda x:
+                  x["netWorth"],
+              reverse=True
+          )
+
+
+          # Rebuild ranks
+          for index, person in enumerate(
+              billionaires
+          ):
+
+              person["rank"] = index + 1
+
+
+          output = {
+
+              "source":
+                  "Forbes via komed3/rtb-api",
+
+              "lastUpdated":
+                  datetime.now(
+                      timezone.utc
+                  ).strftime(
+                      "%Y-%m-%d"
+                  ),
+
+              "billionaires":
+                  billionaires,
+
+              "companies": []
+
+          }
+
+
+          with open(
+              "data.json",
+              "w",
+              encoding="utf-8"
+          ) as file:
+
+              json.dump(
+                  output,
+                  file,
+                  ensure_ascii=False,
+                  indent=2
+              )
+
+
+          print(
+              "Saved",
+              len(billionaires),
+              "billionaires."
+          )
+
+          PY
+
+
+      - name: Check generated data
+        run: |
+
+          python - <<'PY'
+
+          import json
+
+          with open(
+              "data.json",
+              "r",
+              encoding="utf-8"
+          ) as file:
+
+              data = json.load(file)
+
+
+          count = len(
+              data.get(
+                  "billionaires",
+                  []
+              )
+          )
+
+
+          print(
+              "Billionaires:",
+              count
+          )
+
+          print(
+              "Updated:",
+              data.get(
+                  "lastUpdated"
+              )
+          )
+
+
+          if count < 100:
+
+              raise Exception(
+                  "Too few billionaire records. Data update stopped."
+              )
+
+          PY
+
+
+      - name: Commit updated data
+        run: |
+
+          git config user.name \
+            "WorldElite Bot"
+
+          git config user.email \
+            "worldelite-bot@users.noreply.github.com"
+
+          git add data.json
+
+          if git diff --cached --quiet; then
+
+            echo "No data changes."
+
+          else
+
+            git commit \
+              -m "Update billionaire data"
+
+            git push
+
+          fi
