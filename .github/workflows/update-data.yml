@@ -3,6 +3,7 @@ name: Update WorldElite Data
 on:
   schedule:
     - cron: "0 6 * * *"
+
   workflow_dispatch:
 
 permissions:
@@ -13,18 +14,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Update data
+      - name: Update date
         run: |
-          echo "Updating WorldElite data..."
-          date -u
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
 
-      - name: Commit changes
+          with open("data.json", "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          data["lastUpdated"] = datetime.now(
+              timezone.utc
+          ).strftime("%Y-%m-%d")
+
+          with open("data.json", "w", encoding="utf-8") as f:
+              json.dump(
+                  data,
+                  f,
+                  ensure_ascii=False,
+                  indent=2
+              )
+          PY
+
+      - name: Commit updated data
         run: |
           git config user.name "WorldElite Bot"
           git config user.email "worldelite-bot@users.noreply.github.com"
+
           git add data.json
+
           git diff --cached --quiet || git commit -m "Update WorldElite data"
+
           git push
