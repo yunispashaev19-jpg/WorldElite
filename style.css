@@ -1,4 +1,731 @@
-/* =================================
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    background: #05070b;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                 "Segoe UI", Arial, sans-serif;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button {
+    border: 0;
+    cursor: pointer;
+}
+
+#app {
+    width: 100%;
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at 50% -10%, #1b253a 0%, transparent 38%),
+        #05070b;
+}
+
+.page {
+    display: none;
+    min-height: 100vh;
+    padding: 28px 20px 125px;
+}
+
+.page.active {
+    display: block;
+}
+
+
+/* ================= TYPOGRAPHY ================= */
+
+.small-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #737c91;
+    font-weight: 700;
+    margin-bottom: 7px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 35px;
+    letter-spacing: -1.5px;
+}
+
+h2 {
+    margin: 0;
+}
+
+p {
+    color: #8e96a8;
+}
+
+
+/* ================= HEADERS ================= */
+
+.home-header,
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.home-header p {
+    margin: 7px 0 0;
+    font-size: 14px;
+}
+
+.icon-button {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #171c27;
+    color: white;
+    font-size: 20px;
+    border: 1px solid #252c3a;
+}
+
+
+/* ================= HERO ================= */
+
+.hero-card {
+    padding: 27px;
+    border-radius: 30px;
+    background:
+        linear-gradient(145deg, #1d273b, #10151f);
+    border: 1px solid #293244;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, .35);
+    margin-bottom: 18px;
+}
+
+.hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #7e879a;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+.hero-top span:first-child {
+    font-size: 30px;
+}
+
+.hero-card h2 {
+    font-size: 30px;
+    letter-spacing: -1px;
+}
+
+.hero-text {
+    line-height: 1.55;
+    max-width: 290px;
+    margin: 12px 0 25px;
+}
+
+
+/* ================= BUTTONS ================= */
+
+.primary-button {
+    width: 100%;
+    padding: 16px 20px;
+    border-radius: 17px;
+    background: #ffffff;
+    color: #05070b;
+    font-weight: 800;
+    font-size: 15px;
+    transition: transform .15s ease;
+}
+
+.primary-button:active {
+    transform: scale(.97);
+}
+
+.text-button {
+    background: transparent;
+    color: #aab3c5;
+    padding: 15px;
+    width: 100%;
+}
+
+.back-button {
+    background: transparent;
+    color: #c6ccda;
+    font-size: 15px;
+    margin-bottom: 25px;
+}
+
+
+/* ================= STATS ================= */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 13px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: #11151e;
+    border: 1px solid #202633;
+    border-radius: 21px;
+    padding: 19px;
+}
+
+.stat-card span {
+    display: block;
+    font-size: 23px;
+    margin-bottom: 12px;
+}
+
+.stat-card strong {
+    display: block;
+    font-size: 23px;
+}
+
+.stat-card small {
+    color: #70798c;
+    display: block;
+    margin-top: 5px;
+}
+
+
+/* ================= SECTION ================= */
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.section-title h2 {
+    font-size: 21px;
+}
+
+.section-title button {
+    background: transparent;
+    color: #8e9ab1;
+}
+
+
+/* ================= SEARCH ================= */
+
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #11151e;
+    border: 1px solid #222a37;
+    border-radius: 17px;
+    padding: 0 15px;
+    height: 53px;
+    margin-bottom: 14px;
+}
+
+.search-box input {
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: white;
+    width: 100%;
+    font-size: 15px;
+}
+
+.search-box input::placeholder {
+    color: #646d7f;
+}
+
+
+/* ================= FILTERS ================= */
+
+.filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    overflow-x: auto;
+    padding-bottom: 3px;
+}
+
+.filter-button,
+#countryFilter {
+    flex: 0 0 auto;
+    background: #11151e;
+    color: #8790a3;
+    border: 1px solid #222a37;
+    border-radius: 13px;
+    padding: 10px 14px;
+    font-size: 13px;
+}
+
+.filter-button.active {
+    background: #e9ebef;
+    color: #07090d;
+}
+
+#countryFilter {
+    outline: none;
+}
+
+
+/* ================= RANKINGS ================= */
+
+.status-text {
+    color: #626c7e;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.ranking-list,
+.company-list,
+.mini-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rank-card {
+    background: #11151e;
+    border: 1px solid #202633;
+    border-radius: 21px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.rank-number {
+    width: 28px;
+    color: #626c7e;
+    font-size: 13px;
+    text-align: center;
+}
+
+.person-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+    object-fit: cover;
+    background: #252c39;
+    flex: 0 0 auto;
+}
+
+.person-avatar-fallback {
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+    background: #252c39;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 23px;
+    flex: 0 0 auto;
+}
+
+.rank-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.rank-info h3 {
+    margin: 0;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rank-info p {
+    margin: 5px 0 0;
+    font-size: 12px;
+}
+
+.rank-money {
+    text-align: right;
+}
+
+.rank-money strong {
+    display: block;
+    font-size: 15px;
+}
+
+.rank-money small {
+    color: #7c879b;
+    font-size: 11px;
+}
+
+
+/* ================= MINI LIST ================= */
+
+.mini-card {
+    background: #11151e;
+    border: 1px solid #202633;
+    border-radius: 19px;
+    padding: 13px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mini-card .person-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+}
+
+.mini-card h3 {
+    margin: 0;
+    font-size: 14px;
+}
+
+.mini-card p {
+    margin: 4px 0 0;
+    font-size: 12px;
+}
+
+
+/* ================= COMPANIES ================= */
+
+.company-card {
+    background: #11151e;
+    border: 1px solid #202633;
+    border-radius: 21px;
+    padding: 17px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.company-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    background: #252c39;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+}
+
+.company-info {
+    flex: 1;
+}
+
+.company-info h3 {
+    margin: 0;
+    font-size: 15px;
+}
+
+.company-info p {
+    margin: 5px 0 0;
+    font-size: 12px;
+}
+
+.company-value {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+
+/* ================= DETAIL ================= */
+
+.detail-card {
+    background: linear-gradient(145deg, #1b2230, #0e1219);
+    border: 1px solid #293141;
+    border-radius: 31px;
+    padding: 30px 20px;
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.detail-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 22px;
+    object-fit: cover;
+    background: #2b3342;
+}
+
+.detail-avatar-fallback {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 22px;
+    background: #2b3342;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+}
+
+.detail-card h1 {
+    font-size: 34px;
+}
+
+.detail-country {
+    color: #8d96a9;
+    margin: 8px 0 23px;
+}
+
+.detail-money {
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    margin-bottom: 5px;
+}
+
+.detail-label {
+    color: #858ea0;
+    margin-bottom: 22px;
+}
+
+.detail-company {
+    color: #b7bfce;
+    margin-bottom: 25px;
+}
+
+.favorite-button {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    background: white;
+    color: #080a0f;
+    font-weight: 800;
+}
+
+.info-box {
+    background: #11151e;
+    border: 1px solid #202633;
+    border-radius: 21px;
+    padding: 20px;
+}
+
+.info-box h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+
+/* ================= PROFILE ================= */
+
+.profile-card {
+    background: linear-gradient(145deg, #1a2130, #10141c);
+    border: 1px solid #293141;
+    border-radius: 27px;
+    padding: 25px;
+    margin-bottom: 15px;
+}
+
+.profile-avatar {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    background: #2a3343;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    margin-bottom: 18px;
+}
+
+.profile-card h2 {
+    font-size: 26px;
+}
+
+.profile-email {
+    color: #7e8799;
+    margin-top: 6px;
+}
+
+.profile-section {
+    background: #11151e;
+    border: 1px solid #202633;
+    border-radius: 21px;
+    padding: 19px;
+    margin-bottom: 13px;
+}
+
+.profile-section h3 {
+    margin: 0 0 14px;
+}
+
+.favorite-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #202633;
+}
+
+.favorite-row:last-child {
+    border-bottom: 0;
+}
+
+.logout-button {
+    width: 100%;
+    padding: 15px;
+    border-radius: 16px;
+    background: #171c25;
+    border: 1px solid #303747;
+    color: #f0f2f5;
+    font-weight: 700;
+}
+
+
+/* ================= AUTH ================= */
+
+.auth-page {
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-page.active {
+    display: flex;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.auth-logo {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: #181f2c;
+    border: 1px solid #30394b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    margin: 0 auto 25px;
+}
+
+.auth-container h1 {
+    margin-top: 5px;
+}
+
+.auth-container > p {
+    margin-bottom: 28px;
+}
+
+.auth-input {
+    display: block;
+    width: 100%;
+    height: 54px;
+    margin-bottom: 11px;
+    border-radius: 16px;
+    border: 1px solid #252d3b;
+    background: #11151e;
+    color: white;
+    padding: 0 16px;
+    outline: none;
+}
+
+.auth-input:focus {
+    border-color: #59667d;
+}
+
+.auth-message {
+    min-height: 20px;
+    font-size: 13px;
+    margin: 10px 0;
+}
+
+
+/* ================= BOTTOM NAV ================= */
+
+.bottom-nav {
+    position: fixed;
+    z-index: 100;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    height: 83px;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: rgba(13, 17, 25, .94);
+    border: 1px solid #252d3c;
+    border-radius: 28px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 15px 50px rgba(0,0,0,.45);
+}
+
+.bottom-nav button {
+    background: transparent;
+    color: #697286;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.bottom-nav button span {
+    font-size: 21px;
+}
+
+.bottom-nav button small {
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.bottom-nav button.active {
+    background: #252b36;
+    color: white;
+}
+
+
+/* ================= EMPTY ================= */
+
+.empty-state {
+    padding: 45px 20px;
+    text-align: center;
+    color: #70798a;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #7e8797;
+}
+
+
+/* ================= RESPONSIVE ================= */
+
+@media (min-width: 700px) {
+
+    #app {
+        max-width: 650px;
+        margin: auto;
+        min-height: 100vh;
+    }
+
+    .bottom-nav {
+        max-width: 610px;
+        margin: auto;
+    }
+
+}/* =================================
    PROFILE
 ================================= */
 
