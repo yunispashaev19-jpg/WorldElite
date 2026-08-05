@@ -3,7 +3,251 @@
    Flag fix + rankings + filters + refresh
 ========================================================= */
 
-const app = document.getElementById("app");
+const app = document.getElementById("app");/* =========================================================
+   AUTH / START SCREEN
+========================================================= */
+
+function showStart() {
+
+    app.innerHTML = `
+
+        <div class="loading-screen">
+
+            <div class="container">
+
+                <div class="logo">
+                    WE
+                </div>
+
+                <h1>
+                    WORLD ELITE
+                </h1>
+
+                <p>
+                    Wealth. Business. Power.
+                </p>
+
+                <button id="startBtn">
+                    START
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+
+    document
+        .getElementById("startBtn")
+        .onclick = showLogin;
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+function showLogin() {
+
+    app.innerHTML = `
+
+        <div class="loading-screen">
+
+            <div class="container">
+
+                <h1>
+                    Login
+                </h1>
+
+                <p>
+                    Enter WorldElite
+                </p>
+
+                <input
+                    id="loginEmail"
+                    type="email"
+                    placeholder="Email"
+                >
+
+                <input
+                    id="loginPassword"
+                    type="password"
+                    placeholder="Password"
+                >
+
+                <button id="loginBtn">
+                    LOGIN
+                </button>
+
+                <button
+                    id="signupBtn"
+                    class="secondary-btn"
+                >
+                    SIGN UP
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    document
+        .getElementById("loginBtn")
+        .onclick = function() {
+
+            const email =
+                document
+                    .getElementById("loginEmail")
+                    .value
+                    .trim();
+
+            if (!email) {
+
+                alert(
+                    "Please enter your email."
+                );
+
+                return;
+            }
+
+            currentUser = email;
+
+            localStorage.setItem(
+                "worldEliteUser",
+                currentUser
+            );
+
+            showHome();
+
+        };
+
+
+    document
+        .getElementById("signupBtn")
+        .onclick =
+        showSignUp;
+}
+
+
+/* =========================================================
+   SIGN UP
+========================================================= */
+
+function showSignUp() {
+
+    app.innerHTML = `
+
+        <div class="loading-screen">
+
+            <div class="container">
+
+                <h1>
+                    Create Account
+                </h1>
+
+                <input
+                    id="signupName"
+                    type="text"
+                    placeholder="Name"
+                >
+
+                <input
+                    id="signupEmail"
+                    type="email"
+                    placeholder="Email"
+                >
+
+                <input
+                    id="signupPassword"
+                    type="password"
+                    placeholder="Password"
+                >
+
+                <button id="createBtn">
+                    CREATE ACCOUNT
+                </button>
+
+                <button
+                    id="backLogin"
+                    class="secondary-btn"
+                >
+                    BACK TO LOGIN
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    document
+        .getElementById("createBtn")
+        .onclick = function() {
+
+            const name =
+                document
+                    .getElementById("signupName")
+                    .value
+                    .trim();
+
+            const email =
+                document
+                    .getElementById("signupEmail")
+                    .value
+                    .trim();
+
+            const password =
+                document
+                    .getElementById("signupPassword")
+                    .value;
+
+
+            if (
+                !name ||
+                !email ||
+                !password
+            ) {
+
+                alert(
+                    "Please complete all fields."
+                );
+
+                return;
+            }
+
+
+            if (
+                password.length < 6
+            ) {
+
+                alert(
+                    "Password must contain at least 6 characters."
+                );
+
+                return;
+            }
+
+
+            currentUser = name;
+
+            localStorage.setItem(
+                "worldEliteUser",
+                currentUser
+            );
+
+            showHome();
+
+        };
+
+
+    document
+        .getElementById("backLogin")
+        .onclick =
+        showLogin;
+}
 
 /* =========================================================
    USER
