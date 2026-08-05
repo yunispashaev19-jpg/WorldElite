@@ -1,424 +1,691 @@
-// ================================
-// WorldElite — Profile System
-// ================================
+let billionaires = [];
+let currentSort = "highest";
+let previousPage = "rankingsPage";
 
-const FAVORITES_KEY = "worldelite_favorites";
-const USER_KEY = "worldelite_user";
+let favorites =
+    JSON.parse(localStorage.getItem("worldelite_favorites") || "[]");
 
-function getFavorites() {
+
+/* =========================
+   LOAD DATA
+========================= */
+
+async function loadData() {
+
     try {
-        return JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
-    } catch {
-        return [];
+
+        const response = await fetch("data.json", {
+            cache: "no-store"
+        });
+
+        if (!response.ok) {
+            throw new Error("Could not load data.json");
+        }
+
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+            billionaires = data;
+        } else if (Array.isArray(data.billionaires)) {
+            billionaires = data.billionaires;
+        } else if (Array.isArray(data.data)) {
+            billionaires = data.data;
+        } else {
+            billionaires = [];
+        }
+
+        normalizeData();
+
+        updateStats();
+        populateCountries();
+        renderHome();
+        renderRankings();
+        renderCompanies();
+        renderFavorites();
+
+    } catch (error) {
+
+        console.error(error);
+
+        document.getElementById("homeList").innerHTML =
+            `<div class="empty">
+                Could not load billionaire data.
+             </div>`;
+
     }
 }
 
-function saveFavorites(favorites) {
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-}
 
-function getCurrentUser() {
-    try {
-        return JSON.parse(localStorage.getItem(USER_KEY));
-    } catch {
-        return null;
-    }
-}
+/* =========================
+   NORMALIZE DATA
+========================= */
 
-// ================================
-// FAVORITES
-// ================================
+function normalizeData() {
 
-function isFavorite(name) {
-    return getFavorites().includes(name);
-}
+    billionaires = billionaires.map((person, index) => {
 
-function toggleFavorite(name) {
-    let favorites = getFavorites();
+        const name =
+            person.name ||
+            person.fullName ||
+            person.personName ||
+            "Unknown";
 
-    if (favorites.includes(name)) {
-        favorites = favorites.filter(x => x !== name);
-    } else {
-        favorites.push(name);
-    }
+        let worth =
+            person.netWorth ??
+            person.net_worth ??
+            person.estimatedNetWorth ??
+            person.wealth ??
+            0;
 
-    saveFavorites(favorites);
+        if (typeof worth === "string") {
 
-    if (typeof renderApp === "function") {
-        renderApp();
-    }
-}
+            worth = worth
+                .replace(/[$,]/g, "")
+                .replace(/B/gi, "")
+                .trim();
 
-// ================================
-// PROFILE
-// ================================
+            worth = parseFloat(worth) || 0;
 
-function showProfile() {
-    const app = document.getElementById("app");
+        }
 
-    if (!app) return;
+        let country =
+            person.country ||
+            person.countryCode ||
+            person.nationality ||
+            "Unknown";
 
-    const user = getCurrentUser();
-    const favorites = getFavorites();
+        let company =
+            person.company ||
+            person.companyName ||
+            person.source ||
+            "Private / Various";
 
-    app.innerHTML = `
-        <div class="profile-page">
+        return {
+            ...person,
+            id: person.id || index + "-" + name,
+            name,
+            netWorth: Number(worth),
+            country,
+            company
+        };
 
-            <div class="profile-header">
-                <div class="profile-avatar">
-                    👤
-                </div>
-
-                <h1>
-                    ${user?.name || "WorldElite User"}
-                </h1>
-
-                <p>
-                    ${user?.email || "Guest account"}
-                </p>
-            </div>
-
-            <div class="profile-card">
-                <div class="profile-card-icon">⭐</div>
-
-                <div>
-                    <h3>Favorites</h3>
-                    <p>${favorites.length} billionaires saved</p>
-                </div>
-            </div>
-
-            <div class="profile-card">
-                <div class="profile-card-icon">🌍</div>
-
-                <div>
-                    <h3>WorldElite</h3>
-                    <p>Global wealth & business intelligence</p>
-                </div>
-            </div>
-
-            <div class="profile-actions">
-
-                <button onclick="showFavorites()" class="profile-button">
-                    ⭐ My Favorites
-                </button>
-
-                <button onclick="showSettings()" class="profile-button">
-                    ⚙️ Settings
-                </button>
-
-                <button onclick="logout()" class="profile-button logout-button">
-                    🚪 Log Out
-                </button>
-
-            </div>
-
-        </div>
-    `;
-
-    updateNavigation("profile");
-}
-
-// ================================
-// FAVORITES PAGE
-// ================================
-
-function showFavorites() {
-    const app = document.getElementById("app");
-
-    if (!app) return;
-
-    const favorites = getFavorites();
-
-    app.innerHTML = `
-        <div class="page">
-
-            <div class="page-title">
-                <button onclick="showProfile()" class="back-button">
-                    ←
-                </button>
-
-                <div>
-                    <h1>My Favorites</h1>
-                    <p>${favorites.length} saved</p>
-                </div>
-            </div>
-
-            <div id="favorites-list"></div>
-
-        </div>
-    `;
-
-    const list = document.getElementById("favorites-list");
-
-    if (favorites.length === 0) {
-        list.innerHTML = `
-            <div class="empty-state">
-                <div>⭐</div>
-                <h2>No favorites yet</h2>
-                <p>Add billionaires to your favorites from their profile.</p>
-
-                <button onclick="showRankings()" class="primary-button">
-                    Explore Rankings
-                </button>
-            </div>
-        `;
-
-        return;
-    }
-
-    if (typeof billionaires === "undefined") {
-        list.innerHTML = `
-            <div class="empty-state">
-                <h2>Data unavailable</h2>
-            </div>
-        `;
-        return;
-    }
-
-    const people = billionaires.filter(person =>
-        favorites.includes(person.name)
-    );
-
-    if (people.length === 0) {
-        list.innerHTML = `
-            <div class="empty-state">
-                <h2>No saved profiles found</h2>
-                <p>The data may have been updated.</p>
-            </div>
-        `;
-        return;
-    }
-
-    people.forEach(person => {
-        list.innerHTML += createFavoriteCard(person);
     });
 
-    updateNavigation("profile");
 }
 
-// ================================
-// FAVORITE CARD
-// ================================
 
-function createFavoriteCard(person) {
+/* =========================
+   PAGE NAVIGATION
+========================= */
 
-    const country = person.country || "Unknown";
-    const flag = getFlag(country);
+function showPage(pageId) {
+
+    document.querySelectorAll(".page").forEach(page => {
+        page.classList.remove("active");
+    });
+
+    const page = document.getElementById(pageId);
+
+    if (page) {
+        page.classList.add("active");
+    }
+
+    updateNavigation(pageId);
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+    if (pageId === "rankingsPage") {
+        renderRankings();
+    }
+
+    if (pageId === "profilePage") {
+        renderFavorites();
+    }
+}
+
+
+function updateNavigation(pageId) {
+
+    document.querySelectorAll(".bottom-nav button")
+        .forEach(button => button.classList.remove("active"));
+
+    if (pageId === "homePage") {
+        document.getElementById("navHome").classList.add("active");
+    }
+
+    if (pageId === "rankingsPage") {
+        document.getElementById("navRankings").classList.add("active");
+    }
+
+    if (pageId === "companiesPage") {
+        document.getElementById("navCompanies").classList.add("active");
+    }
+
+    if (pageId === "profilePage") {
+        document.getElementById("navProfile").classList.add("active");
+    }
+
+}
+
+
+/* =========================
+   STATS
+========================= */
+
+function updateStats() {
+
+    document.getElementById("totalBillionaires").textContent =
+        billionaires.length.toLocaleString();
+
+    const countries = new Set(
+        billionaires
+            .map(x => x.country)
+            .filter(x =>
+                x &&
+                x.toLowerCase() !== "unknown"
+            )
+    );
+
+    document.getElementById("totalCountries").textContent =
+        countries.size.toLocaleString();
+}
+
+
+/* =========================
+   HOME
+========================= */
+
+function renderHome() {
+
+    const container = document.getElementById("homeList");
+
+    const list = [...billionaires]
+        .sort((a, b) => b.netWorth - a.netWorth)
+        .slice(0, 5);
+
+    container.innerHTML = list
+        .map((person, index) =>
+            createBillionaireCard(person, index + 1)
+        )
+        .join("");
+}
+
+
+/* =========================
+   RANKINGS
+========================= */
+
+function setSort(type) {
+
+    currentSort = type;
+
+    document.getElementById("highestBtn")
+        .classList.toggle("active", type === "highest");
+
+    document.getElementById("lowestBtn")
+        .classList.toggle("active", type === "lowest");
+
+    renderRankings();
+}
+
+
+function renderRankings() {
+
+    const container =
+        document.getElementById("rankingsList");
+
+    if (!container) return;
+
+    const search =
+        (document.getElementById("searchInput")?.value || "")
+            .toLowerCase()
+            .trim();
+
+    const country =
+        document.getElementById("countryFilter")?.value || "all";
+
+    let list = [...billionaires];
+
+    if (search) {
+
+        list = list.filter(person =>
+            person.name.toLowerCase().includes(search) ||
+            String(person.company).toLowerCase().includes(search) ||
+            String(person.country).toLowerCase().includes(search)
+        );
+
+    }
+
+    if (country !== "all") {
+
+        list = list.filter(person =>
+            person.country === country
+        );
+
+    }
+
+    list.sort((a, b) => {
+
+        if (currentSort === "lowest") {
+            return a.netWorth - b.netWorth;
+        }
+
+        return b.netWorth - a.netWorth;
+
+    });
+
+    if (!list.length) {
+
+        container.innerHTML =
+            `<div class="empty">
+                No billionaires found.
+             </div>`;
+
+        return;
+    }
+
+    container.innerHTML = list
+        .map((person, index) =>
+            createBillionaireCard(person, index + 1)
+        )
+        .join("");
+}
+
+
+/* =========================
+   BILLIONAIRE CARD
+========================= */
+
+function createBillionaireCard(person, rank) {
+
+    const isFavorite =
+        favorites.includes(String(person.id));
 
     return `
-        <div class="favorite-card">
+        <div class="billionaire-card">
 
-            <div class="favorite-avatar">
-                ${flag}
+            <div class="rank">
+                #${rank}
             </div>
 
-            <div class="favorite-info">
+            <div
+                class="avatar"
+                onclick="openBillionaire('${escapeAttribute(person.id)}')"
+            >
+                👤
+            </div>
 
-                <h3>${person.name}</h3>
+            <div
+                class="card-info"
+                onclick="openBillionaire('${escapeAttribute(person.id)}')"
+            >
+
+                <h3>${escapeHTML(person.name)}</h3>
 
                 <p>
-                    ${country}
+                    ${countryFlag(person.country)}
+                    ${escapeHTML(person.country)}
                 </p>
 
+            </div>
+
+            <div class="card-worth">
+
                 <strong>
-                    $${formatMoney(person.netWorth)}
+                    ${formatMoney(person.netWorth)}
                 </strong>
+
+                <small>
+                    ${escapeHTML(person.company)}
+                </small>
 
             </div>
 
             <button
-                onclick="removeFavorite('${escapeQuotes(person.name)}')"
-                class="remove-favorite"
+                class="favorite"
+                onclick="toggleFavorite('${escapeAttribute(person.id)}')"
             >
-                ★
+                ${isFavorite ? "★" : "☆"}
             </button>
 
         </div>
     `;
 }
 
-// ================================
-// REMOVE FAVORITE
-// ================================
 
-function removeFavorite(name) {
+/* =========================
+   DETAIL
+========================= */
 
-    let favorites = getFavorites();
+function openBillionaire(id) {
 
-    favorites = favorites.filter(
-        item => item !== name
+    const person = billionaires.find(
+        x => String(x.id) === String(id)
     );
 
-    saveFavorites(favorites);
+    if (!person) return;
 
-    showFavorites();
-}
+    previousPage =
+        document.querySelector(".page.active")?.id ||
+        "rankingsPage";
 
-// ================================
-// SETTINGS
-// ================================
+    const isFavorite =
+        favorites.includes(String(person.id));
 
-function showSettings() {
+    document.getElementById("detailContent").innerHTML = `
 
-    const app = document.getElementById("app");
+        <div class="detail-card">
 
-    if (!app) return;
-
-    app.innerHTML = `
-        <div class="page">
-
-            <div class="page-title">
-
-                <button
-                    onclick="showProfile()"
-                    class="back-button"
-                >
-                    ←
-                </button>
-
-                <div>
-                    <h1>Settings</h1>
-                    <p>Customize WorldElite</p>
-                </div>
-
+            <div class="detail-avatar">
+                👤
             </div>
 
-            <div class="settings-section">
+            <h1>
+                ${escapeHTML(person.name)}
+            </h1>
 
-                <div class="setting-row">
-                    <div>
-                        <h3>🌙 Dark Mode</h3>
-                        <p>Use the dark WorldElite interface</p>
-                    </div>
-
-                    <label class="switch">
-                        <input
-                            type="checkbox"
-                            id="darkModeToggle"
-                            checked
-                            onchange="toggleDarkMode(this.checked)"
-                        >
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="setting-row">
-                    <div>
-                        <h3>🔄 Automatic Data</h3>
-                        <p>WorldElite updates its data automatically</p>
-                    </div>
-
-                    <span class="status-badge">
-                        ON
-                    </span>
-                </div>
-
-                <div class="setting-row">
-                    <div>
-                        <h3>🌍 Global Rankings</h3>
-                        <p>Track billionaires around the world</p>
-                    </div>
-
-                    <span class="status-badge">
-                        ACTIVE
-                    </span>
-                </div>
-
+            <div class="detail-country">
+                ${countryFlag(person.country)}
+                ${escapeHTML(person.country)}
             </div>
+
+            <div class="detail-worth">
+                ${formatMoney(person.netWorth)}
+            </div>
+
+            <div class="detail-label">
+                Estimated Net Worth
+            </div>
+
+            <div class="detail-company">
+                🏢 ${escapeHTML(person.company)}
+            </div>
+
+            <button
+                class="favorite-big"
+                onclick="toggleFavorite('${escapeAttribute(person.id)}'); openBillionaire('${escapeAttribute(person.id)}')"
+            >
+                ${isFavorite ? "★ Remove Favorite" : "☆ Add Favorite"}
+            </button>
+
+        </div>
+
+        <div class="hero" style="margin-top:20px;text-align:left">
+
+            <h2>📊 Wealth</h2>
+
+            <p>
+                Current estimated net worth:
+                <strong>${formatMoney(person.netWorth)}</strong>
+            </p>
 
         </div>
     `;
 
-    updateNavigation("profile");
+    showPage("detailPage");
 }
 
-// ================================
-// DARK MODE
-// ================================
 
-function toggleDarkMode(enabled) {
+function goBack() {
+    showPage(previousPage);
+}
 
-    document.body.classList.toggle(
-        "light-mode",
-        !enabled
-    );
+
+/* =========================
+   FAVORITES
+========================= */
+
+function toggleFavorite(id) {
+
+    id = String(id);
+
+    if (favorites.includes(id)) {
+
+        favorites =
+            favorites.filter(item => item !== id);
+
+    } else {
+
+        favorites.push(id);
+
+    }
 
     localStorage.setItem(
-        "worldelite_dark_mode",
-        enabled ? "true" : "false"
+        "worldelite_favorites",
+        JSON.stringify(favorites)
     );
+
+    renderHome();
+    renderRankings();
+    renderFavorites();
 }
 
-// ================================
-// LOGOUT
-// ================================
 
-function logout() {
+function renderFavorites() {
 
-    localStorage.removeItem(USER_KEY);
+    const container =
+        document.getElementById("favoritesList");
 
-    if (typeof showHome === "function") {
-        showHome();
-    } else {
-        location.reload();
+    if (!container) return;
+
+    const list = billionaires.filter(person =>
+        favorites.includes(String(person.id))
+    );
+
+    if (!list.length) {
+
+        container.innerHTML =
+            `<div class="empty">
+                You haven't added any favorites yet.
+             </div>`;
+
+        return;
     }
+
+    container.innerHTML = list
+        .map((person, index) =>
+            createBillionaireCard(person, index + 1)
+        )
+        .join("");
 }
 
-// ================================
-// NAVIGATION
-// ================================
 
-function updateNavigation(active) {
+/* =========================
+   COUNTRIES
+========================= */
 
-    document.querySelectorAll(
-        ".bottom-nav button, .nav-item"
-    ).forEach(button => {
+function populateCountries() {
 
-        button.classList.remove("active");
+    const select =
+        document.getElementById("countryFilter");
 
-        const target =
-            button.dataset.page ||
-            button.dataset.nav;
+    if (!select) return;
 
-        if (target === active) {
-            button.classList.add("active");
-        }
+    const countries = [...new Set(
+        billionaires
+            .map(person => person.country)
+            .filter(country =>
+                country &&
+                country.toLowerCase() !== "unknown"
+            )
+    )].sort();
+
+    select.innerHTML =
+        `<option value="all">All countries</option>`;
+
+    countries.forEach(country => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = country;
+        option.textContent =
+            countryFlag(country) + " " + country;
+
+        select.appendChild(option);
+
     });
+
 }
 
-// ================================
-// HELPERS
-// ================================
+
+/* =========================
+   COMPANIES
+========================= */
+
+function renderCompanies() {
+
+    const container =
+        document.getElementById("companiesList");
+
+    if (!container) return;
+
+    const companies = {};
+
+    billionaires.forEach(person => {
+
+        const company = person.company;
+
+        if (
+            !company ||
+            company === "Private / Various" ||
+            company === "Unknown"
+        ) {
+            return;
+        }
+
+        if (!companies[company]) {
+            companies[company] = [];
+        }
+
+        companies[company].push(person.name);
+
+    });
+
+    const names =
+        Object.keys(companies).sort();
+
+    if (!names.length) {
+
+        container.innerHTML =
+            `<div class="empty">
+                Company information is currently unavailable.
+             </div>`;
+
+        return;
+    }
+
+    container.innerHTML =
+        names.map(company => `
+
+            <div class="company-card">
+
+                <h3>🏢 ${escapeHTML(company)}</h3>
+
+                <p>
+                    ${companies[company].length}
+                    billionaire connection(s)
+                </p>
+
+            </div>
+
+        `).join("");
+}
+
+
+/* =========================
+   LOGIN / SIGNUP
+========================= */
+
+function login() {
+
+    const name =
+        prompt("Enter your name:");
+
+    if (!name) return;
+
+    const email =
+        prompt("Enter your email:");
+
+    if (!email) return;
+
+    localStorage.setItem(
+        "worldelite_user",
+        JSON.stringify({
+            name,
+            email
+        })
+    );
+
+    updateProfile();
+
+}
+
+
+function signup() {
+    login();
+}
+
+
+function updateProfile() {
+
+    const user =
+        JSON.parse(
+            localStorage.getItem("worldelite_user")
+            || "null"
+        );
+
+    if (!user) return;
+
+    document.getElementById("profileName")
+        .textContent = user.name;
+
+    document.getElementById("profileEmail")
+        .textContent = user.email;
+
+}
+
+
+/* =========================
+   FORMAT MONEY
+========================= */
 
 function formatMoney(value) {
 
-    if (value === undefined || value === null) {
-        return "0";
+    const number = Number(value) || 0;
+
+    if (number >= 1000) {
+
+        return "$" +
+            (number / 1000)
+                .toFixed(1)
+                .replace(".0", "") +
+            "T";
+
     }
 
-    const number =
-        typeof value === "number"
-            ? value
-            : parseFloat(
-                String(value)
-                    .replace(/[$,]/g, "")
-                    .replace(/B/gi, "")
-            );
-
-    if (isNaN(number)) {
-        return String(value);
-    }
-
-    return number.toFixed(1) + "B";
+    return "$" +
+        number
+            .toFixed(1)
+            .replace(".0", "") +
+        "B";
 }
 
-function getFlag(country) {
 
-    const flags = {
+/* =========================
+   COUNTRY FLAGS
+========================= */
+
+function countryFlag(country) {
+
+    const map = {
 
         "United States": "🇺🇸",
+        "United States of America": "🇺🇸",
         "US": "🇺🇸",
-        "USA": "🇺🇸",
 
         "United Kingdom": "🇬🇧",
         "UK": "🇬🇧",
@@ -428,77 +695,79 @@ function getFlag(country) {
         "Italy": "🇮🇹",
         "Spain": "🇪🇸",
 
-        "Canada": "🇨🇦",
-        "Australia": "🇦🇺",
-
+        "India": "🇮🇳",
         "China": "🇨🇳",
-        "Hong Kong": "🇭🇰",
         "Japan": "🇯🇵",
         "South Korea": "🇰🇷",
-        "India": "🇮🇳",
 
-        "Russia": "🇷🇺",
-        "Ukraine": "🇺🇦",
-
-        "Turkey": "🇹🇷",
-        "Sweden": "🇸🇪",
-        "Switzerland": "🇨🇭",
-
-        "Singapore": "🇸🇬",
+        "Canada": "🇨🇦",
+        "Australia": "🇦🇺",
         "Brazil": "🇧🇷",
         "Mexico": "🇲🇽",
 
-        "Israel": "🇮🇱",
-        "Saudi Arabia": "🇸🇦",
-        "United Arab Emirates": "🇦🇪",
+        "Russia": "🇷🇺",
+        "Ukraine": "🇺🇦",
+        "Turkey": "🇹🇷",
 
-        "South Africa": "🇿🇦",
-        "Nigeria": "🇳🇬",
+        "Switzerland": "🇨🇭",
+        "Singapore": "🇸🇬",
+        "Israel": "🇮🇱",
 
         "Indonesia": "🇮🇩",
         "Thailand": "🇹🇭",
-        "Malaysia": "🇲🇾",
 
-        "Netherlands": "🇳🇱",
-        "Belgium": "🇧🇪",
+        "United Arab Emirates": "🇦🇪",
+        "Saudi Arabia": "🇸🇦",
+
+        "Nigeria": "🇳🇬",
+        "South Africa": "🇿🇦",
+
         "Norway": "🇳🇴",
+        "Sweden": "🇸🇪",
         "Denmark": "🇩🇰",
-        "Finland": "🇫🇮",
+        "Netherlands": "🇳🇱",
 
-        "Ireland": "🇮🇪",
-        "Austria": "🇦🇹",
+        "Taiwan": "🇹🇼"
 
-        "Poland": "🇵🇱",
-        "Portugal": "🇵🇹",
-
-        "New Zealand": "🇳🇿"
     };
 
-    return flags[country] || "🌍";
+    return map[country] || "🌍";
 }
 
-function escapeQuotes(text) {
 
-    return String(text)
+/* =========================
+   SECURITY / HTML
+========================= */
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+function escapeAttribute(value) {
+
+    return String(value)
         .replace(/\\/g, "\\\\")
         .replace(/'/g, "\\'");
 }
 
-// ================================
-// INITIAL DARK MODE
-// ================================
 
-(function initTheme() {
+/* =========================
+   START
+========================= */
 
-    const saved =
-        localStorage.getItem(
-            "worldelite_dark_mode"
-        );
+document.addEventListener("DOMContentLoaded", () => {
 
-    if (saved === "false") {
-        document.body.classList.add(
-            "light-mode"
-        );
-    }
+    updateProfile();
 
-})();
+    loadData();
+
+    showPage("homePage");
+
+});
