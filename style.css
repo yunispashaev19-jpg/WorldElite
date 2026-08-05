@@ -444,4 +444,54 @@ input::placeholder {
     .container {
         padding-top: 28px;
     }
+}/* =========================================
+   BILLIONAIRE PROFILE
+========================================= */
+
+.profile-photo {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+    margin: 0 auto 15px;
+}
+
+.country-flag-large {
+    font-size: 32px;
+    margin: 10px 0;
+}
+
+.wealth-change {
+    margin: 10px auto 20px;
+    font-weight: 700;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row span {
+    opacity: 0.7;
+}
+
+.info-row strong {
+    text-align: right;
+}
+
+.card ul {
+    padding-left: 22px;
+}
+
+.card li {
+    margin-bottom: 8px;
 }
