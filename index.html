@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <title>WorldElite</title>
 
@@ -11,9 +12,320 @@
 
 <body>
 
-    <div id="app"></div>
+<div id="app">
 
-    <script src="script.js"></script>
+    <!-- ================= HOME ================= -->
+
+    <section id="homePage" class="page active">
+
+        <div class="home-header">
+            <div>
+                <div class="small-label">WORLD ELITE</div>
+                <h1>WorldElite</h1>
+                <p>Global wealth & business intelligence</p>
+            </div>
+
+            <button class="icon-button" onclick="openProfile()">
+                👤
+            </button>
+        </div>
+
+        <div class="hero-card">
+
+            <div class="hero-top">
+                <span>🌍</span>
+                <span>LIVE DATA</span>
+            </div>
+
+            <h2>World's Wealth</h2>
+
+            <p class="hero-text">
+                Discover the world's richest people,
+                leading companies and global wealth.
+            </p>
+
+            <button class="primary-button" onclick="openRankings()">
+                Explore Rankings
+            </button>
+
+        </div>
+
+        <div class="stats-grid">
+
+            <div class="stat-card">
+                <span>👑</span>
+                <strong id="homeBillionaireCount">0</strong>
+                <small>Billionaires</small>
+            </div>
+
+            <div class="stat-card">
+                <span>🏢</span>
+                <strong id="homeCompanyCount">0</strong>
+                <small>Companies</small>
+            </div>
+
+        </div>
+
+        <div class="section-title">
+            <h2>Top Billionaires</h2>
+            <button onclick="openRankings()">See all</button>
+        </div>
+
+        <div id="homeTopList" class="mini-list"></div>
+
+    </section>
+
+
+    <!-- ================= RANKINGS ================= -->
+
+    <section id="rankingsPage" class="page">
+
+        <div class="page-header">
+
+            <div>
+                <div class="small-label">WORLD ELITE</div>
+                <h1>Rankings</h1>
+            </div>
+
+            <button class="icon-button" onclick="refreshData()">
+                ↻
+            </button>
+
+        </div>
+
+        <div class="search-box">
+            🔎
+            <input
+                id="searchInput"
+                type="text"
+                placeholder="Search billionaire..."
+                oninput="renderRankings()"
+            >
+        </div>
+
+        <div class="filter-row">
+
+            <button
+                id="highestBtn"
+                class="filter-button active"
+                onclick="setSort('highest')">
+                Highest
+            </button>
+
+            <button
+                id="lowestBtn"
+                class="filter-button"
+                onclick="setSort('lowest')">
+                Lowest
+            </button>
+
+            <select id="countryFilter" onchange="renderRankings()">
+                <option value="all">All countries</option>
+            </select>
+
+        </div>
+
+        <div id="rankingStatus" class="status-text"></div>
+
+        <div id="rankingsList" class="ranking-list"></div>
+
+    </section>
+
+
+    <!-- ================= COMPANIES ================= -->
+
+    <section id="companiesPage" class="page">
+
+        <div class="page-header">
+
+            <div>
+                <div class="small-label">GLOBAL BUSINESS</div>
+                <h1>Companies</h1>
+            </div>
+
+        </div>
+
+        <div class="search-box">
+            🔎
+            <input
+                id="companySearch"
+                type="text"
+                placeholder="Search companies..."
+                oninput="renderCompanies()"
+            >
+        </div>
+
+        <div id="companiesList" class="company-list"></div>
+
+    </section>
+
+
+    <!-- ================= PROFILE ================= -->
+
+    <section id="profilePage" class="page">
+
+        <div class="page-header">
+
+            <div>
+                <div class="small-label">ACCOUNT</div>
+                <h1>Profile</h1>
+            </div>
+
+        </div>
+
+        <div id="profileContent"></div>
+
+    </section>
+
+
+    <!-- ================= BILLIONAIRE ================= -->
+
+    <section id="personPage" class="page">
+
+        <button class="back-button" onclick="openRankings()">
+            ← Back
+        </button>
+
+        <div id="personContent"></div>
+
+    </section>
+
+
+    <!-- ================= COMPANY DETAIL ================= -->
+
+    <section id="companyDetailPage" class="page">
+
+        <button class="back-button" onclick="openCompanies()">
+            ← Back
+        </button>
+
+        <div id="companyDetailContent"></div>
+
+    </section>
+
+
+    <!-- ================= LOGIN ================= -->
+
+    <section id="loginPage" class="page auth-page">
+
+        <div class="auth-container">
+
+            <div class="auth-logo">🌍</div>
+
+            <div class="small-label">WORLD ELITE</div>
+
+            <h1>Welcome back</h1>
+
+            <p>Sign in to continue</p>
+
+            <input
+                id="loginEmail"
+                class="auth-input"
+                type="email"
+                placeholder="Email"
+            >
+
+            <input
+                id="loginPassword"
+                class="auth-input"
+                type="password"
+                placeholder="Password"
+            >
+
+            <button class="primary-button" onclick="login()">
+                Login
+            </button>
+
+            <p id="loginMessage" class="auth-message"></p>
+
+            <button class="text-button" onclick="openSignup()">
+                Don't have an account? Sign up
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= SIGN UP ================= -->
+
+    <section id="signupPage" class="page auth-page">
+
+        <div class="auth-container">
+
+            <div class="auth-logo">🌍</div>
+
+            <div class="small-label">WORLD ELITE</div>
+
+            <h1>Create account</h1>
+
+            <p>Join WorldElite</p>
+
+            <input
+                id="signupName"
+                class="auth-input"
+                type="text"
+                placeholder="Your name"
+            >
+
+            <input
+                id="signupEmail"
+                class="auth-input"
+                type="email"
+                placeholder="Email"
+            >
+
+            <input
+                id="signupPassword"
+                class="auth-input"
+                type="password"
+                placeholder="Password"
+            >
+
+            <button class="primary-button" onclick="signup()">
+                Sign Up
+            </button>
+
+            <p id="signupMessage" class="auth-message"></p>
+
+            <button class="text-button" onclick="openLogin()">
+                Already have an account? Login
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= NAVIGATION ================= -->
+
+    <nav class="bottom-nav">
+
+        <button onclick="openHome()" id="navHome">
+            <span>🏠</span>
+            <small>Home</small>
+        </button>
+
+        <button onclick="openRankings()" id="navRankings">
+            <span>🏆</span>
+            <small>Rankings</small>
+        </button>
+
+        <button onclick="openCompanies()" id="navCompanies">
+            <span>🏢</span>
+            <small>Companies</small>
+        </button>
+
+        <button onclick="openProfile()" id="navProfile">
+            <span>👤</span>
+            <small>Profile</small>
+        </button>
+
+    </nav>
+
+</div>
+
+<script src="script.js"></script>
 
 </body>
 </html>
