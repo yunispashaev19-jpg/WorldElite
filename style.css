@@ -1,23 +1,43 @@
+/* =========================================================
+   WORLD ELITE — STYLE
+========================================================= */
+
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
 }
+
 
 html {
     scroll-behavior: smooth;
 }
 
+
 body {
-    min-height: 100vh;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+
     background:
-        radial-gradient(circle at top right, #1e3a8a 0%, transparent 28%),
-        radial-gradient(circle at bottom left, #312e81 0%, transparent 28%),
-        #020617;
+        radial-gradient(
+            circle at top,
+            #17213a 0%,
+            #080b12 45%,
+            #05070b 100%
+        );
+
     color: #ffffff;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
+
+    min-height: 100vh;
+
+    padding-bottom: 90px;
 }
+
 
 button,
 input,
@@ -25,473 +45,765 @@ select {
     font-family: inherit;
 }
 
+
 button {
     cursor: pointer;
-    border: none;
-    outline: none;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+
+/* =========================================================
+   MAIN
+========================================================= */
+
 #app {
+    width: 100%;
     min-height: 100vh;
 }
 
-/* =========================
-   GENERAL
-========================= */
 
 .container {
-    width: min(92%, 500px);
+    width: min(100% - 32px, 900px);
     margin: 0 auto;
-    padding: 35px 0 120px;
+    padding: 30px 0 110px;
 }
+
+
+.loading-screen {
+    min-height: 100vh;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 25px;
+
+    text-align: center;
+}
+
+
+.loading-screen .container {
+    padding: 0;
+    max-width: 500px;
+}
+
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.logo {
+    width: 92px;
+    height: 92px;
+
+    margin: 0 auto 25px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 28px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff,
+            #aeb9d4
+        );
+
+    color: #080b12;
+
+    font-size: 30px;
+
+    font-weight: 900;
+
+    box-shadow:
+        0 20px 70px
+        rgba(255,255,255,0.12);
+}
+
 
 h1 {
-    font-size: 42px;
-    font-weight: 800;
-    letter-spacing: -1.2px;
+    font-size: clamp(32px, 7vw, 58px);
+
+    line-height: 1.05;
+
+    letter-spacing: -1.5px;
+
+    margin-bottom: 12px;
 }
+
 
 h2 {
-    margin: 28px 0 14px;
     font-size: 22px;
-    font-weight: 700;
+
+    margin: 28px 0 14px;
 }
+
 
 p {
-    color: #94a3b8;
-    line-height: 1.55;
+    color: #aab3c5;
+
+    line-height: 1.6;
 }
 
-/* =========================
-   LUXURY BUTTONS
-========================= */
 
-/* Основная кнопка (START, LOGIN, CREATE и т.д.) */
-button:not(.secondary-btn):not(.back-btn):not(.favorite):not(.nav-item) {
-    width: 100%;
-    padding: 17px 24px;
-    border-radius: 16px;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    color: #0f172a;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
-    box-shadow:
-        0 4px 15px rgba(255, 255, 255, 0.08),
-        0 1px 3px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    position: relative;
-    overflow: hidden;
-}
-
-button:not(.secondary-btn):not(.back-btn):not(.favorite):not(.nav-item)::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.25), transparent 60%);
-    opacity: 0;
-    transition: opacity 0.25s ease;
-}
-
-button:not(.secondary-btn):not(.back-btn):not(.favorite):not(.nav-item):hover {
-    transform: translateY(-2px);
-    box-shadow:
-        0 8px 25px rgba(255, 255, 255, 0.12),
-        0 4px 12px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.7);
-}
-
-button:not(.secondary-btn):not(.back-btn):not(.favorite):not(.nav-item):hover::before {
-    opacity: 1;
-}
-
-button:not(.secondary-btn):not(.back-btn):not(.favorite):not(.nav-item):active {
-    transform: translateY(0);
-    box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.3),
-        inset 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* Вторичная кнопка (SIGN UP, BACK, LOG OUT) */
-.secondary-btn {
-    width: 100%;
-    padding: 16px 24px;
-    margin-top: 12px;
-    border-radius: 16px;
-    font-size: 15px;
-    font-weight: 600;
-    color: #e2e8f0;
-    background: rgba(30, 41, 59, 0.7);
-    border: 1px solid rgba(148, 163, 184, 0.15);
-    backdrop-filter: blur(8px);
-}
-
-.secondary-btn:hover {
-    background: rgba(51, 65, 85, 0.8);
-    border-color: rgba(148, 163, 184, 0.3);
-    transform: translateY(-1px);
-    color: #ffffff;
-}
-
-.secondary-btn:active {
-    transform: translateY(0);
-}
-
-/* Кнопка "Назад" */
-.back-btn {
-    width: auto;
-    padding: 10px 18px;
+.top-section {
     margin-bottom: 25px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #cbd5e1;
-    background: rgba(30, 41, 59, 0.6);
-    border: 1px solid rgba(71, 85, 105, 0.4);
 }
 
-.back-btn:hover {
-    background: rgba(51, 65, 85, 0.8);
+
+.top-section h1 {
+    margin-bottom: 8px;
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+button {
+    border: none;
+
+    border-radius: 14px;
+
+    padding: 14px 18px;
+
+    background: #ffffff;
+
+    color: #080b12;
+
+    font-size: 15px;
+
+    font-weight: 800;
+
+    transition:
+        transform .2s ease,
+        opacity .2s ease,
+        background .2s ease;
+}
+
+
+button:hover {
+    transform: translateY(-2px);
+}
+
+
+button:active {
+    transform: scale(.98);
+}
+
+
+button:disabled {
+    opacity: .5;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+
+.container > button:not(.back-btn),
+.profile-card button {
+    width: 100%;
+
+    margin-top: 12px;
+}
+
+
+.secondary-btn {
+    background: #171d2a;
+
     color: #ffffff;
-    border-color: rgba(100, 116, 139, 0.5);
+
+    border:
+        1px solid
+        rgba(255,255,255,.1);
 }
 
-/* Избранное (звёздочка) */
-.favorite {
-    position: absolute;
-    right: 14px;
-    top: 14px;
-    width: 42px;
-    height: 42px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    background: rgba(15, 23, 42, 0.7);
-    border: 1px solid rgba(148, 163, 184, 0.12);
-    font-size: 20px;
-    color: #94a3b8;
-    backdrop-filter: blur(6px);
+
+.back-btn {
+    background: transparent;
+
+    color: #ffffff;
+
+    padding: 5px 0;
+
+    margin-bottom: 22px;
 }
 
-.favorite:hover {
-    background: rgba(30, 41, 59, 0.9);
-    border-color: rgba(250, 204, 21, 0.4);
-    color: #facc15;
-    transform: scale(1.08);
-}
 
-/* Когда уже в избранном */
-.favorite:has(+ *) /* небольшой хак, лучше через JS-класс, но работает */ {
-    color: #facc15;
-}
-
-/* Кнопка обновления данных */
-#refreshDataBtn {
-    margin-top: 14px;
-    background: linear-gradient(135deg, #1e40af, #3b82f6) !important;
-    color: white !important;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35) !important;
-}
-
-#refreshDataBtn:hover {
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5) !important;
-}
-
-/* =========================
+/* =========================================================
    INPUTS
-========================= */
+========================================================= */
 
 input,
 select {
     width: 100%;
-    padding: 16px 18px;
-    margin-top: 12px;
-    border: 1px solid rgba(71, 85, 105, 0.5);
+
+    padding: 15px 16px;
+
+    margin: 7px 0;
+
     border-radius: 14px;
-    background: rgba(15, 23, 42, 0.8);
-    color: white;
+
+    border:
+        1px solid
+        rgba(255,255,255,.1);
+
     outline: none;
-    font-size: 16px;
-    transition: all 0.2s ease;
+
+    background:
+        rgba(255,255,255,.055);
+
+    color: #ffffff;
+
+    font-size: 15px;
 }
+
+
+input::placeholder {
+    color: #778196;
+}
+
 
 input:focus,
 select:focus {
-    border-color: #60a5fa;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
-    background: rgba(15, 23, 42, 0.95);
+    border-color:
+        rgba(255,255,255,.35);
+
+    background:
+        rgba(255,255,255,.08);
 }
 
-input::placeholder {
-    color: #64748b;
+
+select option {
+    background: #101521;
+
+    color: #ffffff;
 }
 
-/* =========================
+
+.controls {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 10px;
+
+    margin: 10px 0 20px;
+}
+
+
+/* =========================================================
    CARDS
-========================= */
+========================================================= */
 
 .card {
     position: relative;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.075),
+            rgba(255,255,255,.035)
+        );
+
+    border:
+        1px solid
+        rgba(255,255,255,.08);
+
+    border-radius: 22px;
+
     padding: 22px;
-    margin-top: 16px;
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.95));
-    border: 1px solid rgba(51, 65, 85, 0.6);
-    border-radius: 20px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+
+    margin: 14px 0;
+
+    box-shadow:
+        0 15px 50px
+        rgba(0,0,0,.18);
+
+    backdrop-filter:
+        blur(15px);
+
+    -webkit-backdrop-filter:
+        blur(15px);
 }
+
 
 .clickable {
     cursor: pointer;
-    transition: all 0.25s ease;
+
+    transition:
+        transform .2s ease,
+        border-color .2s ease,
+        background .2s ease;
 }
+
 
 .clickable:hover {
     transform: translateY(-3px);
-    border-color: rgba(96, 165, 250, 0.45);
-    box-shadow: 0 16px 35px rgba(0, 0, 0, 0.3);
+
+    border-color:
+        rgba(255,255,255,.2);
+
+    background:
+        rgba(255,255,255,.09);
 }
+
 
 .card-title {
     font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 6px;
+
+    font-weight: 800;
+
+    margin-bottom: 8px;
 }
+
 
 .card-subtitle {
-    color: #94a3b8;
-    margin-bottom: 8px;
+    color: #909bb0;
+
     font-size: 14px;
+
+    margin-bottom: 10px;
 }
 
-.money {
-    font-size: 28px;
-    font-weight: 800;
-    margin: 12px 0;
-    background: linear-gradient(90deg, #f8fafc, #94a3b8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
 
 .rank {
-    color: #60a5fa;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
+    color: #8995aa;
+
+    font-size: 12px;
+
+    font-weight: 800;
+
+    letter-spacing: 1.5px;
+
+    text-transform: uppercase;
+
+    margin-bottom: 10px;
 }
 
-/* =========================
-   PROFILE
-========================= */
 
-.profile-card {
-    text-align: center;
-    padding: 32px 20px;
-    background: linear-gradient(160deg, #0f172a, #1e3a8a);
-    border-radius: 24px;
-    border: 1px solid rgba(96, 165, 250, 0.15);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+.money {
+    font-size: 27px;
+
+    font-weight: 900;
+
+    letter-spacing: -.7px;
+
+    margin: 8px 0;
 }
 
-.profile-icon {
-    font-size: 52px;
-    margin-bottom: 12px;
-}
 
 .big-money {
-    font-size: 42px;
+    font-size:
+        clamp(40px, 10vw, 72px);
+
     font-weight: 900;
+
+    letter-spacing: -3px;
+
     margin: 18px 0;
-    background: linear-gradient(90deg, #f8fafc, #60a5fa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
 
-/* =========================
+
+/* =========================================================
    STATS
-========================= */
+========================================================= */
 
 .stat-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-top: 16px;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 12px;
+
+    margin: 14px 0;
 }
+
 
 .stat {
     padding: 20px;
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(51, 65, 85, 0.5);
-    border-radius: 18px;
-    text-align: center;
+
+    border-radius: 20px;
+
+    background:
+        rgba(255,255,255,.05);
+
+    border:
+        1px solid
+        rgba(255,255,255,.07);
 }
+
 
 .stat-number {
-    font-size: 28px;
-    font-weight: 800;
+    font-size: 30px;
+
+    font-weight: 900;
 }
 
+
 .stat-label {
-    color: #64748b;
+    color: #8994a8;
+
     font-size: 13px;
+
     margin-top: 4px;
 }
 
-/* =========================
-   BOTTOM NAV (люкс)
-========================= */
 
-.bottom-nav {
-    position: fixed;
-    left: 50%;
-    bottom: 14px;
-    transform: translateX(-50%);
-    width: min(94%, 500px);
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    padding: 8px;
-    background: rgba(2, 6, 23, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(51, 65, 85, 0.5);
-    border-radius: 22px;
-    z-index: 1000;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-}
+/* =========================================================
+   PROFILE
+========================================================= */
 
-.nav-item {
-    padding: 11px 4px;
-    background: transparent;
-    color: #64748b;
-    font-size: 11px;
-    font-weight: 500;
-    border-radius: 16px;
-}
-
-.nav-item:hover {
-    color: #94a3b8;
-    background: rgba(30, 41, 59, 0.5);
-}
-
-.nav-item.active {
-    color: #60a5fa;
-    background: rgba(37, 99, 235, 0.15);
-}
-
-.nav-icon {
-    display: block;
-    font-size: 21px;
-    margin-bottom: 3px;
-}
-
-/* =========================
-   LOADING / START SCREEN
-========================= */
-
-.loading-screen {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 25px;
-}
-
-.logo {
-    width: 86px;
-    height: 86px;
-    margin: 0 auto 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 24px;
-    background: linear-gradient(135deg, #2563eb, #7c3aed);
-    font-size: 28px;
-    font-weight: 900;
-    box-shadow: 0 20px 50px rgba(37, 99, 235, 0.4);
-    letter-spacing: -1px;
-}
-
-/* =========================
-   EMPTY STATE
-========================= */
-
-.empty {
+.profile-card {
     text-align: center;
-    padding: 45px 15px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.09),
+            rgba(255,255,255,.035)
+        );
+
+    border:
+        1px solid
+        rgba(255,255,255,.1);
+
+    border-radius: 28px;
+
+    padding: 30px 22px;
+
+    margin-bottom: 18px;
+
+    box-shadow:
+        0 20px 70px
+        rgba(0,0,0,.25);
 }
 
-/* =========================
-   MOBILE
-========================= */
 
-@media (max-width: 500px) {
-    h1 {
-        font-size: 36px;
-    }
+.profile-icon {
+    width: 105px;
 
-    .money {
-        font-size: 24px;
-    }
+    height: 105px;
 
-    .big-money {
-        font-size: 36px;
-    }
+    margin: 0 auto 15px;
 
-    .container {
-        padding-top: 28px;
-    }
-}/* =========================================
-   BILLIONAIRE PROFILE
-========================================= */
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 52px;
+
+    background:
+        rgba(255,255,255,.08);
+
+    border:
+        1px solid
+        rgba(255,255,255,.1);
+}
+
 
 .profile-photo {
     width: 120px;
+
     height: 120px;
+
     object-fit: cover;
+
     border-radius: 50%;
+
     display: block;
+
     margin: 0 auto 15px;
+
+    border:
+        3px solid
+        rgba(255,255,255,.15);
 }
+
 
 .country-flag-large {
-    font-size: 32px;
-    margin: 10px 0;
+    font-size: 30px;
+
+    margin: 8px 0 15px;
 }
 
+
 .wealth-change {
-    margin: 10px auto 20px;
-    font-weight: 700;
+    display: inline-block;
+
+    padding: 7px 12px;
+
+    margin: 8px 0;
+
+    border-radius: 10px;
+
+    background:
+        rgba(255,255,255,.07);
+
+    color: #d9e0ed;
+
+    font-weight: 800;
 }
+
 
 .info-row {
     display: flex;
-    justify-content: space-between;
+
     align-items: center;
+
+    justify-content: space-between;
+
     gap: 20px;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+
+    padding: 14px 0;
+
+    border-bottom:
+        1px solid
+        rgba(255,255,255,.07);
 }
+
 
 .info-row:last-child {
     border-bottom: none;
 }
 
+
 .info-row span {
-    opacity: 0.7;
+    color: #8994a8;
 }
+
 
 .info-row strong {
     text-align: right;
 }
 
+
 .card ul {
     padding-left: 22px;
+
+    color: #c4ccda;
 }
 
+
 .card li {
-    margin-bottom: 8px;
+    margin: 9px 0;
+}
+
+
+/* =========================================================
+   FAVORITE
+========================================================= */
+
+.favorite {
+    position: absolute;
+
+    top: 15px;
+
+    right: 15px;
+
+    width: 42px;
+
+    height: 42px;
+
+    padding: 0;
+
+    margin: 0 !important;
+
+    border-radius: 12px;
+
+    background:
+        rgba(255,255,255,.07);
+
+    color: #ffffff;
+
+    font-size: 19px;
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.empty {
+    text-align: center;
+
+    padding: 45px 20px;
+
+    color: #8d98aa;
+}
+
+
+/* =========================================================
+   BOTTOM NAVIGATION
+========================================================= */
+
+.bottom-nav {
+    position: fixed;
+
+    z-index: 1000;
+
+    left: 50%;
+
+    bottom: 14px;
+
+    transform: translateX(-50%);
+
+    width:
+        min(
+            calc(100% - 22px),
+            650px
+        );
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 5px;
+
+    padding: 8px;
+
+    border-radius: 22px;
+
+    background:
+        rgba(11,15,24,.88);
+
+    border:
+        1px solid
+        rgba(255,255,255,.1);
+
+    box-shadow:
+        0 15px 50px
+        rgba(0,0,0,.4);
+
+    backdrop-filter:
+        blur(20px);
+
+    -webkit-backdrop-filter:
+        blur(20px);
+}
+
+
+.nav-item {
+    background: transparent;
+
+    color: #727d91;
+
+    padding: 8px 4px;
+
+    margin: 0 !important;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    border-radius: 16px;
+}
+
+
+.nav-item:hover {
+    background:
+        rgba(255,255,255,.05);
+
+    transform: none;
+}
+
+
+.nav-item.active {
+    color: #ffffff;
+
+    background:
+        rgba(255,255,255,.09);
+}
+
+
+.nav-icon {
+    display: block;
+
+    font-size: 20px;
+
+    margin-bottom: 3px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .container {
+        width:
+            calc(100% - 24px);
+
+        padding-top: 22px;
+    }
+
+
+    h1 {
+        font-size: 36px;
+    }
+
+
+    .card {
+        padding: 18px;
+
+        border-radius: 19px;
+    }
+
+
+    .money {
+        font-size: 24px;
+    }
+
+
+    .big-money {
+        font-size: 43px;
+
+        letter-spacing: -2px;
+    }
+
+
+    .stat {
+        padding: 16px;
+    }
+
+
+    .stat-number {
+        font-size: 26px;
+    }
+
+
+    .controls {
+        grid-template-columns: 1fr;
+
+        gap: 2px;
+    }
+
+
+    .info-row {
+        align-items: flex-start;
+    }
+
+}
+
+
+@media (min-width: 700px) {
+
+    .card {
+        padding: 25px;
+    }
+
 }
