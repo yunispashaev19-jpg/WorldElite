@@ -2,9 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
     <title>WorldElite</title>
+
+    <meta name="theme-color" content="#080b11">
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -13,27 +16,34 @@
 
 <div id="app">
 
-    <!-- HOME -->
+    <!-- =====================================================
+         HOME
+    ====================================================== -->
+
     <section id="homePage" class="page">
 
-        <header class="header">
+        <header class="top-header">
 
             <div>
-                <div class="logo">WORLD ELITE</div>
+                <div class="brand-small">WORLD ELITE</div>
 
                 <h1>WorldElite</h1>
 
-                <p>Global wealth intelligence</p>
+                <p class="subtitle">
+                    Global wealth intelligence
+                </p>
             </div>
 
-            <button class="icon-button" id="profileTopButton">
+            <button
+                class="profile-circle"
+                onclick="openPage('authPage')">
                 👤
             </button>
 
         </header>
 
-        <div class="live">
-            <span class="live-dot"></span>
+        <div class="live-pill">
+            <span>●</span>
             LIVE DATA
         </div>
 
@@ -45,40 +55,45 @@
             </h2>
 
             <p>
-                Track billionaires, wealth, countries and companies.
+                Explore billionaires, companies,
+                investments and global business.
             </p>
 
         </div>
 
-        <div class="stats">
+        <div class="stats-grid">
 
-            <div class="stat">
+            <div class="stat-card">
 
-                <span class="stat-icon">👑</span>
+                <div class="stat-icon">👑</div>
 
-                <strong id="homeBillionaireCount">0</strong>
+                <strong id="homeBillionaireCount">
+                    —
+                </strong>
 
-                <small>Billionaires</small>
+                <span>Billionaires</span>
 
             </div>
 
-            <div class="stat">
+            <div class="stat-card">
 
-                <span class="stat-icon">🏢</span>
+                <div class="stat-icon">🏢</div>
 
-                <strong id="homeCompanyCount">0</strong>
+                <strong id="homeCompanyCount">
+                    —
+                </strong>
 
-                <small>Companies</small>
+                <span>Companies</span>
 
             </div>
 
         </div>
 
-        <div class="section-title">
+        <div class="section-heading">
 
             <h2>Top Billionaires</h2>
 
-            <button id="seeAllButton">
+            <button onclick="openPage('billionairesPage')">
                 See all →
             </button>
 
@@ -89,52 +104,67 @@
     </section>
 
 
-    <!-- RANKINGS -->
-    <section id="rankingsPage" class="page hidden">
+    <!-- =====================================================
+         BILLIONAIRES
+    ====================================================== -->
 
-        <div class="page-title">
+    <section id="billionairesPage" class="page hidden">
 
-            <button class="back" id="rankingsBackButton">
+        <div class="page-header">
+
+            <button
+                class="back-button"
+                onclick="openPage('homePage')">
                 ←
             </button>
 
             <div>
-                <h1>Rankings</h1>
-                <p>World's wealthiest people</p>
+                <h1>Billionaires</h1>
+                <p>Global wealth rankings</p>
             </div>
 
         </div>
 
-        <div class="search">
+        <div class="search-box">
 
             <span>⌕</span>
 
             <input
-                id="globalSearchInput"
+                id="billionaireSearch"
                 type="search"
                 placeholder="Search billionaire..."
-                autocomplete="off"
-            >
+                oninput="renderBillionaires()">
 
         </div>
 
-        <div class="controls">
+        <div class="control-row">
 
-            <button id="highestButton" class="control active">
+            <button
+                id="highestButton"
+                class="filter-button active"
+                onclick="setSort('highest')">
                 Highest
             </button>
 
-            <button id="lowestButton" class="control">
+            <button
+                id="lowestButton"
+                class="filter-button"
+                onclick="setSort('lowest')">
                 Lowest
             </button>
 
-            <button id="refreshButton" class="control">
-                ↻ Refresh
+            <button
+                class="refresh-button"
+                onclick="refreshData()">
+                ↻ Refresh Data
             </button>
 
         </div>
 
-        <select id="countryFilter" class="country">
+        <select
+            id="countryFilter"
+            class="select-box"
+            onchange="renderBillionaires()">
 
             <option value="all">
                 🌍 All Countries
@@ -142,8 +172,8 @@
 
         </select>
 
-        <div id="rankingCount" class="count">
-            0 billionaires
+        <div class="result-count" id="billionaireCount">
+            Loading...
         </div>
 
         <div id="billionaireList" class="cards"></div>
@@ -151,33 +181,65 @@
     </section>
 
 
-    <!-- PERSON -->
-    <section id="personPage" class="page hidden">
+    <!-- =====================================================
+         RANKINGS
+    ====================================================== -->
 
-        <div class="page-title">
+    <section id="rankingsPage" class="page hidden">
 
-            <button class="back" id="personBackButton">
+        <div class="page-header">
+
+            <button
+                class="back-button"
+                onclick="openPage('homePage')">
                 ←
             </button>
 
             <div>
-                <h1>Profile</h1>
-                <p>Billionaire information</p>
+                <h1>Rankings</h1>
+                <p>World's wealthiest</p>
             </div>
 
         </div>
 
-        <div id="personContent"></div>
+        <div class="ranking-tabs">
+
+            <button
+                class="ranking-tab active"
+                onclick="showRanking('wealth')">
+                💰 Wealth
+            </button>
+
+            <button
+                class="ranking-tab"
+                onclick="showRanking('companies')">
+                🏢 Companies
+            </button>
+
+            <button
+                class="ranking-tab"
+                onclick="showRanking('countries')">
+                🌍 Countries
+            </button>
+
+        </div>
+
+        <div id="rankingContent"></div>
 
     </section>
 
 
-    <!-- COMPANIES -->
+    <!-- =====================================================
+         COMPANIES
+    ====================================================== -->
+
     <section id="companiesPage" class="page hidden">
 
-        <div class="page-title">
+        <div class="page-header">
 
-            <button class="back" id="companiesBackButton">
+            <button
+                class="back-button"
+                onclick="openPage('homePage')">
                 ←
             </button>
 
@@ -188,17 +250,46 @@
 
         </div>
 
-        <div class="search">
+        <div class="search-box">
 
             <span>⌕</span>
 
             <input
-                id="companySearchInput"
+                id="companySearch"
                 type="search"
                 placeholder="Search company..."
-                autocomplete="off"
-            >
+                oninput="renderCompanies()">
 
+        </div>
+
+        <div class="company-filters">
+
+            <select
+                id="industryFilter"
+                class="select-box"
+                onchange="renderCompanies()">
+
+                <option value="all">
+                    All Industries
+                </option>
+
+            </select>
+
+            <select
+                id="companyCountryFilter"
+                class="select-box"
+                onchange="renderCompanies()">
+
+                <option value="all">
+                    🌍 All Countries
+                </option>
+
+            </select>
+
+        </div>
+
+        <div class="result-count" id="companyCount">
+            Loading...
         </div>
 
         <div id="companyList" class="cards"></div>
@@ -206,58 +297,369 @@
     </section>
 
 
-    <!-- PROFILE -->
-    <section id="profilePage" class="page hidden">
+    <!-- =====================================================
+         WORLD BESTS
+    ====================================================== -->
 
-        <div class="page-title">
+    <section id="worldBestsPage" class="page hidden">
 
-            <button class="back" id="profileBackButton">
+        <div class="page-header">
+
+            <button
+                class="back-button"
+                onclick="openPage('homePage')">
+                ←
+            </button>
+
+            <div>
+                <h1>World Bests</h1>
+                <p>Global leaders</p>
+            </div>
+
+        </div>
+
+        <div class="best-grid">
+
+            <button
+                class="best-card"
+                onclick="showRanking('wealth')">
+
+                <span>👑</span>
+                <strong>Richest Person</strong>
+                <small id="bestRichest">—</small>
+
+            </button>
+
+            <button
+                class="best-card"
+                onclick="openPage('companiesPage')">
+
+                <span>🏢</span>
+                <strong>Top Company</strong>
+                <small id="bestCompany">—</small>
+
+            </button>
+
+            <button
+                class="best-card">
+
+                <span>💵</span>
+                <strong>Largest Revenue</strong>
+                <small id="bestRevenue">—</small>
+
+            </button>
+
+            <button
+                class="best-card">
+
+                <span>📈</span>
+                <strong>Largest Profit</strong>
+                <small id="bestProfit">—</small>
+
+            </button>
+
+            <button
+                class="best-card">
+
+                <span>💼</span>
+                <strong>Largest Investment</strong>
+                <small id="bestInvestment">—</small>
+
+            </button>
+
+            <button
+                class="best-card">
+
+                <span>🌍</span>
+                <strong>Top Country</strong>
+                <small id="bestCountry">—</small>
+
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         INVESTMENTS
+    ====================================================== -->
+
+    <section id="investmentsPage" class="page hidden">
+
+        <div class="page-header">
+
+            <button
+                class="back-button"
+                onclick="openPage('homePage')">
+                ←
+            </button>
+
+            <div>
+                <h1>Investments</h1>
+                <p>Capital, stakes & ownership</p>
+            </div>
+
+        </div>
+
+        <div class="investment-grid">
+
+            <div class="info-card">
+                <span>💰</span>
+                <h3>Billionaire Investments</h3>
+                <p>
+                    Explore available investments,
+                    ownership stakes and major assets.
+                </p>
+            </div>
+
+            <div class="info-card">
+                <span>🏢</span>
+                <h3>Company Investments</h3>
+                <p>
+                    Explore company investments,
+                    acquisitions and strategic stakes.
+                </p>
+            </div>
+
+            <div class="info-card">
+                <span>📊</span>
+                <h3>Annual Salaries</h3>
+                <p>
+                    Executive compensation and salaries
+                    where reliable data is available.
+                </p>
+            </div>
+
+            <div class="info-card">
+                <span>🤔</span>
+                <h3>Why They Spend</h3>
+                <p>
+                    Learn why wealthy individuals and
+                    companies invest, acquire and expand.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         PERSON PROFILE
+    ====================================================== -->
+
+    <section id="personPage" class="page hidden">
+
+        <div class="page-header">
+
+            <button
+                class="back-button"
+                onclick="goBackFromProfile()">
                 ←
             </button>
 
             <div>
                 <h1>Profile</h1>
-                <p>Your WorldElite account</p>
+                <p id="personPageSubtitle">Billionaire</p>
             </div>
 
         </div>
 
-        <div id="profileContent"></div>
+        <div id="personContent"></div>
 
     </section>
 
 
-    <!-- BOTTOM NAV -->
-    <nav class="navigation">
+    <!-- =====================================================
+         COMPANY PROFILE
+    ====================================================== -->
 
-        <button id="navHome" class="nav active">
+    <section id="companyProfilePage" class="page hidden">
+
+        <div class="page-header">
+
+            <button
+                class="back-button"
+                onclick="openPage('companiesPage')">
+                ←
+            </button>
+
+            <div>
+                <h1>Company</h1>
+                <p>Business profile</p>
+            </div>
+
+        </div>
+
+        <div id="companyProfileContent"></div>
+
+    </section>
+
+
+    <!-- =====================================================
+         LOGIN / SIGN UP
+    ====================================================== -->
+
+    <section id="authPage" class="page hidden">
+
+        <div class="auth-container">
+
+            <div class="auth-logo">
+                WORLD ELITE
+            </div>
+
+            <h1 id="authTitle">
+                Welcome back
+            </h1>
+
+            <p id="authSubtitle">
+                Sign in to your WorldElite account.
+            </p>
+
+            <div class="auth-tabs">
+
+                <button
+                    id="loginTab"
+                    class="auth-tab active"
+                    onclick="showLogin()">
+                    Login
+                </button>
+
+                <button
+                    id="signupTab"
+                    class="auth-tab"
+                    onclick="showSignup()">
+                    Sign Up
+                </button>
+
+            </div>
+
+            <form
+                id="authForm"
+                onsubmit="handleAuth(event)">
+
+                <div id="nameField" class="input-group hidden">
+
+                    <label>Name</label>
+
+                    <input
+                        id="authName"
+                        type="text"
+                        placeholder="Your name">
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Email</label>
+
+                    <input
+                        id="authEmail"
+                        type="email"
+                        placeholder="you@example.com"
+                        required>
+
+                </div>
+
+                <div class="input-group">
+
+                    <label>Password</label>
+
+                    <input
+                        id="authPassword"
+                        type="password"
+                        placeholder="Password"
+                        required>
+
+                </div>
+
+                <button
+                    class="primary-button"
+                    type="submit">
+
+                    <span id="authButtonText">
+                        Login
+                    </span>
+
+                </button>
+
+            </form>
+
+            <button
+                class="back-home-button"
+                onclick="openPage('homePage')">
+                Continue without account
+            </button>
+
+            <div id="authMessage"></div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         BOTTOM NAVIGATION
+    ====================================================== -->
+
+    <nav class="bottom-nav">
+
+        <button
+            id="navHome"
+            class="nav-item active"
+            onclick="openPage('homePage')">
+
             <span>⌂</span>
             <small>Home</small>
+
         </button>
 
-        <button id="navRankings" class="nav">
+        <button
+            id="navBillionaires"
+            class="nav-item"
+            onclick="openPage('billionairesPage')">
+
             <span>♛</span>
-            <small>Rankings</small>
+            <small>Billionaires</small>
+
         </button>
 
-        <button id="navCompanies" class="nav">
+        <button
+            id="navRankings"
+            class="nav-item"
+            onclick="openPage('rankingsPage')">
+
+            <span>🏆</span>
+            <small>Rankings</small>
+
+        </button>
+
+        <button
+            id="navCompanies"
+            class="nav-item"
+            onclick="openPage('companiesPage')">
+
             <span>▣</span>
             <small>Companies</small>
+
         </button>
 
-        <button id="navProfile" class="nav">
-            <span>○</span>
-            <small>Profile</small>
+        <button
+            id="navBests"
+            class="nav-item"
+            onclick="openPage('worldBestsPage')">
+
+            <span>✦</span>
+            <small>World Bests</small>
+
         </button>
 
     </nav>
 
 </div>
 
-
 <script src="script.js"></script>
-<script src="favorites.js"></script>
-<script src="profile.js"></script>
 
 </body>
 </html>
