@@ -1,18 +1,20 @@
-const FAVORITES_KEY =
-    "worldelite_favorites";
+const FAVORITES_KEY = "worldelite_favorites";
 
 
 function getFavorites() {
 
     try {
 
-        return JSON.parse(
-            localStorage.getItem(
-                FAVORITES_KEY
-            )
-        ) || [];
+        const data =
+            localStorage.getItem(FAVORITES_KEY);
 
-    } catch {
+        return data
+            ? JSON.parse(data)
+            : [];
+
+    } catch (error) {
+
+        console.error(error);
 
         return [];
     }
@@ -28,40 +30,52 @@ function saveFavorites(favorites) {
 }
 
 
-function isFavorite(name) {
+function toggleFavorite(index) {
 
-    return getFavorites()
-        .some(
-            person =>
-                person.name === name
-        );
-}
+    const favorites = getFavorites();
 
+    const position =
+        favorites.indexOf(index);
 
-function toggleFavorite(person) {
+    if (position >= 0) {
 
-    let favorites =
-        getFavorites();
-
-
-    if (
-        favorites.some(
-            item =>
-                item.name === person.name
-        )
-    ) {
-
-        favorites =
-            favorites.filter(
-                item =>
-                    item.name !== person.name
-            );
+        favorites.splice(position, 1);
 
     } else {
 
-        favorites.push(person);
+        favorites.push(index);
     }
 
-
     saveFavorites(favorites);
+}
+
+
+function isFavorite(index) {
+
+    return getFavorites()
+        .includes(index);
+}
+
+
+function toggleFavoriteFromProfile(index) {
+
+    toggleFavorite(index);
+
+    const button =
+        document.querySelector(
+            ".person-profile .primary-button"
+        );
+
+    if (!button) return;
+
+    if (isFavorite(index)) {
+
+        button.textContent =
+            "★ Added to Favorites";
+
+    } else {
+
+        button.textContent =
+            "☆ Add Favorite";
+    }
 }
