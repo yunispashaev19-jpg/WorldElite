@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
     <title>WorldElite</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -15,67 +17,71 @@
     <section id="homePage" class="page">
 
         <header class="header">
+
             <div>
                 <div class="logo">WORLD ELITE</div>
+
                 <h1>WorldElite</h1>
+
                 <p>Global wealth intelligence</p>
             </div>
 
-            <button
-                class="icon-button"
-                type="button"
-                onclick="openPage('profilePage')"
-            >
+            <button class="icon-button" id="profileTopButton">
                 👤
             </button>
+
         </header>
 
         <div class="live">
-            <span>●</span>
+            <span class="live-dot"></span>
             LIVE DATA
         </div>
 
         <div class="hero">
+
             <h2>
                 The world's wealth,
                 <span>in one place.</span>
             </h2>
 
             <p>
-                Track billionaires, wealth,
-                countries and companies.
+                Track billionaires, wealth, countries and companies.
             </p>
+
         </div>
 
         <div class="stats">
 
             <div class="stat">
-                <span>👑</span>
+
+                <span class="stat-icon">👑</span>
 
                 <strong id="homeBillionaireCount">0</strong>
 
                 <small>Billionaires</small>
+
             </div>
 
             <div class="stat">
-                <span>🏢</span>
+
+                <span class="stat-icon">🏢</span>
 
                 <strong id="homeCompanyCount">0</strong>
 
                 <small>Companies</small>
+
             </div>
 
         </div>
 
         <div class="section-title">
+
             <h2>Top Billionaires</h2>
 
-            <button
-                type="button"
-                onclick="openPage('rankingsPage')"
-            >
+            <button id="seeAllButton">
                 See all →
             </button>
+
         </div>
 
         <div id="homeBillionaires" class="cards"></div>
@@ -88,17 +94,13 @@
 
         <div class="page-title">
 
-            <button
-                type="button"
-                onclick="openPage('homePage')"
-                class="back"
-            >
+            <button class="back" id="rankingsBackButton">
                 ←
             </button>
 
             <div>
                 <h1>Rankings</h1>
-                <p>World's richest people</p>
+                <p>World's wealthiest people</p>
             </div>
 
         </div>
@@ -111,57 +113,40 @@
                 id="globalSearchInput"
                 type="search"
                 placeholder="Search billionaire..."
-                oninput="handleGlobalSearch()"
+                autocomplete="off"
             >
 
         </div>
 
         <div class="controls">
 
-            <button
-                id="highestButton"
-                class="control active"
-                type="button"
-                onclick="sortBillionaires('highest')"
-            >
+            <button id="highestButton" class="control active">
                 Highest
             </button>
 
-            <button
-                id="lowestButton"
-                class="control"
-                type="button"
-                onclick="sortBillionaires('lowest')"
-            >
+            <button id="lowestButton" class="control">
                 Lowest
             </button>
 
-            <button
-                class="control"
-                type="button"
-                onclick="refreshData()"
-            >
+            <button id="refreshButton" class="control">
                 ↻ Refresh
             </button>
 
         </div>
 
-        <select
-            id="countryFilter"
-            class="country"
-            onchange="filterBillionaires()"
-        >
-            <option value="all">🌍 All Countries</option>
+        <select id="countryFilter" class="country">
+
+            <option value="all">
+                🌍 All Countries
+            </option>
+
         </select>
 
         <div id="rankingCount" class="count">
             0 billionaires
         </div>
 
-        <div
-            id="billionaireList"
-            class="cards"
-        ></div>
+        <div id="billionaireList" class="cards"></div>
 
     </section>
 
@@ -171,15 +156,14 @@
 
         <div class="page-title">
 
-            <button
-                type="button"
-                onclick="openPage('rankingsPage')"
-                class="back"
-            >
+            <button class="back" id="personBackButton">
                 ←
             </button>
 
-            <h1>Profile</h1>
+            <div>
+                <h1>Profile</h1>
+                <p>Billionaire information</p>
+            </div>
 
         </div>
 
@@ -193,11 +177,7 @@
 
         <div class="page-title">
 
-            <button
-                type="button"
-                onclick="openPage('homePage')"
-                class="back"
-            >
+            <button class="back" id="companiesBackButton">
                 ←
             </button>
 
@@ -216,7 +196,7 @@
                 id="companySearchInput"
                 type="search"
                 placeholder="Search company..."
-                oninput="searchCompanies()"
+                autocomplete="off"
             >
 
         </div>
@@ -231,11 +211,7 @@
 
         <div class="page-title">
 
-            <button
-                type="button"
-                onclick="openPage('homePage')"
-                class="back"
-            >
+            <button class="back" id="profileBackButton">
                 ←
             </button>
 
@@ -251,52 +227,33 @@
     </section>
 
 
-    <!-- NAVIGATION -->
+    <!-- BOTTOM NAV -->
     <nav class="navigation">
 
-        <button
-            id="navHome"
-            class="nav active"
-            type="button"
-            onclick="openPage('homePage')"
-        >
+        <button id="navHome" class="nav active">
             <span>⌂</span>
-            Home
+            <small>Home</small>
         </button>
 
-        <button
-            id="navRankings"
-            class="nav"
-            type="button"
-            onclick="openPage('rankingsPage')"
-        >
+        <button id="navRankings" class="nav">
             <span>♛</span>
-            Rankings
+            <small>Rankings</small>
         </button>
 
-        <button
-            id="navCompanies"
-            class="nav"
-            type="button"
-            onclick="openPage('companiesPage')"
-        >
+        <button id="navCompanies" class="nav">
             <span>▣</span>
-            Companies
+            <small>Companies</small>
         </button>
 
-        <button
-            id="navProfile"
-            class="nav"
-            type="button"
-            onclick="openPage('profilePage')"
-        >
+        <button id="navProfile" class="nav">
             <span>○</span>
-            Profile
+            <small>Profile</small>
         </button>
 
     </nav>
 
 </div>
+
 
 <script src="script.js"></script>
 <script src="favorites.js"></script>
