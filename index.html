@@ -5,7 +5,7 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        content="width=device-width, initial-scale=1.0"
     >
 
     <title>WorldElite</title>
@@ -17,117 +17,157 @@
 
 <div id="app">
 
-    <!-- ============================= -->
     <!-- HOME -->
-    <!-- ============================= -->
-
     <section id="homePage" class="page">
 
-        <header class="top-header">
+        <header class="header">
+
             <div>
-                <div class="brand-small">WORLD ELITE</div>
+                <div class="logo">WORLD ELITE</div>
+
                 <h1>WorldElite</h1>
-                <p>Global wealth & business intelligence</p>
+
+                <p>
+                    Global wealth intelligence
+                </p>
             </div>
 
             <button
-                class="profile-top-button"
+                class="icon-button"
                 onclick="openPage('profilePage')"
             >
                 👤
             </button>
+
         </header>
 
-        <div class="live-status">
-            🌍 <span>LIVE DATA</span>
+
+        <div class="live">
+            <span>●</span>
+            LIVE DATA
         </div>
 
-        <div class="hero-section">
 
-            <h2>World's Wealth</h2>
+        <div class="hero">
+
+            <h2>
+                The world's wealth,
+                <span>in one place.</span>
+            </h2>
 
             <p>
-                Discover the world's richest people,
-                leading companies and global wealth.
+                Track billionaires, wealth,
+                countries and companies.
             </p>
 
         </div>
 
-        <div class="home-stats">
 
-            <div class="stat-card">
+        <div class="stats">
+
+            <div class="stat">
+
                 <span>👑</span>
-                <strong id="homeBillionaireCount">0</strong>
-                <small>Billionaires</small>
+
+                <strong id="homeBillionaireCount">
+                    0
+                </strong>
+
+                <small>
+                    Billionaires
+                </small>
+
             </div>
 
-            <div class="stat-card">
+
+            <div class="stat">
+
                 <span>🏢</span>
-                <strong id="homeCompanyCount">0</strong>
-                <small>Companies</small>
+
+                <strong id="homeCompanyCount">
+                    0
+                </strong>
+
+                <small>
+                    Companies
+                </small>
+
             </div>
 
         </div>
 
-        <div class="home-section-title">
-            <h2>Top Billionaires</h2>
 
-            <button onclick="openPage('rankingsPage')">
-                See all
+        <div class="section-title">
+
+            <h2>
+                Top Billionaires
+            </h2>
+
+            <button
+                onclick="openPage('rankingsPage')"
+            >
+                See all →
             </button>
+
         </div>
 
-        <div id="homeBillionaires" class="billionaire-list"></div>
+
+        <div
+            id="homeBillionaires"
+            class="cards"
+        ></div>
 
     </section>
 
 
-    <!-- ============================= -->
+
     <!-- RANKINGS -->
-    <!-- ============================= -->
+    <section
+        id="rankingsPage"
+        class="page hidden"
+    >
 
-    <section id="rankingsPage" class="page hidden">
-
-        <div class="page-header">
+        <div class="page-title">
 
             <button
-                class="back-button"
                 onclick="openPage('homePage')"
+                class="back"
             >
                 ←
             </button>
 
             <div>
+
                 <h1>Rankings</h1>
-                <p>Global billionaire ranking</p>
+
+                <p>
+                    World's richest people
+                </p>
+
             </div>
 
         </div>
 
 
-        <!-- Search -->
+        <div class="search">
 
-        <div class="search-box">
+            <span>⌕</span>
 
             <input
                 id="globalSearchInput"
                 type="search"
-                placeholder="Search billionaires..."
+                placeholder="Search billionaire..."
                 oninput="handleGlobalSearch()"
             >
-
-            <span>⌕</span>
 
         </div>
 
 
-        <!-- Controls -->
-
-        <div class="ranking-controls">
+        <div class="controls">
 
             <button
                 id="highestButton"
-                class="filter-button active"
+                class="control active"
                 onclick="sortBillionaires('highest')"
             >
                 Highest
@@ -135,65 +175,63 @@
 
             <button
                 id="lowestButton"
-                class="filter-button"
+                class="control"
                 onclick="sortBillionaires('lowest')"
             >
                 Lowest
             </button>
 
             <button
-                class="filter-button"
-                onclick="refreshWorldEliteData()"
+                class="control"
+                onclick="refreshData()"
             >
-                ↻ Refresh Data
+                ↻ Refresh
             </button>
 
         </div>
 
 
-        <!-- Country -->
-
         <select
             id="countryFilter"
-            class="country-filter"
+            class="country"
             onchange="filterBillionaires()"
         >
 
             <option value="all">
-                All Countries
+                🌍 All Countries
             </option>
 
         </select>
 
 
-        <!-- Count -->
-
-        <div class="results-info">
-            <span id="rankingCount">0 billionaires</span>
+        <div
+            id="rankingCount"
+            class="count"
+        >
+            0 billionaires
         </div>
 
 
-        <!-- Billionaires -->
-
         <div
             id="billionaireList"
-            class="billionaire-list"
+            class="cards"
         ></div>
 
     </section>
 
 
-    <!-- ============================= -->
-    <!-- BILLIONAIRE PROFILE -->
-    <!-- ============================= -->
 
-    <section id="personPage" class="page hidden">
+    <!-- PERSON -->
+    <section
+        id="personPage"
+        class="page hidden"
+    >
 
-        <div class="page-header">
+        <div class="page-title">
 
             <button
-                class="back-button"
                 onclick="openPage('rankingsPage')"
+                class="back"
             >
                 ←
             </button>
@@ -207,213 +245,132 @@
     </section>
 
 
-    <!-- ============================= -->
+
     <!-- COMPANIES -->
-    <!-- ============================= -->
+    <section
+        id="companiesPage"
+        class="page hidden"
+    >
 
-    <section id="companiesPage" class="page hidden">
-
-        <div class="page-header">
+        <div class="page-title">
 
             <button
-                class="back-button"
                 onclick="openPage('homePage')"
+                class="back"
             >
                 ←
             </button>
 
             <div>
+
                 <h1>Companies</h1>
-                <p>Global business intelligence</p>
+
+                <p>
+                    Global businesses
+                </p>
+
             </div>
 
         </div>
 
-        <div class="search-box">
+
+        <div class="search">
+
+            <span>⌕</span>
 
             <input
                 id="companySearchInput"
                 type="search"
-                placeholder="Search companies..."
+                placeholder="Search company..."
                 oninput="searchCompanies()"
             >
 
-            <span>⌕</span>
-
         </div>
 
-        <div id="companyList" class="company-list"></div>
+
+        <div
+            id="companyList"
+            class="cards"
+        ></div>
 
     </section>
 
 
-    <!-- ============================= -->
+
     <!-- PROFILE -->
-    <!-- ============================= -->
+    <section
+        id="profilePage"
+        class="page hidden"
+    >
 
-    <section id="profilePage" class="page hidden">
-
-        <div class="page-header">
+        <div class="page-title">
 
             <button
-                class="back-button"
                 onclick="openPage('homePage')"
+                class="back"
             >
                 ←
             </button>
 
             <div>
+
                 <h1>Profile</h1>
-                <p>Your WorldElite account</p>
+
+                <p>
+                    Your WorldElite account
+                </p>
+
             </div>
 
         </div>
+
 
         <div id="profileContent"></div>
 
     </section>
 
 
-    <!-- ============================= -->
-    <!-- LOGIN -->
-    <!-- ============================= -->
 
-    <section id="loginPage" class="page hidden">
-
-        <div class="auth-container">
-
-            <div class="auth-logo">
-                🌍
-            </div>
-
-            <h1>Welcome back</h1>
-
-            <p>Login to WorldElite</p>
-
-            <input
-                id="loginEmail"
-                type="email"
-                placeholder="Email"
-            >
-
-            <input
-                id="loginPassword"
-                type="password"
-                placeholder="Password"
-            >
-
-            <button
-                class="primary-button"
-                onclick="login()"
-            >
-                Login
-            </button>
-
-            <p class="auth-switch">
-                Don't have an account?
-                <button onclick="openPage('signupPage')">
-                    Sign Up
-                </button>
-            </p>
-
-        </div>
-
-    </section>
-
-
-    <!-- ============================= -->
-    <!-- SIGN UP -->
-    <!-- ============================= -->
-
-    <section id="signupPage" class="page hidden">
-
-        <div class="auth-container">
-
-            <div class="auth-logo">
-                🌍
-            </div>
-
-            <h1>Create account</h1>
-
-            <p>Join WorldElite</p>
-
-            <input
-                id="signupName"
-                type="text"
-                placeholder="Full name"
-            >
-
-            <input
-                id="signupEmail"
-                type="email"
-                placeholder="Email"
-            >
-
-            <input
-                id="signupPassword"
-                type="password"
-                placeholder="Password"
-            >
-
-            <button
-                class="primary-button"
-                onclick="signup()"
-            >
-                Create Account
-            </button>
-
-            <p class="auth-switch">
-                Already have an account?
-                <button onclick="openPage('loginPage')">
-                    Login
-                </button>
-            </p>
-
-        </div>
-
-    </section>
-
-
-    <!-- ============================= -->
-    <!-- BOTTOM NAVIGATION -->
-    <!-- ============================= -->
-
-    <nav class="bottom-nav">
+    <!-- NAVIGATION -->
+    <nav class="navigation">
 
         <button
             id="navHome"
-            class="nav-item active"
+            class="nav active"
             onclick="openPage('homePage')"
         >
-            <span>🏠</span>
-            <small>Home</small>
+            <span>⌂</span>
+            Home
         </button>
+
 
         <button
             id="navRankings"
-            class="nav-item"
+            class="nav"
             onclick="openPage('rankingsPage')"
         >
-            <span>🏆</span>
-            <small>Rankings</small>
+            <span>♛</span>
+            Rankings
         </button>
+
 
         <button
             id="navCompanies"
-            class="nav-item"
+            class="nav"
             onclick="openPage('companiesPage')"
         >
-            <span>🏢</span>
-            <small>Companies</small>
+            <span>▣</span>
+            Companies
         </button>
+
 
         <button
             id="navProfile"
-            class="nav-item"
+            class="nav"
             onclick="openPage('profilePage')"
         >
-            <span>👤</span>
-            <small>Profile</small>
+            <span>○</span>
+            Profile
         </button>
 
     </nav>
@@ -421,229 +378,9 @@
 </div>
 
 
-<!-- ============================= -->
-<!-- SCRIPTS -->
-<!-- ============================= -->
-
 <script src="script.js"></script>
+<script src="favorites.js"></script>
 <script src="profile.js"></script>
-
-
-<script>
-
-    /* =====================================
-       PAGE NAVIGATION
-    ===================================== */
-
-    function openPage(pageId) {
-
-        document
-            .querySelectorAll(".page")
-            .forEach(page => {
-                page.classList.add("hidden");
-            });
-
-        const page = document.getElementById(pageId);
-
-        if (page) {
-            page.classList.remove("hidden");
-        }
-
-        updateNavigation(pageId);
-
-        window.scrollTo({
-            top: 0,
-            behavior: "instant"
-        });
-
-        if (
-            pageId === "rankingsPage" &&
-            typeof renderBillionaires === "function"
-        ) {
-            renderBillionaires();
-        }
-
-        if (
-            pageId === "homePage" &&
-            typeof renderHome === "function"
-        ) {
-            renderHome();
-        }
-
-        if (
-            pageId === "profilePage" &&
-            typeof renderProfile === "function"
-        ) {
-            renderProfile();
-        }
-
-        if (
-            pageId === "companiesPage" &&
-            typeof renderCompanies === "function"
-        ) {
-            renderCompanies();
-        }
-    }
-
-
-    /* =====================================
-       NAVIGATION ACTIVE STATE
-    ===================================== */
-
-    function updateNavigation(pageId) {
-
-        document
-            .querySelectorAll(".nav-item")
-            .forEach(button => {
-                button.classList.remove("active");
-            });
-
-        if (pageId === "homePage") {
-            document
-                .getElementById("navHome")
-                ?.classList.add("active");
-        }
-
-        if (pageId === "rankingsPage") {
-            document
-                .getElementById("navRankings")
-                ?.classList.add("active");
-        }
-
-        if (pageId === "companiesPage") {
-            document
-                .getElementById("navCompanies")
-                ?.classList.add("active");
-        }
-
-        if (
-            pageId === "profilePage" ||
-            pageId === "loginPage" ||
-            pageId === "signupPage"
-        ) {
-            document
-                .getElementById("navProfile")
-                ?.classList.add("active");
-        }
-    }
-
-
-    /* =====================================
-       SEARCH
-    ===================================== */
-
-    function handleGlobalSearch() {
-
-        const input =
-            document.getElementById("globalSearchInput");
-
-        if (!input) return;
-
-        const query =
-            input.value.toLowerCase().trim();
-
-        if (typeof window.searchBillionaires === "function") {
-            window.searchBillionaires(query);
-            return;
-        }
-
-        if (typeof window.renderBillionaires === "function") {
-            window.renderBillionaires(query);
-        }
-    }
-
-
-    /* =====================================
-       REFRESH
-    ===================================== */
-
-    async function refreshWorldEliteData() {
-
-        const button =
-            document.querySelector(
-                '[onclick="refreshWorldEliteData()"]'
-            );
-
-        if (button) {
-            button.disabled = true;
-            button.innerHTML = "↻ Updating...";
-        }
-
-        try {
-
-            if (
-                typeof window.refreshData === "function"
-            ) {
-                await window.refreshData();
-            }
-
-            else {
-
-                const response =
-                    await fetch(
-                        "data.json?t=" + Date.now()
-                    );
-
-                if (!response.ok) {
-                    throw new Error("Data unavailable");
-                }
-
-                window.worldEliteData =
-                    await response.json();
-
-                if (
-                    typeof window.renderBillionaires ===
-                    "function"
-                ) {
-                    window.renderBillionaires();
-                }
-            }
-
-        } catch (error) {
-
-            console.error(
-                "WorldElite refresh error:",
-                error
-            );
-
-        } finally {
-
-            if (button) {
-                button.disabled = false;
-                button.innerHTML = "↻ Refresh Data";
-            }
-        }
-    }
-
-
-    /* =====================================
-       INITIALIZE
-    ===================================== */
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-
-            openPage("homePage");
-
-            if (
-                typeof window.renderHome ===
-                "function"
-            ) {
-                window.renderHome();
-            }
-
-            if (
-                typeof window.loadData ===
-                "function"
-            ) {
-                window.loadData();
-            }
-
-        }
-    );
-
-</script>
 
 </body>
 </html>
