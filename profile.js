@@ -1,99 +1,138 @@
-// ==========================================
-// WORLDELITE — PROFILE
-// DOES NOT TOUCH BILLIONAIRE DATA
-// ==========================================
+const USER_KEY =
+    "worldelite_user";
 
-const USER_KEY = "worldelite_user";
 
-function getWorldEliteUser() {
+function getUser() {
+
     try {
-        return JSON.parse(localStorage.getItem(USER_KEY));
+
+        return JSON.parse(
+            localStorage.getItem(
+                USER_KEY
+            )
+        );
+
     } catch {
+
         return null;
     }
 }
 
-function saveWorldEliteUser(user) {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+
+function saveUser(user) {
+
+    localStorage.setItem(
+        USER_KEY,
+        JSON.stringify(user)
+    );
 }
 
-function logoutUser() {
-    localStorage.removeItem(USER_KEY);
-    renderProfile();
-}
 
 function renderProfile() {
-    const container = document.getElementById("profileContent");
 
-    // IMPORTANT:
-    // If profileContent does not exist,
-    // do absolutely nothing.
-    // This prevents Profile from breaking the main app.
+    const container =
+        document.getElementById(
+            "profileContent"
+        );
+
     if (!container) return;
 
-    const user = getWorldEliteUser();
+
+    const user =
+        getUser();
+
 
     if (!user) {
-        container.innerHTML = `
-            <div class="profile-box">
-                <div class="profile-icon">👤</div>
 
-                <h2>WorldElite Profile</h2>
+        container.innerHTML = `
+
+            <div class="profile-box">
+
+                <div class="profile-icon">
+                    👤
+                </div>
+
+                <h2>
+                    WorldElite Profile
+                </h2>
 
                 <p>
-                    Sign in to personalize your WorldElite experience.
+                    Create an account to
+                    personalize your experience.
                 </p>
 
-                <button onclick="showLoginForm()">
+                <button
+                    onclick="showLogin()"
+                >
                     Login
                 </button>
 
                 <button
                     class="secondary-button"
-                    onclick="showSignupForm()"
+                    onclick="showSignup()"
                 >
                     Sign Up
                 </button>
+
             </div>
         `;
 
         return;
     }
 
-    let favorites = [];
 
-    if (typeof getFavorites === "function") {
-        favorites = getFavorites();
-    }
+    const favorites =
+        typeof getFavorites ===
+        "function"
+            ? getFavorites()
+            : [];
+
 
     container.innerHTML = `
+
         <div class="profile-box">
 
             <div class="profile-avatar">
-                ${escapeProfile(user.name?.charAt(0)?.toUpperCase() || "U")}
+
+                ${safeProfile(
+                    user.name
+                        ?.charAt(0)
+                        ?.toUpperCase() ||
+                    "U"
+                )}
+
             </div>
+
 
             <h2>
-                ${escapeProfile(user.name)}
+                ${safeProfile(user.name)}
             </h2>
 
+
             <p>
-                ${escapeProfile(user.email)}
+                ${safeProfile(user.email)}
             </p>
 
-            <div class="profile-stat">
-                <span>☆</span>
-                <strong>${favorites.length}</strong>
-                <small> Favorites</small>
-            </div>
 
-            <button onclick="showProfileFavorites()">
+            <br>
+
+
+            <p>
+                ☆ ${favorites.length}
+                Favorite${favorites.length === 1 ? "" : "s"}
+            </p>
+
+
+            <button
+                onclick="showProfileFavorites()"
+            >
                 View Favorites
             </button>
 
+
             <button
                 class="secondary-button"
-                onclick="logoutUser()"
+                onclick="logout()"
             >
                 Log Out
             </button>
@@ -102,78 +141,103 @@ function renderProfile() {
     `;
 }
 
-function showLoginForm() {
-    const container = document.getElementById("profileContent");
+
+function showLogin() {
+
+    const container =
+        document.getElementById(
+            "profileContent"
+        );
 
     if (!container) return;
 
+
     container.innerHTML = `
+
         <div class="profile-box">
 
-            <h2>Welcome back</h2>
+            <h2>
+                Welcome back
+            </h2>
 
-            <p>Login to WorldElite.</p>
+            <p>
+                Login to WorldElite.
+            </p>
+
 
             <input
-                id="worldEliteLoginEmail"
+                id="loginEmail"
                 type="email"
                 placeholder="Email"
             >
 
-            <button onclick="loginWorldElite()">
+
+            <button
+                onclick="login()"
+            >
                 Login
             </button>
 
-            <p>
-                Don't have an account?
-            </p>
 
             <button
                 class="secondary-button"
-                onclick="showSignupForm()"
+                onclick="showSignup()"
             >
-                Sign Up
+                Create Account
             </button>
 
         </div>
     `;
 }
 
-function showSignupForm() {
-    const container = document.getElementById("profileContent");
+
+function showSignup() {
+
+    const container =
+        document.getElementById(
+            "profileContent"
+        );
 
     if (!container) return;
 
+
     container.innerHTML = `
+
         <div class="profile-box">
 
-            <h2>Create Account</h2>
+            <h2>
+                Create Account
+            </h2>
 
-            <p>Join WorldElite.</p>
+            <p>
+                Join WorldElite.
+            </p>
+
 
             <input
-                id="worldEliteSignupName"
+                id="signupName"
                 type="text"
                 placeholder="Name"
             >
 
+
             <input
-                id="worldEliteSignupEmail"
+                id="signupEmail"
                 type="email"
                 placeholder="Email"
             >
 
-            <button onclick="signupWorldElite()">
+
+            <button
+                onclick="signup()"
+            >
                 Create Account
             </button>
 
-            <p>
-                Already have an account?
-            </p>
 
             <button
                 class="secondary-button"
-                onclick="showLoginForm()"
+                onclick="showLogin()"
             >
                 Login
             </button>
@@ -182,71 +246,126 @@ function showSignupForm() {
     `;
 }
 
-function signupWorldElite() {
+
+function signup() {
+
     const name =
-        document.getElementById("worldEliteSignupName")?.value.trim();
+        document.getElementById(
+            "signupName"
+        )?.value.trim();
+
 
     const email =
-        document.getElementById("worldEliteSignupEmail")?.value.trim();
+        document.getElementById(
+            "signupEmail"
+        )?.value.trim();
+
 
     if (!name || !email) {
-        alert("Please enter your name and email.");
+
+        alert(
+            "Please enter your name and email."
+        );
+
         return;
     }
 
-    const user = {
-        name,
-        email,
-        createdAt: new Date().toISOString()
-    };
 
-    saveWorldEliteUser(user);
+    saveUser({
+
+        name,
+
+        email,
+
+        createdAt:
+            new Date().toISOString()
+
+    });
+
 
     renderProfile();
 }
 
-function loginWorldElite() {
-    const email =
-        document.getElementById("worldEliteLoginEmail")?.value.trim();
 
-    const user = getWorldEliteUser();
+function login() {
+
+    const email =
+        document.getElementById(
+            "loginEmail"
+        )?.value.trim();
+
+
+    const user =
+        getUser();
+
 
     if (!user) {
-        alert("No account found. Please sign up first.");
+
+        alert(
+            "No account found. Sign up first."
+        );
+
         return;
     }
 
+
     if (email !== user.email) {
-        alert("Email does not match the saved account.");
+
+        alert(
+            "Email does not match."
+        );
+
         return;
     }
+
 
     renderProfile();
 }
 
+
+function logout() {
+
+    localStorage.removeItem(
+        USER_KEY
+    );
+
+    renderProfile();
+}
+
+
 function showProfileFavorites() {
-    const container = document.getElementById("profileContent");
+
+    const container =
+        document.getElementById(
+            "profileContent"
+        );
 
     if (!container) return;
 
-    let favorites = [];
 
-    if (typeof getFavorites === "function") {
-        favorites = getFavorites();
-    }
+    const favorites =
+        getFavorites();
+
 
     if (!favorites.length) {
+
         container.innerHTML = `
+
             <div class="profile-box">
 
-                <h2>Your Favorites</h2>
+                <h2>
+                    Your Favorites
+                </h2>
 
                 <p>
-                    You haven't added any billionaires yet.
+                    You haven't added
+                    any billionaires yet.
                 </p>
 
-                <button onclick="renderProfile()">
-                    Back to Profile
+                <button
+                    onclick="renderProfile()"
+                >
+                    Back
                 </button>
 
             </div>
@@ -255,61 +374,69 @@ function showProfileFavorites() {
         return;
     }
 
+
     container.innerHTML = `
+
         <div class="profile-box">
 
-            <h2>Your Favorites</h2>
+            <h2>
+                Your Favorites
+            </h2>
 
-            <div class="profile-favorites-list">
 
-                ${favorites.map(person => `
-                    <div class="profile-favorite-item">
+            ${favorites.map(
+                person => `
 
-                        <div>
-                            <strong>
-                                ${escapeProfile(person.name)}
-                            </strong>
+                    <div
+                        style="
+                            padding:15px;
+                            margin-top:10px;
+                            border-radius:15px;
+                            background:rgba(255,255,255,.06);
+                        "
+                    >
 
-                            <small>
-                                ${escapeProfile(
-                                    person.country || "Unknown"
-                                )}
-                            </small>
-                        </div>
+                        <strong>
+                            ${safeProfile(
+                                person.name
+                            )}
+                        </strong>
 
-                        <span>
-                            ${formatProfileWorth(person.netWorth)}
-                        </span>
+                        <br>
+
+                        <small>
+                            ${safeProfile(
+                                person.country ||
+                                "Unknown"
+                            )}
+                        </small>
+
+                        <br>
+
+                        <small>
+                            $${Number(
+                                person.netWorth || 0
+                            ).toFixed(1)}B
+                        </small>
 
                     </div>
-                `).join("")}
+                `
+            ).join("")}
 
-            </div>
 
-            <button onclick="renderProfile()">
-                Back to Profile
+            <button
+                onclick="renderProfile()"
+            >
+                Back
             </button>
 
         </div>
     `;
 }
 
-function formatProfileWorth(value) {
 
-    const number = Number(value);
+function safeProfile(value) {
 
-    if (!Number.isFinite(number)) {
-        return "—";
-    }
-
-    if (number >= 1000) {
-        return "$" + (number / 1000).toFixed(1) + "T";
-    }
-
-    return "$" + number.toFixed(1) + "B";
-}
-
-function escapeProfile(value) {
     return String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
@@ -318,14 +445,12 @@ function escapeProfile(value) {
         .replaceAll("'", "&#039;");
 }
 
-// Only render Profile if its container actually exists.
-document.addEventListener("DOMContentLoaded", function () {
 
-    const profileContainer =
-        document.getElementById("profileContent");
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
 
-    if (profileContainer) {
         renderProfile();
-    }
 
-});
+    }
+);
