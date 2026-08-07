@@ -38,7 +38,91 @@ jobs:
           pip install requests
 
 
-      - name: Build and update company database
+            - name: Test FMP API access
+        env:
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+
+        shell: bash
+
+        run: |
+
+          python - <<'PY'
+
+          import os
+          import requests
+
+          key = os.environ.get("FMP_API_KEY")
+
+          if not key:
+              raise SystemExit("FMP_API_KEY is missing")
+
+
+          endpoints = [
+
+              (
+                  "Company Profile",
+                  "https://financialmodelingprep.com/stable/profile",
+                  {
+                      "symbol": "AAPL",
+                      "apikey": key
+                  }
+              ),
+
+              (
+                  "Income Statement",
+                  "https://financialmodelingprep.com/stable/income-statement",
+                  {
+                      "symbol": "AAPL",
+                      "apikey": key,
+                      "limit": 1
+                  }
+              ),
+
+              (
+                  "Company Screener",
+                  "https://financialmodelingprep.com/stable/company-screener",
+                  {
+                      "apikey": key,
+                      "limit": 5,
+                      "isActivelyTrading": "true"
+                  }
+              )
+
+          ]
+
+
+          for name, url, params in endpoints:
+
+              print()
+              print("=" * 60)
+              print(name)
+              print("=" * 60)
+
+              try:
+
+                  response = requests.get(
+                      url,
+                      params=params,
+                      timeout=30
+                  )
+
+                  print(
+                      "HTTP:",
+                      response.status_code
+                  )
+
+                  print(
+                      response.text[:1000]
+                  )
+
+              except Exception as error:
+
+                  print(
+                      "ERROR:",
+                      error
+                  )
+
+          PY
         env:
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
 
