@@ -16,15 +16,11 @@ permissions:
   id-token: write
 
 concurrency:
-  group: worldelite
+  group: worldelite-pages
   cancel-in-progress: false
 
 
 jobs:
-
-  # =========================================================
-  # UPDATE DATA
-  # =========================================================
 
   update-data:
 
@@ -35,119 +31,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
 
-      # -------------------------------------------------------
-      # Validate existing data BEFORE touching anything
-      # -------------------------------------------------------
-
-      - name: Validate current data
-        shell: bash
+      - name: Install Python
         run: |
-
-          python - <<'PY'
-
-          import json
-          import sys
-
-          try:
-
-              with open(
-                  "data.json",
-                  "r",
-                  encoding="utf-8"
-              ) as f:
-
-                  data = json.load(f)
-
-          except Exception as error:
-
-              print("ERROR: data.json cannot be read.")
-              print(error)
-
-              sys.exit(1)
-
-
-          if isinstance(data, list):
-
-              billionaires = data
-              companies = []
-
-          elif isinstance(data, dict):
-
-              billionaires = (
-                  data.get("billionaires")
-                  or data.get("Billionaires")
-                  or data.get("people")
-                  or []
-              )
-
-              companies = (
-                  data.get("companies")
-                  or data.get("Companies")
-                  or []
-              )
-
-          else:
-
-              print("ERROR: Unsupported data.json structure.")
-              sys.exit(1)
-
-
-          print(
-              "Billionaires:",
-              len(billionaires)
-          )
-
-          print(
-              "Companies:",
-              len(companies)
-          )
-
-
-          if len(billionaires) < 3000:
-
-              print(
-                  "ERROR: Billionaire dataset is unexpectedly small."
-              )
-
-              sys.exit(1)
-
-
-          print("Current data is valid.")
-
-          PY
-
-
-      # -------------------------------------------------------
-      # Install requests
-      # -------------------------------------------------------
-
-      - name: Install dependencies
-        run: |
-
           python -m pip install --upgrade pip
           pip install requests
 
 
-      # =======================================================
-      # UPDATE EXISTING COMPANIES ONLY
-      #
-      # IMPORTANT:
-      #
-      # We DO NOT use company-screener.
-      #
-      # This prevents FMP 402 from killing the workflow.
-      #
-      # Existing companies are NEVER deleted.
-      # =======================================================
+      # =====================================================
+      # UPDATE COMPANY DATA FROM SEC EDGAR
+      # =====================================================
 
-      - name: Update existing company financial data
-        env:
-          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+      - name: Update companies from SEC EDGAR
 
         shell: bash
+
+        env:
+          SEC_USER_AGENT: "WorldElite/1.0 worldelite@example.com"
 
         run: |
 
@@ -155,21 +57,29 @@ jobs:
 
           import json
           import os
+          import time
           import requests
           from datetime import datetime, timezone
 
 
           DATA_FILE = "data.json"
 
-          API_KEY = os.environ.get(
-              "FMP_API_KEY",
-              ""
-          ).strip()
+          SEC_USER_AGENT = os.environ.get(
+              "SEC_USER_AGENT",
+              "WorldElite/1.0 worldelite@example.com"
+          )
 
 
-          # ---------------------------------------------------
-          # Load data
-          # ---------------------------------------------------
+          headers = {
+              "User-Agent": SEC_USER_AGENT,
+              "Accept-Encoding": "gzip, deflate",
+              "Host": "www.sec.gov"
+          }
+
+
+          # =================================================
+          # LOAD CURRENT DATA
+          # =================================================
 
           with open(
               DATA_FILE,
@@ -209,401 +119,572 @@ jobs:
           else:
 
               raise SystemExit(
-                  "Unsupported data.json structure."
+                  "ERROR: Invalid data.json structure."
               )
 
 
-          # ---------------------------------------------------
-          # Safety check
-          # ---------------------------------------------------
+          print(
+              "Billionaires before update:",
+              len(billionaires)
+          )
+
+          print(
+              "Existing companies:",
+              len(companies)
+          )
+
 
           if len(billionaires) < 3000:
 
               raise SystemExit(
-                  "Refusing update because billionaire dataset is too small."
+                  "ERROR: Billionaire dataset is too small."
               )
+
+
+          # =================================================
+          # SEC COMPANY TICKER LIST
+          # =================================================
+
+          print(
+              "Downloading SEC company universe..."
+          )
+
+
+          ticker_url = (
+              "https://www.sec.gov/files/"
+              "company_tickers.json"
+          )
+
+
+          response = requests.get(
+              ticker_url,
+              headers=headers,
+              timeout=60
+          )
+
+
+          if response.status_code != 200:
+
+              raise SystemExit(
+                  "SEC ticker request failed: "
+                  + str(response.status_code)
+              )
+
+
+          ticker_data = response.json()
+
+
+          sec_companies = []
+
+
+          for item in ticker_data.values():
+
+              if not isinstance(item, dict):
+                  continue
+
+
+              cik = item.get("cik_str")
+              ticker = item.get("ticker")
+              name = item.get("title")
+
+
+              if not cik:
+                  continue
+
+              if not ticker:
+                  continue
+
+              if not name:
+                  continue
+
+
+              sec_companies.append({
+
+                  "cik": str(cik).zfill(10),
+
+                  "ticker":
+                      str(ticker).upper(),
+
+                  "name":
+                      str(name).strip()
+
+              })
 
 
           print(
-              f"Billionaires before update: {len(billionaires)}"
+              "SEC companies found:",
+              len(sec_companies)
           )
+
+
+          if len(sec_companies) < 1000:
+
+              raise SystemExit(
+                  "SEC returned fewer than 1000 companies."
+              )
+
+
+          # =================================================
+          # EXISTING COMPANY MAP
+          # =================================================
+
+          existing_by_ticker = {}
+
+
+          for company in companies:
+
+              if not isinstance(company, dict):
+                  continue
+
+
+              ticker = (
+                  company.get("ticker")
+                  or company.get("symbol")
+                  or company.get("tickerSymbol")
+              )
+
+
+              if ticker:
+
+                  existing_by_ticker[
+                      str(ticker).upper().strip()
+                  ] = company
+
+
+          # =================================================
+          # BUILD COMPANY LIST
+          #
+          # Keep existing companies and add SEC companies.
+          # =================================================
+
+          updated_companies = []
+
+
+          # We use a large universe but avoid making
+          # thousands of SEC API requests every day.
+          #
+          # First 1200 SEC issuers are enough to create
+          # a 1000+ company database.
+          #
+          # Existing companies are always preserved.
+          # =================================================
+
+          selected = sec_companies[:1200]
+
+
+          for company_info in selected:
+
+              ticker = company_info["ticker"]
+
+              name = company_info["name"]
+
+              cik = company_info["cik"]
+
+
+              old = existing_by_ticker.get(
+                  ticker,
+                  {}
+              )
+
+
+              company = dict(old)
+
+
+              company["name"] = (
+                  old.get("name")
+                  or name
+              )
+
+
+              company["ticker"] = ticker
+
+              company["symbol"] = ticker
+
+              company["cik"] = cik
+
+
+              company["country"] = (
+                  old.get("country")
+                  or "United States"
+              )
+
+
+              company["financialSource"] = (
+                  "U.S. Securities and Exchange Commission EDGAR"
+              )
+
+
+              updated_companies.append(
+                  company
+              )
+
+
+          # =================================================
+          # PRESERVE OLD COMPANIES THAT ARE NOT IN
+          # THE CURRENT SEC SELECTION
+          # =================================================
+
+          selected_tickers = {
+              c["ticker"]
+              for c in updated_companies
+              if c.get("ticker")
+          }
+
+
+          for old_company in companies:
+
+              if not isinstance(
+                  old_company,
+                  dict
+              ):
+                  continue
+
+
+              ticker = (
+                  old_company.get("ticker")
+                  or old_company.get("symbol")
+              )
+
+
+              if not ticker:
+                  continue
+
+
+              ticker = str(
+                  ticker
+              ).upper().strip()
+
+
+              if ticker not in selected_tickers:
+
+                  updated_companies.append(
+                      old_company
+                  )
+
+
+          companies = updated_companies
+
 
           print(
-              f"Existing companies: {len(companies)}"
+              "Company universe:",
+              len(companies)
           )
 
 
-          # ---------------------------------------------------
-          # NEVER delete companies
-          # ---------------------------------------------------
+          # =================================================
+          # SEC COMPANY FACTS
+          # =================================================
 
-          original_company_count = len(companies)
+          successful = 0
+
+          failed = 0
 
 
-          # ---------------------------------------------------
-          # If there are no companies, do not fail.
+          # Update financial information for the first
+          # 1000 companies.
           #
-          # This is important because FMP company discovery
-          # may not be available on the current API plan.
-          # ---------------------------------------------------
+          # SEC requests must be controlled carefully.
+          # SEC recommends staying within its rate limits.
+          # =================================================
 
-          if not companies:
+          for index, company in enumerate(
+              companies[:1000]
+          ):
 
-              print(
-                  "No companies currently exist in data.json."
+              cik = company.get("cik")
+
+
+              if not cik:
+                  continue
+
+
+              url = (
+                  "https://data.sec.gov/api/xbrl/"
+                  "companyfacts/CIK"
+                  + str(cik).zfill(10)
+                  + ".json"
               )
 
-              print(
-                  "Skipping company discovery."
-              )
 
-              print(
-                  "Existing billionaire data will be preserved."
-              )
+              try:
+
+                  time.sleep(0.15)
 
 
-          # ---------------------------------------------------
-          # No API key?
-          #
-          # Don't destroy the dataset.
-          # ---------------------------------------------------
-
-          if not API_KEY:
-
-              print(
-                  "FMP_API_KEY is not available."
-              )
-
-              print(
-                  "Skipping financial updates."
-              )
-
-          else:
-
-              # ------------------------------------------------
-              # Get tickers from EXISTING companies only
-              # ------------------------------------------------
-
-              symbols = []
+                  r = requests.get(
+                      url,
+                      headers={
+                          "User-Agent":
+                              SEC_USER_AGENT,
+                          "Accept-Encoding":
+                              "gzip, deflate"
+                      },
+                      timeout=30
+                  )
 
 
-              for company in companies:
+                  if r.status_code != 200:
 
-                  if not isinstance(
-                      company,
-                      dict
-                  ):
+                      print(
+                          company.get("ticker"),
+                          "SEC:",
+                          r.status_code
+                      )
+
+                      failed += 1
 
                       continue
 
 
-                  symbol = (
-                      company.get("symbol")
-                      or company.get("ticker")
-                      or company.get("tickerSymbol")
+                  facts = r.json()
+
+
+                  us_gaap = (
+                      facts.get("facts", {})
+                      .get("us-gaap", {})
                   )
 
 
-                  if symbol:
+                  # -----------------------------------------
+                  # REVENUE
+                  # -----------------------------------------
 
-                      symbol = (
-                          str(symbol)
-                          .strip()
-                          .upper()
-                      )
+                  revenue_tags = [
+
+                      "RevenueFromContractWithCustomerExcludingAssessedTax",
+
+                      "Revenues",
+
+                      "SalesRevenueNet",
+
+                      "SalesRevenueGoodsNet",
+
+                      "RevenueFromContractWithCustomerIncludingAssessedTax"
+
+                  ]
 
 
-                      if symbol:
+                  # -----------------------------------------
+                  # NET PROFIT
+                  # -----------------------------------------
 
-                          symbols.append(
-                              symbol
+                  profit_tags = [
+
+                      "NetIncomeLoss",
+
+                      "ProfitLoss",
+
+                      "NetIncomeLossAvailableToCommonStockholdersBasic"
+
+                  ]
+
+
+                  # -----------------------------------------
+                  # GROSS PROFIT
+                  # -----------------------------------------
+
+                  gross_tags = [
+
+                      "GrossProfit"
+
+                  ]
+
+
+                  def latest_annual_value(
+                      tags
+                  ):
+
+                      for tag in tags:
+
+                          concept = us_gaap.get(
+                              tag
                           )
 
 
-              # Remove duplicates
-
-              symbols = list(
-                  dict.fromkeys(symbols)
-              )
-
-
-              print(
-                  f"Existing company tickers: {len(symbols)}"
-              )
-
-
-              # ------------------------------------------------
-              # Update each existing company
-              # ------------------------------------------------
-
-              successful = 0
-              failed = 0
-
-
-              for symbol in symbols:
-
-                  try:
-
-                      url = (
-                          "https://financialmodelingprep.com/"
-                          "stable/income-statement"
-                      )
-
-
-                      response = requests.get(
-
-                          url,
-
-                          params={
-                              "symbol": symbol,
-                              "apikey": API_KEY
-                          },
-
-                          timeout=30
-                      )
-
-
-                      # ----------------------------------------
-                      # 402 = plan doesn't allow this endpoint
-                      #
-                      # DO NOT FAIL THE ENTIRE DEPLOYMENT.
-                      # ----------------------------------------
-
-                      if response.status_code == 402:
-
-                          print(
-                              f"{symbol}: FMP returned 402."
-                          )
-
-                          print(
-                              "Current FMP plan does not allow "
-                              "this financial endpoint."
-                          )
-
-                          print(
-                              "Skipping this company."
-                          )
-
-                          failed += 1
-
-                          continue
-
-
-                      if response.status_code != 200:
-
-                          print(
-                              f"{symbol}: HTTP "
-                              f"{response.status_code}"
-                          )
-
-                          failed += 1
-
-                          continue
-
-
-                      try:
-
-                          result = response.json()
-
-                      except Exception:
-
-                          print(
-                              f"{symbol}: invalid JSON response."
-                          )
-
-                          failed += 1
-
-                          continue
-
-
-                      if not isinstance(
-                          result,
-                          list
-                      ):
-
-                          print(
-                              f"{symbol}: unexpected response."
-                          )
-
-                          failed += 1
-
-                          continue
-
-
-                      if not result:
-
-                          print(
-                              f"{symbol}: no financial records."
-                          )
-
-                          continue
-
-
-                      latest = result[0]
-
-
-                      # ----------------------------------------
-                      # Find existing company
-                      # ----------------------------------------
-
-                      company = None
-
-
-                      for item in companies:
-
-                          if not isinstance(
-                              item,
-                              dict
-                          ):
-
+                          if not concept:
                               continue
 
 
-                          item_symbol = (
-                              item.get("symbol")
-                              or item.get("ticker")
-                              or item.get("tickerSymbol")
+                          units = concept.get(
+                              "units",
+                              {}
                           )
 
 
-                          if (
-                              item_symbol
-                              and
-                              str(
-                                  item_symbol
-                              ).strip().upper()
-                              == symbol
-                          ):
+                          for unit_values in units.values():
 
-                              company = item
-
-                              break
+                              annual = []
 
 
-                      if company is None:
+                              for item in unit_values:
 
-                          continue
+                                  form = item.get(
+                                      "form"
+                                  )
 
 
-                      # ----------------------------------------
-                      # Financial values
-                      # ----------------------------------------
+                                  fp = item.get(
+                                      "fp"
+                                  )
 
-                      revenue = latest.get(
+
+                                  val = item.get(
+                                      "val"
+                                  )
+
+
+                                  end = item.get(
+                                      "end"
+                                  )
+
+
+                                  if (
+                                      form in
+                                      ["10-K", "20-F", "40-F"]
+                                      and
+                                      val is not None
+                                      and
+                                      end
+                                  ):
+
+                                      annual.append(
+                                          item
+                                      )
+
+
+                              if annual:
+
+                                  annual.sort(
+                                      key=lambda x:
+                                      x.get(
+                                          "end",
+                                          ""
+                                      ),
+                                      reverse=True
+                                  )
+
+
+                                  return annual[0].get(
+                                      "val"
+                                  )
+
+
+                      return None
+
+
+                  revenue = latest_annual_value(
+                      revenue_tags
+                  )
+
+
+                  profit = latest_annual_value(
+                      profit_tags
+                  )
+
+
+                  gross_profit = latest_annual_value(
+                      gross_tags
+                  )
+
+
+                  if revenue is not None:
+
+                      company[
                           "revenue"
-                      )
+                      ] = revenue
 
-                      gross_profit = latest.get(
+
+                  if profit is not None:
+
+                      company[
+                          "netProfit"
+                      ] = profit
+
+
+                  if gross_profit is not None:
+
+                      company[
                           "grossProfit"
-                      )
-
-                      net_income = latest.get(
-                          "netIncome"
-                      )
+                      ] = gross_profit
 
 
-                      if revenue is not None:
-
-                          company[
-                              "revenue"
-                          ] = revenue
-
-
-                      if gross_profit is not None:
-
-                          company[
-                              "grossProfit"
-                          ] = gross_profit
+                  company[
+                      "financialUpdated"
+                  ] = datetime.now(
+                      timezone.utc
+                  ).isoformat()
 
 
-                      if net_income is not None:
-
-                          company[
-                              "netProfit"
-                          ] = net_income
-
-
-                      company[
-                          "financialSource"
-                      ] = (
-                          "Financial Modeling Prep"
-                      )
+                  company[
+                      "financialSource"
+                  ] = (
+                      "SEC EDGAR XBRL"
+                  )
 
 
-                      company[
-                          "financialUpdated"
-                      ] = (
-                          latest.get("date")
-                      )
+                  successful += 1
 
 
-                      successful += 1
+                  print(
+                      f"[{index + 1}/1000]",
+                      company.get(
+                          "ticker"
+                      ),
+                      "updated"
+                  )
 
 
-                      print(
-                          f"Updated {symbol}"
-                      )
+              except Exception as error:
+
+                  failed += 1
+
+                  print(
+                      "Failed:",
+                      company.get(
+                          "ticker"
+                      ),
+                      error
+                  )
 
 
-                  except Exception as error:
+          # =================================================
+          # FINAL METADATA
+          # =================================================
 
-                      failed += 1
-
-                      print(
-                          f"{symbol}: update failed:"
-                      )
-
-                      print(error)
-
-
-              print(
-                  "Successful company updates:",
-                  successful
-              )
-
-              print(
-                  "Failed/skipped company updates:",
-                  failed
-              )
-
-
-          # ===================================================
-          # Metadata
-          # ===================================================
-
-          now = datetime.now(
+          metadata[
+              "lastAutomaticUpdate"
+          ] = datetime.now(
               timezone.utc
           ).isoformat()
 
 
           metadata[
-              "lastAutomaticUpdate"
-          ] = now
+              "companyFinancialUpdates"
+          ] = successful
 
 
           metadata[
-              "billionaireRecords"
-          ] = len(billionaires)
+              "companyFinancialFailures"
+          ] = failed
 
 
           metadata[
-              "companyRecords"
-          ] = len(companies)
+              "companySource"
+          ] = (
+              "U.S. Securities and Exchange Commission EDGAR"
+          )
 
 
           metadata[
-              "companyRecordsBeforeUpdate"
-          ] = original_company_count
+              "companyUniverse"
+          ] = (
+              "SEC company_tickers.json"
+          )
 
 
-          metadata[
-              "automaticUpdater"
-          ] = "WorldElite GitHub Actions"
-
-
-          # ===================================================
+          # =================================================
           # SAVE
-          # ===================================================
+          # =================================================
 
           output = {
 
@@ -634,9 +715,13 @@ jobs:
 
 
           print()
-          print("==============================")
-          print("FINAL DATA")
-          print("==============================")
+          print(
+              "======================================"
+          )
+
+          print(
+              "WorldElite update completed"
+          )
 
           print(
               "Billionaires:",
@@ -648,24 +733,36 @@ jobs:
               len(companies)
           )
 
-          print("==============================")
+          print(
+              "Financial updates:",
+              successful
+          )
 
+          print(
+              "Financial failures:",
+              failed
+          )
+
+          print(
+              "======================================"
+          )
 
           PY
 
 
-      # =======================================================
-      # FINAL SAFETY VALIDATION
-      # =======================================================
+      # =====================================================
+      # VALIDATE DATA
+      # =====================================================
 
       - name: Validate final data
+
         shell: bash
+
         run: |
 
           python - <<'PY'
 
           import json
-          import sys
 
 
           with open(
@@ -682,89 +779,71 @@ jobs:
               dict
           ):
 
-              print(
-                  "ERROR: data.json is not an object."
+              raise SystemExit(
+                  "ERROR: data.json must be an object."
               )
 
-              sys.exit(1)
 
-
-          billionaires = (
-              data.get("billionaires")
-              or []
+          billionaires = data.get(
+              "billionaires",
+              []
           )
 
 
-          companies = (
-              data.get("companies")
-              or []
+          companies = data.get(
+              "companies",
+              []
           )
 
 
           print(
-              "Final billionaire count:",
+              "Billionaires:",
               len(billionaires)
           )
 
 
           print(
-              "Final company count:",
+              "Companies:",
               len(companies)
           )
 
 
-          # ---------------------------------------------------
-          # Billionaires must survive
-          # ---------------------------------------------------
-
           if len(billionaires) < 3000:
 
-              print(
-                  "ERROR: Billionaire data was corrupted."
+              raise SystemExit(
+                  "ERROR: Billionaire dataset corrupted."
               )
 
-              sys.exit(1)
 
+          if len(companies) < 1000:
 
-          # ---------------------------------------------------
-          # Companies key must exist
-          # ---------------------------------------------------
-
-          if "companies" not in data:
-
-              print(
-                  "ERROR: companies field disappeared."
+              raise SystemExit(
+                  "ERROR: Company dataset contains fewer than 1000 companies."
               )
 
-              sys.exit(1)
-
-
-          # ---------------------------------------------------
-          # Metadata must exist
-          # ---------------------------------------------------
 
           if "metadata" not in data:
 
-              print(
-                  "ERROR: metadata field disappeared."
+              raise SystemExit(
+                  "ERROR: metadata missing."
               )
-
-              sys.exit(1)
 
 
           print(
-              "Final data validation successful."
+              "DATA VALIDATION PASSED"
           )
 
           PY
 
 
-      # =======================================================
+      # =====================================================
       # COMMIT
-      # =======================================================
+      # =====================================================
 
       - name: Commit updated data
+
         shell: bash
+
         run: |
 
           git config user.name "WorldElite Bot"
@@ -792,7 +871,7 @@ jobs:
 
 
   # =========================================================
-  # BUILD GITHUB PAGES
+  # BUILD
   # =========================================================
 
   build:
@@ -802,18 +881,23 @@ jobs:
     needs:
       - update-data
 
+
     steps:
 
       - name: Checkout repository
+
         uses: actions/checkout@v4
 
 
-      - name: Configure GitHub Pages
+      - name: Configure Pages
+
         uses: actions/configure-pages@v5
 
 
       - name: Upload Pages artifact
+
         uses: actions/upload-pages-artifact@v3
+
         with:
           path: .
 
@@ -830,6 +914,7 @@ jobs:
     needs:
       - build
 
+
     environment:
 
       name: github-pages
@@ -840,6 +925,7 @@ jobs:
     steps:
 
       - name: Deploy to GitHub Pages
+
         id: deployment
 
         uses: actions/deploy-pages@v4
