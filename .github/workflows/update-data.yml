@@ -19,6 +19,7 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+
 jobs:
 
   update-data:
@@ -30,54 +31,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check current data
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json
 
-          with open("data.json", "r", encoding="utf-8") as f:
-              data = json.load(f)
-
-          if isinstance(data, list):
-              billionaires = data
-              companies = []
-          elif isinstance(data, dict):
-              billionaires = (
-                  data.get("billionaires")
-                  or data.get("Billionaires")
-                  or data.get("people")
-                  or []
-              )
-
-              companies = (
-                  data.get("companies")
-                  or data.get("Companies")
-                  or []
-              )
-          else:
-              billionaires = []
-              companies = []
-
-          print("Current billionaire records:", len(billionaires))
-          print("Current company records:", len(companies))
-
-          if len(billionaires) < 3000:
-              raise SystemExit(
-                  "ERROR: billionaire dataset is unexpectedly small."
-              )
-          PY
-
-      - name: Install Python dependencies
+      - name: Install Python
         run: |
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Update company data
+
+      - name: Build and update company database
         env:
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+
         shell: bash
+
         run: |
+
           python - <<'PY'
 
           import json
@@ -85,23 +53,35 @@ jobs:
           import requests
           from datetime import datetime, timezone
 
+
           API_KEY = os.environ.get("FMP_API_KEY")
 
+
           if not API_KEY:
+
               raise SystemExit(
                   "FMP_API_KEY secret is missing."
               )
 
+
           DATA_FILE = "data.json"
 
-          with open(DATA_FILE, "r", encoding="utf-8") as f:
+
+          # =====================================================
+          # LOAD EXISTING DATA
+          # =====================================================
+
+          with open(
+              DATA_FILE,
+              "r",
+              encoding="utf-8"
+          ) as f:
+
               data = json.load(f)
 
-          if isinstance(data, list):
-              billionaires = data
-              companies = []
-              metadata = {}
-          else:
+
+          if isinstance(data, dict):
+
               billionaires = (
                   data.get("billionaires")
                   or data.get("Billionaires")
@@ -109,202 +89,472 @@ jobs:
                   or []
               )
 
-              companies = (
+              old_companies = (
                   data.get("companies")
                   or data.get("Companies")
                   or []
               )
 
-              metadata = data.get("metadata", {})
+              metadata = (
+                  data.get("metadata")
+                  or {}
+              )
+
+          elif isinstance(data, list):
+
+              billionaires = data
+
+              old_companies = []
+
+              metadata = {}
+
+          else:
+
+              raise SystemExit(
+                  "Invalid data.json structure."
+              )
+
+
+          # =====================================================
+          # PROTECT BILLIONAIRE DATABASE
+          # =====================================================
+
+          print(
+              "Billionaires before update:",
+              len(billionaires)
+          )
+
 
           if len(billionaires) < 3000:
+
               raise SystemExit(
-                  "Refusing to update: billionaire dataset is too small."
+                  "STOP: billionaire database is too small."
               )
+
+
+          # =====================================================
+          # COMPANY DATABASE
+          # =====================================================
+
+          companies = []
+
+
+          # -----------------------------------------------------
+          # First keep any companies that already exist
+          # -----------------------------------------------------
+
+          if isinstance(old_companies, list):
+
+              for company in old_companies:
+
+                  if isinstance(company, dict):
+
+                      companies.append(company)
+
 
           print(
-              f"Existing billionaires: {len(billionaires)}"
+              "Existing companies:",
+              len(companies)
           )
 
-          # --------------------------------------------------
-          # Companies already present in data.json are kept.
-          # We enrich them instead of deleting them.
-          # --------------------------------------------------
 
-          company_map = {}
+          # =====================================================
+          # GET COMPANY SYMBOLS
+          # =====================================================
 
-          for company in companies:
+          print(
+              "Requesting company universe from FMP..."
+          )
 
-              if not isinstance(company, dict):
-                  continue
 
-              name = (
-                  company.get("name")
-                  or company.get("companyName")
-                  or company.get("company_name")
+          screener_url = (
+              "https://financialmodelingprep.com/"
+              "stable/company-screener"
+          )
+
+
+          params = {
+
+              "apikey": API_KEY,
+
+              "limit": 1000,
+
+              "isEtf": "false",
+
+              "isFund": "false",
+
+              "isActivelyTrading": "true"
+
+          }
+
+
+          try:
+
+              response = requests.get(
+                  screener_url,
+                  params=params,
+                  timeout=60
               )
 
-              if name:
-                  company_map[
-                      str(name).strip().lower()
-                  ] = company
+          except Exception as error:
 
-          # --------------------------------------------------
-          # Get symbols from existing company records.
-          # --------------------------------------------------
+              raise SystemExit(
+                  f"FMP request failed: {error}"
+              )
 
-          symbols = []
+
+          print(
+              "FMP status:",
+              response.status_code
+          )
+
+
+          if response.status_code != 200:
+
+              raise SystemExit(
+                  "FMP company screener request failed."
+              )
+
+
+          result = response.json()
+
+
+          if not isinstance(result, list):
+
+              raise SystemExit(
+                  "FMP returned invalid company data."
+              )
+
+
+          print(
+              "Companies received from FMP:",
+              len(result)
+          )
+
+
+          # =====================================================
+          # CREATE COMPANY RECORDS
+          # =====================================================
+
+          existing_by_symbol = {}
+
 
           for company in companies:
-
-              if not isinstance(company, dict):
-                  continue
 
               symbol = (
+
                   company.get("symbol")
+
                   or company.get("ticker")
+
                   or company.get("tickerSymbol")
+
               )
 
+
               if symbol:
-                  symbols.append(
-                      str(symbol).upper().strip()
-                  )
 
-          symbols = list(dict.fromkeys(symbols))
+                  existing_by_symbol[
+                      str(symbol).upper()
+                  ] = company
 
-          print(
-              f"Companies already in dataset: {len(companies)}"
+
+          new_companies = []
+
+
+          for item in result:
+
+              if not isinstance(item, dict):
+
+                  continue
+
+
+              symbol = item.get("symbol")
+
+
+              if not symbol:
+
+                  continue
+
+
+              symbol = str(
+                  symbol
+              ).upper().strip()
+
+
+              name = (
+
+                  item.get("companyName")
+
+                  or item.get("name")
+
+                  or symbol
+
+              )
+
+
+              country = (
+
+                  item.get("country")
+
+                  or "Unknown"
+
+              )
+
+
+              sector = (
+
+                  item.get("sector")
+
+                  or ""
+
+              )
+
+
+              industry = (
+
+                  item.get("industry")
+
+                  or ""
+
+              )
+
+
+              market_cap = (
+
+                  item.get("marketCap")
+
+                  or 0
+
+              )
+
+
+              if symbol in existing_by_symbol:
+
+                  company = existing_by_symbol[
+                      symbol
+                  ]
+
+              else:
+
+                  company = {
+
+                      "symbol": symbol,
+
+                      "name": name,
+
+                      "country": country,
+
+                      "sector": sector,
+
+                      "industry": industry,
+
+                      "marketCap": market_cap,
+
+                      "revenue": 0,
+
+                      "grossProfit": 0,
+
+                      "netProfit": 0,
+
+                      "biography": "",
+
+                      "investments": [],
+
+                      "stakes": [],
+
+                      "investmentReasons": [],
+
+                      "financialSource":
+                          "Financial Modeling Prep"
+
+                  }
+
+
+              # Update basic information
+
+              company["symbol"] = symbol
+
+              company["name"] = name
+
+              company["country"] = country
+
+              company["sector"] = sector
+
+              company["industry"] = industry
+
+              company["marketCap"] = market_cap
+
+
+              new_companies.append(
+                  company
+              )
+
+
+          # =====================================================
+          # LIMIT TO 1000+
+          # =====================================================
+
+          # Keep the largest companies by market cap.
+
+          new_companies.sort(
+
+              key=lambda x:
+                  float(
+                      x.get("marketCap") or 0
+                  ),
+
+              reverse=True
+
           )
 
+
+          # At least 1000 companies if FMP supplies them.
+
+          companies = new_companies[:1500]
+
+
           print(
-              f"Company symbols available: {len(symbols)}"
+              "Company database created:",
+              len(companies)
           )
 
-          # --------------------------------------------------
-          # Update financial information for known public
-          # companies.
-          # --------------------------------------------------
 
-          successful_updates = 0
+          # =====================================================
+          # FINANCIAL DATA
+          # =====================================================
 
-          for symbol in symbols:
+          income_url = (
+              "https://financialmodelingprep.com/"
+              "stable/income-statement"
+          )
+
+
+          updated = 0
+
+
+          # Update a reasonable number on each scheduled run.
+          # This prevents unnecessary API abuse.
+
+          for company in companies[:500]:
+
+              symbol = company.get(
+                  "symbol"
+              )
+
+
+              if not symbol:
+
+                  continue
+
 
               try:
 
-                  url = (
-                      "https://financialmodelingprep.com/"
-                      "stable/income-statement"
+                  response = requests.get(
+
+                      income_url,
+
+                      params={
+
+                          "symbol": symbol,
+
+                          "apikey": API_KEY,
+
+                          "limit": 1
+
+                      },
+
+                      timeout=30
+
                   )
 
-                  response = requests.get(
-                      url,
-                      params={
-                          "symbol": symbol,
-                          "apikey": API_KEY
-                      },
-                      timeout=30
-                  )
 
                   if response.status_code != 200:
-                      print(
-                          f"{symbol}: HTTP "
-                          f"{response.status_code}"
-                      )
+
                       continue
 
-                  result = response.json()
 
-                  if not isinstance(result, list):
+                  statements = response.json()
+
+
+                  if not isinstance(
+                      statements,
+                      list
+                  ):
+
                       continue
 
-                  if not result:
+
+                  if not statements:
+
                       continue
 
-                  latest = result[0]
+
+                  latest = statements[0]
+
 
                   revenue = latest.get(
                       "revenue"
                   )
 
+
                   gross_profit = latest.get(
                       "grossProfit"
                   )
+
 
                   net_income = latest.get(
                       "netIncome"
                   )
 
-                  # Find existing company
-                  company = None
-
-                  for item in companies:
-
-                      if not isinstance(item, dict):
-                          continue
-
-                      item_symbol = (
-                          item.get("symbol")
-                          or item.get("ticker")
-                          or item.get("tickerSymbol")
-                      )
-
-                      if (
-                          item_symbol
-                          and
-                          str(item_symbol).upper()
-                          == symbol
-                      ):
-                          company = item
-                          break
-
-                  if company is None:
-                      continue
 
                   if revenue is not None:
-                      company["revenue"] = revenue
+
+                      company["revenue"] = (
+                          revenue
+                      )
+
 
                   if gross_profit is not None:
-                      company["grossProfit"] = gross_profit
+
+                      company["grossProfit"] = (
+                          gross_profit
+                      )
+
 
                   if net_income is not None:
-                      company["netProfit"] = net_income
 
-                  company["financialSource"] = (
-                      "Financial Modeling Prep"
+                      company["netProfit"] = (
+                          net_income
+                      )
+
+
+                  company[
+                      "financialUpdated"
+                  ] = latest.get(
+                      "date"
                   )
 
-                  company["financialUpdated"] = (
-                      latest.get("date")
-                  )
 
-                  successful_updates += 1
+                  updated += 1
 
-                  print(
-                      f"Updated {symbol}"
-                  )
 
               except Exception as error:
 
                   print(
-                      f"Failed {symbol}: {error}"
+                      f"{symbol}: {error}"
                   )
 
-          # --------------------------------------------------
-          # NEVER replace a working company list with [].
-          # --------------------------------------------------
 
-          if companies:
+          print(
+              "Financial records updated:",
+              updated
+          )
 
-              metadata[
-                  "companiesUpdated"
-              ] = datetime.now(
-                  timezone.utc
-              ).isoformat()
 
-              metadata[
-                  "companyFinancialUpdates"
-              ] = successful_updates
+          # =====================================================
+          # METADATA
+          # =====================================================
 
           metadata[
               "lastAutomaticUpdate"
@@ -312,11 +562,77 @@ jobs:
               timezone.utc
           ).isoformat()
 
-          output = {
-              "billionaires": billionaires,
-              "companies": companies,
-              "metadata": metadata
+
+          metadata[
+              "companyCount"
+          ] = len(companies)
+
+
+          metadata[
+              "financialRecordsUpdated"
+          ] = updated
+
+
+          metadata[
+              "financialSource"
+          ] = (
+              "Financial Modeling Prep"
+          )
+
+
+          # =====================================================
+          # FINAL DATA
+          # =====================================================
+
+          final_data = {
+
+              "source":
+                  data.get(
+                      "source",
+                      "Forbes via RTB API"
+                  ),
+
+              "lastUpdated":
+                  datetime.now(
+                      timezone.utc
+                  ).isoformat(),
+
+              "billionaires":
+                  billionaires,
+
+              "companies":
+                  companies,
+
+              "metadata":
+                  metadata
+
           }
+
+
+          # =====================================================
+          # FINAL SAFETY CHECK
+          # =====================================================
+
+          if len(
+              final_data["billionaires"]
+          ) < 3000:
+
+              raise SystemExit(
+                  "SAFETY ERROR: billionaire data lost."
+              )
+
+
+          if len(
+              final_data["companies"]
+          ) < 1000:
+
+              raise SystemExit(
+
+                  "SAFETY ERROR: fewer than "
+                  "1000 companies were received."
+
+              )
+
 
           with open(
               DATA_FILE,
@@ -325,81 +641,154 @@ jobs:
           ) as f:
 
               json.dump(
-                  output,
+
+                  final_data,
+
                   f,
+
                   ensure_ascii=False,
+
                   indent=2
+
               )
 
+
+          print()
           print(
-              "Final billionaires:",
-              len(billionaires)
+              "================================"
           )
 
           print(
-              "Final companies:",
-              len(companies)
+              "WorldElite update successful"
           )
+
+          print(
+              "Billionaires:",
+              len(
+                  final_data["billionaires"]
+              )
+          )
+
+          print(
+              "Companies:",
+              len(
+                  final_data["companies"]
+              )
+          )
+
+          print(
+              "================================"
+          )
+
 
           PY
 
-      - name: Validate final data
+
+      - name: Validate data.json
+
         shell: bash
+
         run: |
+
           python - <<'PY'
+
           import json
 
-          with open("data.json", "r", encoding="utf-8") as f:
+
+          with open(
+              "data.json",
+              "r",
+              encoding="utf-8"
+          ) as f:
+
               data = json.load(f)
 
+
           billionaires = data.get(
-              "billionaires", []
+              "billionaires",
+              []
           )
+
 
           companies = data.get(
-              "companies", []
+              "companies",
+              []
           )
 
+
           print(
-              "Final billionaire count:",
+              "Billionaires:",
               len(billionaires)
           )
 
+
           print(
-              "Final company count:",
+              "Companies:",
               len(companies)
           )
 
-          if len(billionaires) < 3000:
+
+          if len(
+              billionaires
+          ) < 3000:
+
               raise SystemExit(
-                  "ERROR: billionaire data was corrupted."
+                  "Invalid billionaire count."
               )
 
-          # Important:
-          # If companies already existed, they must not
-          # suddenly disappear.
 
-          if "companies" not in data:
+          if len(
+              companies
+          ) < 1000:
+
               raise SystemExit(
-                  "ERROR: companies field disappeared."
+                  "Invalid company count."
               )
+
+
+          print(
+              "DATA VALIDATION SUCCESSFUL"
+          )
+
           PY
 
+
       - name: Commit updated data
+
         shell: bash
+
         run: |
-          git config user.name "WorldElite Bot"
-          git config user.email "worldelite-bot@users.noreply.github.com"
+
+          git config \
+            user.name \
+            "WorldElite Bot"
+
+          git config \
+            user.email \
+            "worldelite-bot@users.noreply.github.com"
+
 
           git add data.json
 
+
           if git diff --cached --quiet; then
+
             echo "No data changes."
+
           else
-            git commit -m "Auto update WorldElite data"
+
+            git commit \
+              -m "Auto update WorldElite data"
+
             git push
+
           fi
 
+
+
+  # ===========================================================
+  # BUILD
+  # ===========================================================
 
   build:
 
@@ -411,21 +800,37 @@ jobs:
     steps:
 
       - name: Checkout repository
+
         uses: actions/checkout@v4
 
+
       - name: Configure Pages
+
         uses: actions/configure-pages@v5
 
+
       - name: Upload Pages artifact
+
         uses: actions/upload-pages-artifact@v3
+
         with:
+
           path: .
+
+
+
+  # ===========================================================
+  # DEPLOY
+  # ===========================================================
 
   deploy:
 
     environment:
+
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+
+      url:
+        ${{ steps.deployment.outputs.page_url }}
 
     runs-on: ubuntu-latest
 
@@ -435,5 +840,7 @@ jobs:
     steps:
 
       - name: Deploy to GitHub Pages
+
         id: deployment
+
         uses: actions/deploy-pages@v4
