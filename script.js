@@ -1,6 +1,6 @@
 /* =========================================================
    WORLDELITE
-   Main application
+   Global wealth intelligence
 ========================================================= */
 
 const state = {
@@ -22,20 +22,20 @@ const state = {
    HELPERS
 ========================================================= */
 
-function firstValue(object, keys, fallback = "") {
+function firstValue(obj, keys, fallback = "") {
 
-    if (!object || typeof object !== "object") {
+    if (!obj || typeof obj !== "object") {
         return fallback;
     }
 
     for (const key of keys) {
 
         if (
-            object[key] !== undefined &&
-            object[key] !== null &&
-            object[key] !== ""
+            obj[key] !== undefined &&
+            obj[key] !== null &&
+            obj[key] !== ""
         ) {
-            return object[key];
+            return obj[key];
         }
     }
 
@@ -49,7 +49,7 @@ function numberValue(value) {
         return Number.isFinite(value) ? value : 0;
     }
 
-    if (value === null || value === undefined) {
+    if (!value) {
         return 0;
     }
 
@@ -57,159 +57,60 @@ function numberValue(value) {
         .trim()
         .replace(/[$£€,\s]/g, "");
 
-    if (!text) {
-        return 0;
-    }
-
     let multiplier = 1;
 
-    if (/t$/i.test(text)) {
-        multiplier = 1_000_000_000_000;
-        text = text.slice(0, -1);
+    if (/T$/i.test(text)) {
+        multiplier = 1e12;
+        text = text.replace(/T$/i, "");
     }
-    else if (/b$/i.test(text)) {
-        multiplier = 1_000_000_000;
-        text = text.slice(0, -1);
+    else if (/B$/i.test(text)) {
+        multiplier = 1e9;
+        text = text.replace(/B$/i, "");
     }
-    else if (/m$/i.test(text)) {
-        multiplier = 1_000_000;
-        text = text.slice(0, -1);
+    else if (/M$/i.test(text)) {
+        multiplier = 1e6;
+        text = text.replace(/M$/i, "");
     }
-    else if (/k$/i.test(text)) {
-        multiplier = 1_000;
-        text = text.slice(0, -1);
+    else if (/K$/i.test(text)) {
+        multiplier = 1e3;
+        text = text.replace(/K$/i, "");
     }
 
-    const n = parseFloat(text);
+    const parsed = parseFloat(text);
 
-    return Number.isFinite(n)
-        ? n * multiplier
+    return Number.isFinite(parsed)
+        ? parsed * multiplier
         : 0;
 }
 
+
+/* FIXED MONEY FORMAT */
 
 function money(value) {
 
     const n = numberValue(value);
 
-    if (!Number.isFinite(n) || n === 0) {
+    if (!n) {
         return "$0";
     }
 
-    if (n >= 1_000_000_000_000) {
-        return "$" + (
-            n / 1_000_000_000_000
-        ).toFixed(2) + "T";
+    if (Math.abs(n) >= 1e12) {
+        return "$" + (n / 1e12).toFixed(2) + "T";
     }
 
-    if (n >= 1_000_000_000) {
-        return "$" + (
-            n / 1_000_000_000
-        ).toFixed(1) + "B";
+    if (Math.abs(n) >= 1e9) {
+        return "$" + (n / 1e9).toFixed(2) + "B";
     }
 
-    if (n >= 1_000_000) {
-        return "$" + (
-            n / 1_000_000
-        ).toFixed(1) + "M";
+    if (Math.abs(n) >= 1e6) {
+        return "$" + (n / 1e6).toFixed(2) + "M";
     }
 
-    if (n >= 1_000) {
-        return "$" + (
-            n / 1_000
-        ).toFixed(1) + "K";
+    if (Math.abs(n) >= 1e3) {
+        return "$" + (n / 1e3).toFixed(1) + "K";
     }
 
     return "$" + Math.round(n).toLocaleString();
-}
-
-
-function flag(country) {
-
-    const map = {
-
-        US: "🇺🇸",
-        USA: "🇺🇸",
-        UnitedStates: "🇺🇸",
-        "United States": "🇺🇸",
-
-        GB: "🇬🇧",
-        UK: "🇬🇧",
-        UnitedKingdom: "🇬🇧",
-        "United Kingdom": "🇬🇧",
-
-        FR: "🇫🇷",
-        France: "🇫🇷",
-
-        DE: "🇩🇪",
-        Germany: "🇩🇪",
-
-        IT: "🇮🇹",
-        Italy: "🇮🇹",
-
-        ES: "🇪🇸",
-        Spain: "🇪🇸",
-
-        IN: "🇮🇳",
-        India: "🇮🇳",
-
-        CN: "🇨🇳",
-        China: "🇨🇳",
-
-        JP: "🇯🇵",
-        Japan: "🇯🇵",
-
-        KR: "🇰🇷",
-        Korea: "🇰🇷",
-        "South Korea": "🇰🇷",
-
-        CA: "🇨🇦",
-        Canada: "🇨🇦",
-
-        AU: "🇦🇺",
-        Australia: "🇦🇺",
-
-        MX: "🇲🇽",
-        Mexico: "🇲🇽",
-
-        BR: "🇧🇷",
-        Brazil: "🇧🇷",
-
-        RU: "🇷🇺",
-        Russia: "🇷🇺",
-
-        UA: "🇺🇦",
-        Ukraine: "🇺🇦",
-
-        TR: "🇹🇷",
-        Turkey: "🇹🇷",
-
-        AE: "🇦🇪",
-        UAE: "🇦🇪",
-
-        CH: "🇨🇭",
-        Switzerland: "🇨🇭",
-
-        SG: "🇸🇬",
-        Singapore: "🇸🇬",
-
-        ID: "🇮🇩",
-        Indonesia: "🇮🇩",
-
-        TH: "🇹🇭",
-        Thailand: "🇹🇭",
-
-        SE: "🇸🇪",
-        Sweden: "🇸🇪",
-
-        NO: "🇳🇴",
-        Norway: "🇳🇴",
-
-        NL: "🇳🇱",
-        Netherlands: "🇳🇱"
-    };
-
-    return map[country] || "🌍";
 }
 
 
@@ -224,7 +125,21 @@ function escapeHTML(value) {
 }
 
 
-function getPersonName(person) {
+function arrayValue(value) {
+
+    if (Array.isArray(value)) {
+        return value;
+    }
+
+    if (!value) {
+        return [];
+    }
+
+    return [value];
+}
+
+
+function personName(person) {
 
     return firstValue(
         person,
@@ -241,7 +156,7 @@ function getPersonName(person) {
 }
 
 
-function getCompanyName(company) {
+function companyName(company) {
 
     return firstValue(
         company,
@@ -256,26 +171,47 @@ function getCompanyName(company) {
 }
 
 
-function asArray(value) {
+/* =========================================================
+   FLAGS
+========================================================= */
 
-    if (Array.isArray(value)) {
-        return value;
-    }
+const FLAGS = {
+    US:"🇺🇸", USA:"🇺🇸", UnitedStates:"🇺🇸",
+    GB:"🇬🇧", UK:"🇬🇧", UnitedKingdom:"🇬🇧",
+    FR:"🇫🇷", France:"🇫🇷",
+    DE:"🇩🇪", Germany:"🇩🇪",
+    IT:"🇮🇹", Italy:"🇮🇹",
+    ES:"🇪🇸", Spain:"🇪🇸",
+    IN:"🇮🇳", India:"🇮🇳",
+    CN:"🇨🇳", China:"🇨🇳",
+    JP:"🇯🇵", Japan:"🇯🇵",
+    KR:"🇰🇷", Korea:"🇰🇷",
+    CA:"🇨🇦", Canada:"🇨🇦",
+    AU:"🇦🇺", Australia:"🇦🇺",
+    MX:"🇲🇽", Mexico:"🇲🇽",
+    BR:"🇧🇷", Brazil:"🇧🇷",
+    RU:"🇷🇺", Russia:"🇷🇺",
+    UA:"🇺🇦", Ukraine:"🇺🇦",
+    TR:"🇹🇷", Turkey:"🇹🇷",
+    AE:"🇦🇪", UAE:"🇦🇪",
+    CH:"🇨🇭", Switzerland:"🇨🇭",
+    SG:"🇸🇬", Singapore:"🇸🇬",
+    ID:"🇮🇩", Indonesia:"🇮🇩",
+    TH:"🇹🇭", Thailand:"🇹🇭",
+    SE:"🇸🇪", Sweden:"🇸🇪",
+    NO:"🇳🇴", Norway:"🇳🇴",
+    NL:"🇳🇱", Netherlands:"🇳🇱"
+};
 
-    if (
-        value !== undefined &&
-        value !== null &&
-        value !== ""
-    ) {
-        return [value];
-    }
 
-    return [];
+function flag(country) {
+
+    return FLAGS[String(country)] || "🌍";
 }
 
 
 /* =========================================================
-   NORMALIZE BILLIONAIRES
+   NORMALIZE PEOPLE
 ========================================================= */
 
 function normalizeBillionaire(item) {
@@ -284,53 +220,16 @@ function normalizeBillionaire(item) {
         return null;
     }
 
-    const name = getPersonName(item);
-
-    const country = firstValue(
-        item,
-        [
-            "country",
-            "countryCode",
-            "country_code",
-            "citizenship",
-            "location"
-        ],
-        "Unknown"
-    );
-
-    const wealth = firstValue(
-        item,
-        [
-            "netWorth",
-            "net_worth",
-            "worth",
-            "wealth",
-            "fortune",
-            "estimatedNetWorth"
-        ],
-        0
-    );
-
     const biography = firstValue(
         item,
         [
             "biography",
             "bio",
             "description",
-            "about"
+            "about",
+            "summary"
         ],
         ""
-    );
-
-    const companies = firstValue(
-        item,
-        [
-            "companies",
-            "company",
-            "businesses",
-            "companyNames"
-        ],
-        []
     );
 
     const investments = firstValue(
@@ -339,7 +238,8 @@ function normalizeBillionaire(item) {
             "investments",
             "investment",
             "portfolio",
-            "investmentPortfolio"
+            "investmentPortfolio",
+            "investment_portfolio"
         ],
         []
     );
@@ -350,54 +250,48 @@ function normalizeBillionaire(item) {
             "stakes",
             "ownership",
             "holdings",
-            "assets"
+            "ownerships"
         ],
         []
-    );
-
-    const investmentFocus = firstValue(
-        item,
-        [
-            "investmentFocus",
-            "investment_focus",
-            "mainInvestmentArea",
-            "mainInvestmentSector",
-            "whereTheyInvestMost"
-        ],
-        ""
-    );
-
-    const investmentReason = firstValue(
-        item,
-        [
-            "investmentReason",
-            "investment_reason",
-            "whyInvest",
-            "whyTheyInvest",
-            "investmentThesis"
-        ],
-        ""
     );
 
     return {
         ...item,
 
-        name,
-        country,
+        name: personName(item),
 
-        netWorth: numberValue(wealth),
+        country: firstValue(
+            item,
+            [
+                "country",
+                "countryCode",
+                "country_code",
+                "citizenship",
+                "location"
+            ],
+            "Unknown"
+        ),
+
+        netWorth: numberValue(
+            firstValue(
+                item,
+                [
+                    "netWorth",
+                    "net_worth",
+                    "worth",
+                    "wealth",
+                    "fortune",
+                    "estimatedNetWorth"
+                ],
+                0
+            )
+        ),
 
         biography,
 
-        companies: asArray(companies),
+        investments: arrayValue(investments),
 
-        investments: asArray(investments),
-
-        stakes: asArray(stakes),
-
-        investmentFocus,
-
-        investmentReason
+        stakes: arrayValue(stakes)
     };
 }
 
@@ -412,127 +306,97 @@ function normalizeCompany(item) {
         return null;
     }
 
-    const name = getCompanyName(item);
-
-    const country = firstValue(
-        item,
-        [
-            "country",
-            "countryCode",
-            "country_code",
-            "headquartersCountry",
-            "location"
-        ],
-        "Unknown"
-    );
-
-    const revenue = firstValue(
-        item,
-        [
-            "revenue",
-            "annualRevenue",
-            "annual_revenue",
-            "sales"
-        ],
-        0
-    );
-
-    const profit = firstValue(
-        item,
-        [
-            "netProfit",
-            "net_profit",
-            "profit",
-            "netIncome",
-            "net_income"
-        ],
-        0
-    );
-
-    const grossProfit = firstValue(
-        item,
-        [
-            "grossProfit",
-            "gross_profit"
-        ],
-        0
-    );
-
-    const biography = firstValue(
-        item,
-        [
-            "biography",
-            "bio",
-            "description",
-            "about"
-        ],
-        ""
-    );
-
-    const investments = firstValue(
-        item,
-        [
-            "investments",
-            "investment",
-            "portfolio"
-        ],
-        []
-    );
-
-    const stakes = firstValue(
-        item,
-        [
-            "stakes",
-            "ownership",
-            "shareholders",
-            "holdings",
-            "assets"
-        ],
-        []
-    );
-
-    const investmentFocus = firstValue(
-        item,
-        [
-            "investmentFocus",
-            "investment_focus",
-            "mainInvestmentArea",
-            "investmentStrategy"
-        ],
-        ""
-    );
-
-    const investmentReason = firstValue(
-        item,
-        [
-            "investmentReason",
-            "investment_reason",
-            "whyInvest",
-            "investmentThesis",
-            "strategyReason"
-        ],
-        ""
-    );
-
     return {
         ...item,
 
-        name,
-        country,
+        name: companyName(item),
 
-        revenue: numberValue(revenue),
-        profit: numberValue(profit),
-        grossProfit: numberValue(grossProfit),
+        country: firstValue(
+            item,
+            [
+                "country",
+                "countryCode",
+                "country_code",
+                "headquartersCountry",
+                "location"
+            ],
+            "Unknown"
+        ),
 
-        biography,
+        revenue: numberValue(
+            firstValue(
+                item,
+                [
+                    "revenue",
+                    "annualRevenue",
+                    "annual_revenue",
+                    "sales"
+                ],
+                0
+            )
+        ),
 
-        investments: asArray(investments),
+        profit: numberValue(
+            firstValue(
+                item,
+                [
+                    "netProfit",
+                    "net_profit",
+                    "profit",
+                    "netIncome",
+                    "net_income"
+                ],
+                0
+            )
+        ),
 
-        stakes: asArray(stakes),
+        grossProfit: numberValue(
+            firstValue(
+                item,
+                [
+                    "grossProfit",
+                    "gross_profit"
+                ],
+                0
+            )
+        ),
 
-        investmentFocus,
+        biography: firstValue(
+            item,
+            [
+                "biography",
+                "bio",
+                "description",
+                "about",
+                "summary"
+            ],
+            ""
+        ),
 
-        investmentReason
+        investments: arrayValue(
+            firstValue(
+                item,
+                [
+                    "investments",
+                    "investment",
+                    "portfolio"
+                ],
+                []
+            )
+        ),
+
+        stakes: arrayValue(
+            firstValue(
+                item,
+                [
+                    "stakes",
+                    "ownership",
+                    "shareholders",
+                    "holdings"
+                ],
+                []
+            )
+        )
     };
 }
 
@@ -554,57 +418,61 @@ async function loadData() {
 
         if (!response.ok) {
             throw new Error(
-                "Could not load data.json"
+                "data.json could not be loaded."
             );
         }
 
         const raw = await response.json();
 
-        let billionaires = [];
+        let people = [];
         let companies = [];
 
         if (Array.isArray(raw)) {
 
-            billionaires = raw;
+            people = raw;
 
         } else if (
             raw &&
             typeof raw === "object"
         ) {
 
-            billionaires =
+            people =
                 raw.billionaires ||
                 raw.Billionaires ||
                 raw.people ||
                 raw.richestPeople ||
+                raw.richest_people ||
                 [];
 
             companies =
                 raw.companies ||
                 raw.Companies ||
                 raw.businesses ||
+                raw.business ||
                 [];
         }
 
-        if (!Array.isArray(billionaires)) {
-            billionaires = [];
+
+        if (!Array.isArray(people)) {
+            people = [];
         }
 
         if (!Array.isArray(companies)) {
             companies = [];
         }
 
+
         state.billionaires =
-            billionaires
+            people
                 .map(normalizeBillionaire)
                 .filter(Boolean);
+
 
         state.companies =
             companies
                 .map(normalizeCompany)
                 .filter(Boolean);
 
-        state.lastUpdated = new Date();
 
         state.filteredBillionaires =
             [...state.billionaires];
@@ -612,139 +480,46 @@ async function loadData() {
         state.filteredCompanies =
             [...state.companies];
 
+
+        state.lastUpdated = new Date();
+
+
         buildCountryFilter();
 
-        renderHome();
-        renderRankings();
-        renderCompanies();
-        renderWorldBests();
-        renderInvestments();
+        renderEverything();
+
 
         console.log(
-            "WorldElite loaded:",
-            state.billionaires.length,
-            "billionaires;",
-            state.companies.length,
-            "companies"
+            `WorldElite: ${state.billionaires.length} billionaires, ${state.companies.length} companies`
         );
+
 
     } catch (error) {
 
-        console.error(error);
-
-        showDataError(error.message);
-    }
-}
-
-
-/* =========================================================
-   ERROR
-========================================================= */
-
-function showDataError(message) {
-
-    const home =
-        document.getElementById(
-            "homeBillionaires"
+        console.error(
+            "WorldElite data error:",
+            error
         );
 
-    if (!home) {
-        return;
+        showDataError(
+            error.message
+        );
     }
-
-    home.innerHTML = `
-        <div class="error-card">
-            <strong>Data could not be loaded.</strong>
-
-            <p>
-                ${escapeHTML(message)}
-            </p>
-
-            <button
-                class="primary-button"
-                onclick="refreshData()"
-            >
-                Try again
-            </button>
-        </div>
-    `;
 }
 
 
 /* =========================================================
-   NAVIGATION
+   RENDER EVERYTHING
 ========================================================= */
 
-function openPage(pageId) {
+function renderEverything() {
 
-    document
-        .querySelectorAll(".page")
-        .forEach(page => {
-            page.classList.add("hidden");
-        });
-
-    const page =
-        document.getElementById(pageId);
-
-    if (!page) {
-        return;
-    }
-
-    page.classList.remove("hidden");
-
-    state.currentPage = pageId;
-
-    updateNavigation(pageId);
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-
-    if (pageId === "companiesPage") {
-        renderCompanies();
-    }
-
-    if (pageId === "rankingsPage") {
-        renderRankings();
-    }
-
-    if (pageId === "bestsPage") {
-        renderWorldBests();
-    }
-
-    if (pageId === "investmentsPage") {
-        renderInvestments();
-    }
-}
-
-
-function updateNavigation(pageId) {
-
-    document
-        .querySelectorAll(".nav")
-        .forEach(button => {
-            button.classList.remove("active");
-        });
-
-    const map = {
-
-        homePage: "navHome",
-        rankingsPage: "navRankings",
-        companiesPage: "navCompanies",
-        bestsPage: "navBests",
-        investmentsPage: "navInvestments",
-        profilePage: "navProfile"
-    };
-
-    const navId = map[pageId];
-
-    if (navId) {
-
-        document
-            .getElementById(navId)
-            ?.classList.add("active");
-    }
+    renderHome();
+    renderRankings();
+    renderCompanies();
+    renderWorldBests();
+    renderInvestments();
+    renderProfile();
 }
 
 
@@ -754,119 +529,108 @@ function updateNavigation(pageId) {
 
 function renderHome() {
 
-    document
-        .getElementById("homeBillionaireCount")
-        ?.replaceChildren(
-            document.createTextNode(
-                state.billionaires.length.toLocaleString()
-            )
-        );
-
-    document
-        .getElementById("homeCompanyCount")
-        ?.replaceChildren(
-            document.createTextNode(
-                state.companies.length.toLocaleString()
-            )
-        );
-
-    renderHomeBillionaires();
-    renderHomeCompanies();
-}
-
-
-function renderHomeBillionaires() {
-
-    const container =
+    const peopleCount =
         document.getElementById(
-            "homeBillionaires"
+            "homeBillionaireCount"
         );
 
-    if (!container) {
-        return;
+    const companyCount =
+        document.getElementById(
+            "homeCompanyCount"
+        );
+
+    if (peopleCount) {
+
+        peopleCount.textContent =
+            state.billionaires.length
+                .toLocaleString();
     }
+
+    if (companyCount) {
+
+        companyCount.textContent =
+            state.companies.length
+                .toLocaleString();
+    }
+
 
     const people =
         [...state.billionaires]
             .sort(
-                (a, b) =>
+                (a,b) =>
                     b.netWorth - a.netWorth
             )
             .slice(0, 5);
 
-    container.innerHTML =
-        people
-            .map(
-                (person, index) =>
-                    billionaireCard(
-                        person,
-                        index + 1
-                    )
-            )
-            .join("");
-}
 
-
-function renderHomeCompanies() {
-
-    const container =
+    const peopleContainer =
         document.getElementById(
-            "homeCompanies"
+            "homeBillionaires"
         );
 
-    if (!container) {
-        return;
+    if (peopleContainer) {
+
+        peopleContainer.innerHTML =
+            people
+                .map(
+                    (person,index) =>
+                        billionaireCard(
+                            person,
+                            index + 1
+                        )
+                )
+                .join("");
     }
+
 
     const companies =
         [...state.companies]
             .sort(
-                (a, b) =>
+                (a,b) =>
                     b.revenue - a.revenue
             )
-            .slice(0, 5);
+            .slice(0,5);
 
-    if (!companies.length) {
 
-        container.innerHTML = `
-            <div class="empty-card">
+    const companyContainer =
+        document.getElementById(
+            "homeCompanies"
+        );
 
-                <strong>
-                    Company data unavailable
-                </strong>
+    if (companyContainer) {
 
-                <p>
-                    No company records were found
-                    in data.json.
-                </p>
-
-            </div>
-        `;
-
-        return;
-    }
-
-    container.innerHTML =
-        companies
-            .map(
-                (company, index) =>
-                    companyCard(
-                        company,
-                        index + 1
+        companyContainer.innerHTML =
+            companies.length
+                ? companies
+                    .map(
+                        (company,index) =>
+                            companyCard(
+                                company,
+                                index + 1
+                            )
                     )
-            )
-            .join("");
+                    .join("")
+                : emptyCard(
+                    "No company records",
+                    "Run the automatic data update workflow."
+                );
+    }
 }
 
 
 /* =========================================================
-   CARDS
+   BILLIONAIRE CARD
 ========================================================= */
 
-function billionaireCard(person, rank) {
+function billionaireCard(
+    person,
+    rank
+) {
 
     const index =
-        state.billionaires.indexOf(person);
+        state.billionaires.indexOf(
+            person
+        );
 
     return `
         <button
@@ -879,7 +643,7 @@ function billionaireCard(person, rank) {
             </div>
 
             <div class="avatar">
-                👤
+                ♛
             </div>
 
             <div class="person-info">
@@ -904,10 +668,19 @@ function billionaireCard(person, rank) {
 }
 
 
-function companyCard(company, rank) {
+/* =========================================================
+   COMPANY CARD
+========================================================= */
+
+function companyCard(
+    company,
+    rank
+) {
 
     const index =
-        state.companies.indexOf(company);
+        state.companies.indexOf(
+            company
+        );
 
     return `
         <button
@@ -920,7 +693,7 @@ function companyCard(company, rank) {
             </div>
 
             <div class="company-logo">
-                🏢
+                ▣
             </div>
 
             <div class="company-info">
@@ -938,12 +711,14 @@ function companyCard(company, rank) {
 
             <div class="company-revenue">
 
-                <small>
-                    Revenue
-                </small>
+                <small>Revenue</small>
 
                 <strong>
-                    ${money(company.revenue)}
+                    ${
+                        company.revenue
+                            ? money(company.revenue)
+                            : "N/A"
+                    }
                 </strong>
 
             </div>
@@ -962,57 +737,61 @@ function renderRankings() {
     let list =
         [...state.billionaires];
 
-    const searchInput =
-        document.getElementById(
-            "globalSearchInput"
-        );
 
     const search =
-        searchInput
-            ? searchInput.value
-                .trim()
-                .toLowerCase()
-            : "";
+        document
+            .getElementById(
+                "globalSearchInput"
+            )
+            ?.value
+            .trim()
+            .toLowerCase() || "";
+
 
     const country =
-        document.getElementById(
-            "countryFilter"
-        )?.value || "all";
+        document
+            .getElementById(
+                "countryFilter"
+            )
+            ?.value || "all";
+
 
     if (search) {
 
         list =
-            list.filter(person =>
-                person.name
-                    .toLowerCase()
-                    .includes(search)
+            list.filter(
+                person =>
+                    person.name
+                        .toLowerCase()
+                        .includes(search)
             );
     }
+
 
     if (country !== "all") {
 
         list =
-            list.filter(person =>
-                String(person.country)
-                    .toLowerCase() ===
-                String(country)
-                    .toLowerCase()
+            list.filter(
+                person =>
+                    String(person.country)
+                        .toLowerCase() ===
+                    String(country)
+                        .toLowerCase()
             );
     }
 
-    list.sort((a, b) => {
 
-        if (
-            state.billionaireSort ===
-            "lowest"
-        ) {
-            return a.netWorth - b.netWorth;
-        }
+    list.sort(
+        (a,b) =>
+            state.billionaireSort === "lowest"
+                ? a.netWorth - b.netWorth
+                : b.netWorth - a.netWorth
+    );
 
-        return b.netWorth - a.netWorth;
-    });
 
-    state.filteredBillionaires = list;
+    state.filteredBillionaires =
+        list;
+
 
     const count =
         document.getElementById(
@@ -1020,9 +799,11 @@ function renderRankings() {
         );
 
     if (count) {
+
         count.textContent =
             `${list.length.toLocaleString()} billionaires`;
     }
+
 
     const container =
         document.getElementById(
@@ -1033,35 +814,22 @@ function renderRankings() {
         return;
     }
 
-    if (!list.length) {
-
-        container.innerHTML = `
-            <div class="empty-card">
-
-                <strong>
-                    No billionaires found
-                </strong>
-
-                <p>
-                    Try another search or country.
-                </p>
-
-            </div>
-        `;
-
-        return;
-    }
 
     container.innerHTML =
-        list
-            .map(
-                (person, index) =>
-                    billionaireCard(
-                        person,
-                        index + 1
-                    )
-            )
-            .join("");
+        list.length
+            ? list
+                .map(
+                    (person,index) =>
+                        billionaireCard(
+                            person,
+                            index + 1
+                        )
+                )
+                .join("")
+            : emptyCard(
+                "No billionaires found",
+                "Try another name or country."
+            );
 }
 
 
@@ -1072,7 +840,9 @@ function handleGlobalSearch() {
 
 function sortBillionaires(order) {
 
-    state.billionaireSort = order;
+    state.billionaireSort =
+        order;
+
 
     document
         .getElementById("highestButton")
@@ -1081,12 +851,14 @@ function sortBillionaires(order) {
             order === "highest"
         );
 
+
     document
         .getElementById("lowestButton")
         ?.classList.toggle(
             "active",
             order === "lowest"
         );
+
 
     renderRankings();
 }
@@ -1107,21 +879,28 @@ function buildCountryFilter() {
         return;
     }
 
+
+    const oldValue =
+        select.value;
+
+
     const countries =
         [...new Set(
             state.billionaires
-                .map(person =>
-                    person.country
+                .map(
+                    person =>
+                        person.country
                 )
                 .filter(Boolean)
         )]
         .sort(
-            (a, b) =>
+            (a,b) =>
                 String(a)
                     .localeCompare(
                         String(b)
                     )
         );
+
 
     select.innerHTML = `
         <option value="all">
@@ -1129,129 +908,41 @@ function buildCountryFilter() {
         </option>
     `;
 
-    countries.forEach(country => {
 
-        const option =
-            document.createElement("option");
+    countries.forEach(
+        country => {
 
-        option.value = country;
+            const option =
+                document.createElement(
+                    "option"
+                );
 
-        option.textContent =
-            `${flag(country)} ${country}`;
+            option.value =
+                country;
 
-        select.appendChild(option);
-    });
+            option.textContent =
+                `${flag(country)} ${country}`;
+
+            select.appendChild(
+                option
+            );
+        }
+    );
+
+
+    if (
+        countries.includes(
+            oldValue
+        )
+    ) {
+        select.value =
+            oldValue;
+    }
 }
 
 
 function filterBillionaires() {
     renderRankings();
-}
-
-
-/* =========================================================
-   DETAIL LIST
-========================================================= */
-
-function renderInvestmentList(list) {
-
-    if (!Array.isArray(list) || !list.length) {
-        return "";
-    }
-
-    return `
-        <div class="detail-list">
-
-            ${list.map(item => {
-
-                if (
-                    typeof item ===
-                    "string"
-                ) {
-
-                    return `
-                        <div class="detail-row">
-
-                            <strong>
-                                ${escapeHTML(item)}
-                            </strong>
-
-                        </div>
-                    `;
-                }
-
-                const name =
-                    firstValue(
-                        item,
-                        [
-                            "name",
-                            "company",
-                            "asset",
-                            "sector",
-                            "title"
-                        ],
-                        "Investment"
-                    );
-
-                const amount =
-                    firstValue(
-                        item,
-                        [
-                            "amount",
-                            "value",
-                            "percentage",
-                            "stake"
-                        ],
-                        ""
-                    );
-
-                const reason =
-                    firstValue(
-                        item,
-                        [
-                            "reason",
-                            "why",
-                            "thesis",
-                            "strategy",
-                            "description"
-                        ],
-                        ""
-                    );
-
-                return `
-                    <div class="detail-row">
-
-                        <strong>
-                            ${escapeHTML(name)}
-                        </strong>
-
-                        ${
-                            amount
-                                ? `
-                                    <span>
-                                        ${escapeHTML(amount)}
-                                    </span>
-                                  `
-                                : ""
-                        }
-
-                        ${
-                            reason
-                                ? `
-                                    <p>
-                                        ${escapeHTML(reason)}
-                                    </p>
-                                  `
-                                : ""
-                        }
-
-                    </div>
-                `;
-
-            }).join("")}
-
-        </div>
-    `;
 }
 
 
@@ -1268,6 +959,7 @@ function openPerson(index) {
         return;
     }
 
+
     const content =
         document.getElementById(
             "personContent"
@@ -1277,34 +969,18 @@ function openPerson(index) {
         return;
     }
 
-    const companiesHTML =
-        renderInvestmentList(
-            person.companies
-        );
-
-    const investmentHTML =
-        renderInvestmentList(
-            person.investments
-        );
-
-    const stakesHTML =
-        renderInvestmentList(
-            person.stakes
-        );
 
     content.innerHTML = `
 
         <div class="profile-hero">
 
             <div class="large-avatar">
-                👤
+                ♛
             </div>
 
             <div class="profile-country">
-
                 ${flag(person.country)}
                 ${escapeHTML(person.country)}
-
             </div>
 
             <h2>
@@ -1324,15 +1000,13 @@ function openPerson(index) {
 
         <div class="info-card">
 
-            <h3>
-                Biography
-            </h3>
+            <h3>Biography</h3>
 
             <p>
                 ${
                     escapeHTML(
                         person.biography ||
-                        "Biography information is not available in the current data source."
+                        "A verified biography is not available in the current dataset."
                     )
                 }
             </p>
@@ -1342,17 +1016,15 @@ function openPerson(index) {
 
         <div class="info-card">
 
-            <h3>
-                🏢 Companies
-            </h3>
+            <h3>↗ Investments</h3>
 
             ${
-                companiesHTML ||
-                `
-                    <p class="muted">
-                        No company information available.
-                    </p>
-                `
+                renderInvestmentList(
+                    person.investments
+                ) ||
+                `<p class="muted">
+                    No investment portfolio is currently available.
+                </p>`
             }
 
         </div>
@@ -1360,17 +1032,15 @@ function openPerson(index) {
 
         <div class="info-card">
 
-            <h3>
-                ↗ Investments
-            </h3>
+            <h3>📊 Stakes & Ownership</h3>
 
             ${
-                investmentHTML ||
-                `
-                    <p class="muted">
-                        No investment portfolio data available.
-                    </p>
-                `
+                renderInvestmentList(
+                    person.stakes
+                ) ||
+                `<p class="muted">
+                    No ownership information is currently available.
+                </p>`
             }
 
         </div>
@@ -1378,60 +1048,130 @@ function openPerson(index) {
 
         <div class="info-card">
 
-            <h3>
-                📊 Assets & Ownership
-            </h3>
-
-            ${
-                stakesHTML ||
-                `
-                    <p class="muted">
-                        No ownership information available.
-                    </p>
-                `
-            }
-
-        </div>
-
-
-        <div class="info-card">
-
-            <h3>
-                🎯 Where They Invest Most
-            </h3>
+            <h3>Why invest?</h3>
 
             <p>
-                ${
-                    escapeHTML(
-                        person.investmentFocus ||
-                        "Investment focus is not available in the current data source."
-                    )
-                }
-            </p>
-
-        </div>
-
-
-        <div class="info-card">
-
-            <h3>
-                💡 Why They Invest There
-            </h3>
-
-            <p>
-                ${
-                    escapeHTML(
-                        person.investmentReason ||
-                        "An investment thesis is not available in the current data source."
-                    )
-                }
+                WorldElite only displays an investment
+                rationale when it is supported by the
+                underlying source data. It does not invent
+                motives for individual investors.
             </p>
 
         </div>
 
     `;
 
-    openPage("personPage");
+
+    openPage(
+        "personPage"
+    );
+}
+
+
+/* =========================================================
+   INVESTMENT LIST
+========================================================= */
+
+function renderInvestmentList(list) {
+
+    if (
+        !Array.isArray(list) ||
+        !list.length
+    ) {
+        return "";
+    }
+
+
+    return `
+        <div class="detail-list">
+
+            ${
+                list
+                    .map(item => {
+
+                        if (
+                            typeof item === "string"
+                        ) {
+
+                            return `
+                                <div class="detail-row">
+                                    <strong>
+                                        ${escapeHTML(item)}
+                                    </strong>
+                                </div>
+                            `;
+                        }
+
+
+                        const name =
+                            firstValue(
+                                item,
+                                [
+                                    "name",
+                                    "company",
+                                    "asset",
+                                    "sector",
+                                    "title"
+                                ],
+                                "Investment"
+                            );
+
+
+                        const amount =
+                            firstValue(
+                                item,
+                                [
+                                    "amount",
+                                    "value",
+                                    "percentage",
+                                    "stake"
+                                ],
+                                ""
+                            );
+
+
+                        const reason =
+                            firstValue(
+                                item,
+                                [
+                                    "reason",
+                                    "why",
+                                    "thesis",
+                                    "strategy",
+                                    "description"
+                                ],
+                                ""
+                            );
+
+
+                        return `
+                            <div class="detail-row">
+
+                                <strong>
+                                    ${escapeHTML(name)}
+                                </strong>
+
+                                ${
+                                    amount
+                                        ? `<span>${escapeHTML(amount)}</span>`
+                                        : ""
+                                }
+
+                                ${
+                                    reason
+                                        ? `<p>${escapeHTML(reason)}</p>`
+                                        : ""
+                                }
+
+                            </div>
+                        `;
+
+                    })
+                    .join("")
+            }
+
+        </div>
+    `;
 }
 
 
@@ -1444,27 +1184,28 @@ function renderCompanies() {
     let list =
         [...state.companies];
 
-    const input =
-        document.getElementById(
-            "companySearchInput"
-        );
 
     const search =
-        input
-            ? input.value
-                .trim()
-                .toLowerCase()
-            : "";
+        document
+            .getElementById(
+                "companySearchInput"
+            )
+            ?.value
+            .trim()
+            .toLowerCase() || "";
+
 
     if (search) {
 
         list =
-            list.filter(company =>
-                company.name
-                    .toLowerCase()
-                    .includes(search)
+            list.filter(
+                company =>
+                    company.name
+                        .toLowerCase()
+                        .includes(search)
             );
     }
+
 
     if (
         state.companySort ===
@@ -1472,7 +1213,7 @@ function renderCompanies() {
     ) {
 
         list.sort(
-            (a, b) =>
+            (a,b) =>
                 b.profit - a.profit
         );
 
@@ -1482,7 +1223,7 @@ function renderCompanies() {
     ) {
 
         list.sort(
-            (a, b) =>
+            (a,b) =>
                 a.name.localeCompare(
                     b.name
                 )
@@ -1491,12 +1232,15 @@ function renderCompanies() {
     } else {
 
         list.sort(
-            (a, b) =>
+            (a,b) =>
                 b.revenue - a.revenue
         );
     }
 
-    state.filteredCompanies = list;
+
+    state.filteredCompanies =
+        list;
+
 
     const count =
         document.getElementById(
@@ -1509,6 +1253,7 @@ function renderCompanies() {
             `${list.length.toLocaleString()} companies`;
     }
 
+
     const container =
         document.getElementById(
             "companyList"
@@ -1518,36 +1263,22 @@ function renderCompanies() {
         return;
     }
 
-    if (!list.length) {
-
-        container.innerHTML = `
-            <div class="empty-card">
-
-                <strong>
-                    No companies found
-                </strong>
-
-                <p>
-                    No matching company records
-                    were found in data.json.
-                </p>
-
-            </div>
-        `;
-
-        return;
-    }
 
     container.innerHTML =
-        list
-            .map(
-                (company, index) =>
-                    companyCard(
-                        company,
-                        index + 1
-                    )
-            )
-            .join("");
+        list.length
+            ? list
+                .map(
+                    (company,index) =>
+                        companyCard(
+                            company,
+                            index + 1
+                        )
+                )
+                .join("")
+            : emptyCard(
+                "No companies found",
+                "No company records are available."
+            );
 }
 
 
@@ -1558,28 +1289,39 @@ function searchCompanies() {
 
 function sortCompanies(type) {
 
-    state.companySort = type;
+    state.companySort =
+        type;
+
 
     document
-        .getElementById("companyRevenueButton")
+        .getElementById(
+            "companyRevenueButton"
+        )
         ?.classList.toggle(
             "active",
             type === "revenue"
         );
 
+
     document
-        .getElementById("companyProfitButton")
+        .getElementById(
+            "companyProfitButton"
+        )
         ?.classList.toggle(
             "active",
             type === "profit"
         );
 
+
     document
-        .getElementById("companyNameButton")
+        .getElementById(
+            "companyNameButton"
+        )
         ?.classList.toggle(
             "active",
             type === "name"
         );
+
 
     renderCompanies();
 }
@@ -1598,6 +1340,7 @@ function openCompany(index) {
         return;
     }
 
+
     const content =
         document.getElementById(
             "companyProfileContent"
@@ -1607,19 +1350,18 @@ function openCompany(index) {
         return;
     }
 
+
     content.innerHTML = `
 
-        <div class="profile-hero company-profile">
+        <div class="profile-hero">
 
             <div class="large-avatar">
-                🏢
+                ▣
             </div>
 
             <div class="profile-country">
-
                 ${flag(company.country)}
                 ${escapeHTML(company.country)}
-
             </div>
 
             <h2>
@@ -1627,7 +1369,11 @@ function openCompany(index) {
             </h2>
 
             <div class="profile-worth">
-                ${money(company.revenue)}
+                ${
+                    company.revenue
+                        ? money(company.revenue)
+                        : "N/A"
+                }
             </div>
 
             <span>
@@ -1640,41 +1386,36 @@ function openCompany(index) {
         <div class="financial-grid">
 
             <div class="financial-card">
-
-                <small>
-                    Revenue
-                </small>
-
+                <small>Revenue</small>
                 <strong>
-                    ${money(company.revenue)}
+                    ${
+                        company.revenue
+                            ? money(company.revenue)
+                            : "N/A"
+                    }
                 </strong>
-
             </div>
 
-
             <div class="financial-card">
-
-                <small>
-                    Net Profit
-                </small>
-
+                <small>Net Profit</small>
                 <strong>
-                    ${money(company.profit)}
+                    ${
+                        company.profit
+                            ? money(company.profit)
+                            : "N/A"
+                    }
                 </strong>
-
             </div>
 
-
             <div class="financial-card">
-
-                <small>
-                    Gross Profit
-                </small>
-
+                <small>Gross Profit</small>
                 <strong>
-                    ${money(company.grossProfit)}
+                    ${
+                        company.grossProfit
+                            ? money(company.grossProfit)
+                            : "N/A"
+                    }
                 </strong>
-
             </div>
 
         </div>
@@ -1682,15 +1423,13 @@ function openCompany(index) {
 
         <div class="info-card">
 
-            <h3>
-                Company Biography
-            </h3>
+            <h3>Company Biography</h3>
 
             <p>
                 ${
                     escapeHTML(
                         company.biography ||
-                        "Company biography is not available in the current data source."
+                        "A verified company biography is not available in the current dataset."
                     )
                 }
             </p>
@@ -1700,19 +1439,15 @@ function openCompany(index) {
 
         <div class="info-card">
 
-            <h3>
-                ↗ Company Investments
-            </h3>
+            <h3>↗ Investments</h3>
 
             ${
                 renderInvestmentList(
                     company.investments
                 ) ||
-                `
-                    <p class="muted">
-                        Investment information is not available.
-                    </p>
-                `
+                `<p class="muted">
+                    No investment information is available.
+                </p>`
             }
 
         </div>
@@ -1720,19 +1455,15 @@ function openCompany(index) {
 
         <div class="info-card">
 
-            <h3>
-                📊 Assets & Ownership
-            </h3>
+            <h3>📊 Stakes & Ownership</h3>
 
             ${
                 renderInvestmentList(
                     company.stakes
                 ) ||
-                `
-                    <p class="muted">
-                        Ownership information is not available.
-                    </p>
-                `
+                `<p class="muted">
+                    No ownership information is available.
+                </p>`
             }
 
         </div>
@@ -1740,42 +1471,22 @@ function openCompany(index) {
 
         <div class="info-card">
 
-            <h3>
-                🎯 Main Investment Area
-            </h3>
+            <h3>Why does the company invest?</h3>
 
             <p>
-                ${
-                    escapeHTML(
-                        company.investmentFocus ||
-                        "Investment focus is not available in the current data source."
-                    )
-                }
-            </p>
-
-        </div>
-
-
-        <div class="info-card">
-
-            <h3>
-                💡 Why This Area?
-            </h3>
-
-            <p>
-                ${
-                    escapeHTML(
-                        company.investmentReason ||
-                        "Investment strategy information is not available in the current data source."
-                    )
-                }
+                WorldElite shows an investment thesis only
+                when it is supported by the underlying data.
+                No investment motive is fabricated.
             </p>
 
         </div>
 
     `;
 
-    openPage("companyProfilePage");
+
+    openPage(
+        "companyProfilePage"
+    );
 }
 
 
@@ -1794,34 +1505,35 @@ function renderWorldBests() {
         return;
     }
 
+
     const richest =
         [...state.billionaires]
             .sort(
-                (a, b) =>
+                (a,b) =>
                     b.netWorth - a.netWorth
             )
-            .slice(0, 10);
+            .slice(0,10);
+
 
     const companies =
         [...state.companies]
             .sort(
-                (a, b) =>
+                (a,b) =>
                     b.revenue - a.revenue
             )
-            .slice(0, 10);
+            .slice(0,10);
+
 
     container.innerHTML = `
 
         <div class="info-card">
 
-            <h3>
-                👑 World's Richest
-            </h3>
+            <h3>♛ World's Richest</h3>
 
             ${
-                richest.length
-                    ? richest.map(
-                        (person, index) => `
+                richest
+                    .map(
+                        (person,index) => `
 
                             <button
                                 class="mini-row"
@@ -1841,14 +1553,9 @@ function renderWorldBests() {
                                 </b>
 
                             </button>
-
                         `
-                    ).join("")
-                    : `
-                        <p class="muted">
-                            No billionaire data.
-                        </p>
-                    `
+                    )
+                    .join("")
             }
 
         </div>
@@ -1856,45 +1563,47 @@ function renderWorldBests() {
 
         <div class="info-card">
 
-            <h3>
-                🏢 Leading Companies
-            </h3>
+            <h3>▣ Leading Companies</h3>
 
             ${
                 companies.length
-                    ? companies.map(
-                        (company, index) => `
+                    ? companies
+                        .map(
+                            (company,index) => `
 
-                            <button
-                                class="mini-row"
-                                onclick="openCompany(${state.companies.indexOf(company)})"
-                            >
+                                <button
+                                    class="mini-row"
+                                    onclick="openCompany(${state.companies.indexOf(company)})"
+                                >
 
-                                <span>
-                                    ${index + 1}
-                                </span>
+                                    <span>
+                                        ${index + 1}
+                                    </span>
 
-                                <strong>
-                                    ${escapeHTML(company.name)}
-                                </strong>
+                                    <strong>
+                                        ${escapeHTML(company.name)}
+                                    </strong>
 
-                                <b>
-                                    ${money(company.revenue)}
-                                </b>
+                                    <b>
+                                        ${
+                                            company.revenue
+                                                ? money(company.revenue)
+                                                : "N/A"
+                                        }
+                                    </b>
 
-                            </button>
-
-                        `
-                    ).join("")
+                                </button>
+                            `
+                        )
+                        .join("")
                     : `
                         <p class="muted">
-                            No company data.
+                            Company data is not available yet.
                         </p>
                     `
             }
 
         </div>
-
     `;
 }
 
@@ -1914,138 +1623,88 @@ function renderInvestments() {
         return;
     }
 
+
     const people =
         state.billionaires
             .filter(
                 person =>
-                    person.investments &&
                     person.investments.length
             )
-            .slice(0, 30);
+            .slice(0,30);
 
-    const companies =
-        state.companies
-            .filter(
-                company =>
-                    company.investments &&
-                    company.investments.length
-            )
-            .slice(0, 30);
 
     container.innerHTML = `
 
-        <div class="investment-tabs">
+        ${
+            people.length
+                ? people
+                    .map(
+                        person => `
 
-            <button
-                class="tab active"
-                onclick="showInvestmentTab('billionaires', this)"
-            >
-                Billionaires
-            </button>
+                            <div class="info-card">
 
-            <button
-                class="tab"
-                onclick="showInvestmentTab('companies', this)"
-            >
-                Companies
-            </button>
+                                <h3>
+                                    ${escapeHTML(person.name)}
+                                </h3>
 
-        </div>
-
-
-        <div id="investmentResults">
-
-            ${
-                people.length
-                    ? people.map(person => `
-
-                        <div class="info-card">
-
-                            <h3>
-                                👤
-                                ${escapeHTML(person.name)}
-                            </h3>
-
-                            ${
-                                renderInvestmentList(
+                                ${renderInvestmentList(
                                     person.investments
-                                )
-                            }
+                                )}
 
-                            ${
-                                person.investmentFocus
-                                    ? `
-                                        <h4>
-                                            🎯 Main focus
-                                        </h4>
+                            </div>
+                        `
+                    )
+                    .join("")
+                : `
+                    <div class="empty-card">
+                        <strong>
+                            Investment data unavailable
+                        </strong>
 
-                                        <p>
-                                            ${escapeHTML(
-                                                person.investmentFocus
-                                            )}
-                                        </p>
-                                      `
-                                    : ""
-                            }
-
-                            ${
-                                person.investmentReason
-                                    ? `
-                                        <h4>
-                                            💡 Why
-                                        </h4>
-
-                                        <p>
-                                            ${escapeHTML(
-                                                person.investmentReason
-                                            )}
-                                        </p>
-                                      `
-                                    : ""
-                            }
-
-                        </div>
-
-                    `).join("")
-                    : `
-                        <div class="empty-card">
-
-                            No billionaire investment
-                            portfolio data is currently
-                            available.
-
-                        </div>
-                    `
-            }
-
-        </div>
-
+                        <p>
+                            The current billionaire dataset
+                            does not contain portfolio records.
+                        </p>
+                    </div>
+                `
+        }
     `;
 }
 
 
-function showInvestmentTab(type, button) {
+function showInvestmentTab(
+    type,
+    button
+) {
 
     document
         .querySelectorAll(
             ".investment-tabs .tab"
         )
-        .forEach(tab => {
-            tab.classList.remove("active");
-        });
-
-    if (button) {
-        button.classList.add("active");
-    }
-
-    const results =
-        document.getElementById(
-            "investmentResults"
+        .forEach(
+            tab =>
+                tab.classList.remove(
+                    "active"
+                )
         );
 
-    if (!results) {
+
+    if (button) {
+        button.classList.add(
+            "active"
+        );
+    }
+
+
+    const container =
+        document.getElementById(
+            "investmentsContent"
+        );
+
+    if (!container) {
         return;
     }
+
 
     if (type === "companies") {
 
@@ -2053,68 +1712,43 @@ function showInvestmentTab(type, button) {
             state.companies
                 .filter(
                     company =>
-                        company.investments &&
                         company.investments.length
                 )
-                .slice(0, 30);
+                .slice(0,30);
 
-        results.innerHTML =
+
+        container.innerHTML =
             companies.length
-                ? companies.map(company => `
+                ? companies
+                    .map(
+                        company => `
 
-                    <div class="info-card">
+                            <div class="info-card">
 
-                        <h3>
-                            🏢
-                            ${escapeHTML(company.name)}
-                        </h3>
+                                <h3>
+                                    ▣
+                                    ${escapeHTML(company.name)}
+                                </h3>
 
-                        ${
-                            renderInvestmentList(
-                                company.investments
-                            )
-                        }
+                                ${renderInvestmentList(
+                                    company.investments
+                                )}
 
-                        ${
-                            company.investmentFocus
-                                ? `
-                                    <h4>
-                                        🎯 Main focus
-                                    </h4>
-
-                                    <p>
-                                        ${escapeHTML(
-                                            company.investmentFocus
-                                        )}
-                                    </p>
-                                  `
-                                : ""
-                        }
-
-                        ${
-                            company.investmentReason
-                                ? `
-                                    <h4>
-                                        💡 Why
-                                    </h4>
-
-                                    <p>
-                                        ${escapeHTML(
-                                            company.investmentReason
-                                        )}
-                                    </p>
-                                  `
-                                : ""
-                        }
-
-                    </div>
-
-                `).join("")
+                            </div>
+                        `
+                    )
+                    .join("")
                 : `
                     <div class="empty-card">
 
-                        Company investment data
-                        is not currently available.
+                        <strong>
+                            Company investment data unavailable
+                        </strong>
+
+                        <p>
+                            No portfolio records are currently
+                            contained in the company dataset.
+                        </p>
 
                     </div>
                 `;
@@ -2137,17 +1771,19 @@ async function refreshData() {
             ".refresh-button"
         );
 
-    buttons.forEach(button => {
 
-        button.disabled = true;
+    buttons.forEach(
+        button => {
 
-        button.classList.add(
-            "loading"
-        );
+            button.disabled = true;
+            button.dataset.original =
+                button.textContent;
 
-        button.textContent =
-            "↻ Updating...";
-    });
+            button.textContent =
+                "↻ Updating...";
+        }
+    );
+
 
     try {
 
@@ -2155,17 +1791,16 @@ async function refreshData() {
 
     } finally {
 
-        buttons.forEach(button => {
+        buttons.forEach(
+            button => {
 
-            button.disabled = false;
+                button.disabled = false;
 
-            button.classList.remove(
-                "loading"
-            );
-
-            button.textContent =
-                "↻ Refresh Data";
-        });
+                button.textContent =
+                    button.dataset.original ||
+                    "↻ Refresh Data";
+            }
+        );
     }
 }
 
@@ -2189,13 +1824,26 @@ function loginUser(event) {
     event.preventDefault();
 
     const email =
-        document.getElementById(
-            "loginEmail"
-        )?.value.trim();
+        document
+            .getElementById(
+                "loginEmail"
+            )
+            .value
+            .trim();
 
-    if (!email) {
+
+    const password =
+        document
+            .getElementById(
+                "loginPassword"
+            )
+            .value;
+
+
+    if (!email || !password) {
         return;
     }
+
 
     localStorage.setItem(
         "worldelite_user",
@@ -2204,11 +1852,12 @@ function loginUser(event) {
         })
     );
 
-    alert(
-        "Login saved locally for this demo."
-    );
 
-    openPage("profilePage");
+    renderProfile();
+
+    openPage(
+        "profilePage"
+    );
 }
 
 
@@ -2216,19 +1865,41 @@ function signupUser(event) {
 
     event.preventDefault();
 
+
     const name =
-        document.getElementById(
-            "signupName"
-        )?.value.trim();
+        document
+            .getElementById(
+                "signupName"
+            )
+            .value
+            .trim();
+
 
     const email =
-        document.getElementById(
-            "signupEmail"
-        )?.value.trim();
+        document
+            .getElementById(
+                "signupEmail"
+            )
+            .value
+            .trim();
 
-    if (!name || !email) {
+
+    const password =
+        document
+            .getElementById(
+                "signupPassword"
+            )
+            .value;
+
+
+    if (
+        !name ||
+        !email ||
+        !password
+    ) {
         return;
     }
+
 
     localStorage.setItem(
         "worldelite_user",
@@ -2238,11 +1909,318 @@ function signupUser(event) {
         })
     );
 
-    alert(
-        "Account created locally for this demo."
+
+    renderProfile();
+
+    openPage(
+        "profilePage"
+    );
+}
+
+
+function renderProfile() {
+
+    const container =
+        document.getElementById(
+            "profileContent"
+        );
+
+    if (!container) {
+        return;
+    }
+
+
+    const stored =
+        localStorage.getItem(
+            "worldelite_user"
+        );
+
+
+    if (!stored) {
+
+        container.innerHTML = `
+
+            <div class="info-card">
+
+                <h3>Welcome to WorldElite</h3>
+
+                <p>
+                    Login or create an account to
+                    personalize your experience.
+                </p>
+
+                <div class="hero-actions">
+
+                    <button
+                        class="primary-button"
+                        onclick="showLogin()"
+                    >
+                        Login
+                    </button>
+
+                    <button
+                        class="secondary-button"
+                        onclick="showSignup()"
+                    >
+                        Sign Up
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    let user;
+
+    try {
+        user = JSON.parse(stored);
+    } catch {
+        user = {};
+    }
+
+
+    container.innerHTML = `
+
+        <div class="profile-hero">
+
+            <div class="large-avatar">
+                ◉
+            </div>
+
+            <h2>
+                ${escapeHTML(
+                    user.name ||
+                    user.email ||
+                    "WorldElite User"
+                )}
+            </h2>
+
+            ${
+                user.email
+                    ? `
+                        <p>
+                            ${escapeHTML(user.email)}
+                        </p>
+                    `
+                    : ""
+            }
+
+        </div>
+
+
+        <div class="info-card">
+
+            <h3>Your WorldElite account</h3>
+
+            <p>
+                Your account is currently stored
+                locally on this device.
+            </p>
+
+            <div class="hero-actions">
+
+                <button
+                    class="secondary-button"
+                    onclick="logoutUser()"
+                >
+                    Logout
+                </button>
+
+            </div>
+
+        </div>
+    `;
+}
+
+
+function logoutUser() {
+
+    localStorage.removeItem(
+        "worldelite_user"
     );
 
-    openPage("profilePage");
+    renderProfile();
+
+    openPage(
+        "profilePage"
+    );
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function openPage(pageId) {
+
+    document
+        .querySelectorAll(".page")
+        .forEach(
+            page =>
+                page.classList.add(
+                    "hidden"
+                )
+        );
+
+
+    const page =
+        document.getElementById(
+            pageId
+        );
+
+
+    if (!page) {
+        return;
+    }
+
+
+    page.classList.remove(
+        "hidden"
+    );
+
+
+    state.currentPage =
+        pageId;
+
+
+    updateNavigation(
+        pageId
+    );
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+
+    if (
+        pageId ===
+        "rankingsPage"
+    ) {
+        renderRankings();
+    }
+
+    if (
+        pageId ===
+        "companiesPage"
+    ) {
+        renderCompanies();
+    }
+
+    if (
+        pageId ===
+        "bestsPage"
+    ) {
+        renderWorldBests();
+    }
+
+    if (
+        pageId ===
+        "investmentsPage"
+    ) {
+        renderInvestments();
+    }
+
+    if (
+        pageId ===
+        "profilePage"
+    ) {
+        renderProfile();
+    }
+}
+
+
+function updateNavigation(
+    pageId
+) {
+
+    document
+        .querySelectorAll(".nav")
+        .forEach(
+            nav =>
+                nav.classList.remove(
+                    "active"
+                )
+        );
+
+
+    const map = {
+
+        homePage: "navHome",
+        rankingsPage: "navRankings",
+        companiesPage: "navCompanies",
+        bestsPage: "navBests",
+        investmentsPage: "navInvestments",
+        profilePage: "navProfile"
+    };
+
+
+    const id =
+        map[pageId];
+
+
+    if (id) {
+
+        document
+            .getElementById(id)
+            ?.classList.add(
+                "active"
+            );
+    }
+}
+
+
+/* =========================================================
+   EMPTY / ERROR
+========================================================= */
+
+function emptyCard(
+    title,
+    text
+) {
+
+    return `
+
+        <div class="empty-card">
+
+            <strong>
+                ${escapeHTML(title)}
+            </strong>
+
+            <p>
+                ${escapeHTML(text)}
+            </p>
+
+        </div>
+    `;
+}
+
+
+function showDataError(
+    message
+) {
+
+    const home =
+        document.getElementById(
+            "homeBillionaires"
+        );
+
+
+    if (!home) {
+        return;
+    }
+
+
+    home.innerHTML =
+        emptyCard(
+            "Data could not be loaded",
+            message
+        );
 }
 
 
@@ -2254,7 +2232,9 @@ document.addEventListener(
     "DOMContentLoaded",
     () => {
 
-        openPage("homePage");
+        openPage(
+            "homePage"
+        );
 
         loadData();
 
