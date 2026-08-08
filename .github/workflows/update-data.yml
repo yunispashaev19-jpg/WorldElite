@@ -1,4 +1,4 @@
-name: WorldElite Deploy
+name: WorldElite Data & Deploy
 
 on:
   push:
@@ -10,71 +10,49 @@ on:
   schedule:
     - cron: "0 6 * * *"
 
-
 permissions:
   contents: write
   pages: write
   id-token: write
 
-
 concurrency:
-  group: worldelite-production
+  group: worldelite-pages
   cancel-in-progress: false
 
 
 jobs:
 
-  build-and-deploy:
+  update-data:
 
     runs-on: ubuntu-latest
-
 
     steps:
 
       # =====================================================
-      # 1. CHECKOUT
+      # CHECKOUT
       # =====================================================
 
       - name: Checkout repository
-
         uses: actions/checkout@v4
 
-        with:
-          fetch-depth: 0
-
 
       # =====================================================
-      # 2. PYTHON
+      # INSTALL PYTHON
       # =====================================================
-
-      - name: Setup Python
-
-        uses: actions/setup-python@v5
-
-        with:
-          python-version: "3.x"
-
 
       - name: Install dependencies
-
         run: |
-
           python -m pip install --upgrade pip
-
           pip install requests
 
 
       # =====================================================
-      # 3. UPDATE DATA
+      # UPDATE DATA
       # =====================================================
 
-      - name: Build WorldElite data
-
+      - name: Update WorldElite data
         env:
-
-          SEC_USER_AGENT: >
-            WorldElite/1.0
-            contact: worldelite@example.com
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
 
         shell: bash
 
@@ -84,39 +62,23 @@ jobs:
 
           import json
           import os
+          import re
+          import time
           import requests
           from datetime import datetime, timezone
+          from urllib.parse import quote
 
 
           DATA_FILE = "data.json"
 
-
-          USER_AGENT = os.environ.get(
-              "SEC_USER_AGENT",
-              "WorldElite/1.0 contact: worldelite@example.com"
-          )
-
-
-          SEC_HEADERS = {
-
-              "User-Agent": USER_AGENT,
-
-              "Accept-Encoding":
-                  "gzip, deflate"
-
-          }
+          print("========================================")
+          print("WORLD ELITE DATA UPDATE")
+          print("========================================")
 
 
           # =================================================
           # LOAD EXISTING DATA
           # =================================================
-
-          print()
-          print("==========================================")
-          print("WORLD ELITE DATA UPDATE")
-          print("==========================================")
-          print()
-
 
           with open(
               DATA_FILE,
@@ -124,701 +86,1083 @@ jobs:
               encoding="utf-8"
           ) as f:
 
-              old_data = json.load(f)
+              raw = json.load(f)
 
 
-          if isinstance(old_data, list):
+          if isinstance(raw, list):
 
-              billionaires = old_data
-
-              old_companies = []
-
+              billionaires = raw
+              companies = []
               metadata = {}
 
-
-          elif isinstance(old_data, dict):
+          elif isinstance(raw, dict):
 
               billionaires = (
-
-                  old_data.get("billionaires")
-
-                  or old_data.get("Billionaires")
-
-                  or old_data.get("people")
-
+                  raw.get("billionaires")
+                  or raw.get("Billionaires")
+                  or raw.get("people")
+                  or raw.get("richestPeople")
                   or []
-
               )
 
-
-              old_companies = (
-
-                  old_data.get("companies")
-
-                  or old_data.get("Companies")
-
+              companies = (
+                  raw.get("companies")
+                  or raw.get("Companies")
+                  or raw.get("businesses")
                   or []
-
               )
-
 
               metadata = (
-
-                  old_data.get("metadata")
-
+                  raw.get("metadata")
                   or {}
-
               )
-
 
           else:
 
-              raise SystemExit(
-                  "ERROR: Invalid data.json"
-              )
+              billionaires = []
+              companies = []
+              metadata = {}
 
 
           print(
-              "Billionaires:",
+              "Billionaires before update:",
               len(billionaires)
           )
 
-
           print(
-              "Existing companies:",
-              len(old_companies)
+              "Companies before update:",
+              len(companies)
           )
 
 
           if len(billionaires) < 3000:
 
               raise SystemExit(
-                  "ERROR: Billionaire data is corrupted."
+                  "ERROR: billionaire dataset is unexpectedly small."
               )
 
 
           # =================================================
-          # DOWNLOAD SEC COMPANY UNIVERSE
+          # COMPANY UNIVERSE
+          #
+          # IMPORTANT:
+          # This is NOT dependent on FMP.
           # =================================================
 
-          print()
+          COMPANY_UNIVERSE = [
+
+              {
+                  "name": "Apple",
+                  "symbol": "AAPL",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Consumer Electronics"
+              },
+
+              {
+                  "name": "Microsoft",
+                  "symbol": "MSFT",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Software"
+              },
+
+              {
+                  "name": "Alphabet",
+                  "symbol": "GOOGL",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Internet Services"
+              },
+
+              {
+                  "name": "Amazon",
+                  "symbol": "AMZN",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "E-Commerce"
+              },
+
+              {
+                  "name": "NVIDIA",
+                  "symbol": "NVDA",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Semiconductors"
+              },
+
+              {
+                  "name": "Meta Platforms",
+                  "symbol": "META",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Social Media"
+              },
+
+              {
+                  "name": "Tesla",
+                  "symbol": "TSLA",
+                  "country": "US",
+                  "sector": "Automotive",
+                  "industry": "Electric Vehicles"
+              },
+
+              {
+                  "name": "Berkshire Hathaway",
+                  "symbol": "BRK-B",
+                  "country": "US",
+                  "sector": "Financial Services",
+                  "industry": "Diversified Investments"
+              },
+
+              {
+                  "name": "JPMorgan Chase",
+                  "symbol": "JPM",
+                  "country": "US",
+                  "sector": "Financial Services",
+                  "industry": "Banking"
+              },
+
+              {
+                  "name": "Visa",
+                  "symbol": "V",
+                  "country": "US",
+                  "sector": "Financial Services",
+                  "industry": "Payments"
+              },
+
+              {
+                  "name": "Mastercard",
+                  "symbol": "MA",
+                  "country": "US",
+                  "sector": "Financial Services",
+                  "industry": "Payments"
+              },
+
+              {
+                  "name": "Walmart",
+                  "symbol": "WMT",
+                  "country": "US",
+                  "sector": "Consumer",
+                  "industry": "Retail"
+              },
+
+              {
+                  "name": "Coca-Cola",
+                  "symbol": "KO",
+                  "country": "US",
+                  "sector": "Consumer",
+                  "industry": "Beverages"
+              },
+
+              {
+                  "name": "McDonald's",
+                  "symbol": "MCD",
+                  "country": "US",
+                  "sector": "Consumer",
+                  "industry": "Restaurants"
+              },
+
+              {
+                  "name": "Nike",
+                  "symbol": "NKE",
+                  "country": "US",
+                  "sector": "Consumer",
+                  "industry": "Apparel"
+              },
+
+              {
+                  "name": "Oracle",
+                  "symbol": "ORCL",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Software"
+              },
+
+              {
+                  "name": "Broadcom",
+                  "symbol": "AVGO",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Semiconductors"
+              },
+
+              {
+                  "name": "Netflix",
+                  "symbol": "NFLX",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Streaming"
+              },
+
+              {
+                  "name": "Adobe",
+                  "symbol": "ADBE",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Software"
+              },
+
+              {
+                  "name": "Salesforce",
+                  "symbol": "CRM",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Software"
+              },
+
+              {
+                  "name": "Palantir Technologies",
+                  "symbol": "PLTR",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Artificial Intelligence"
+              },
+
+              {
+                  "name": "AMD",
+                  "symbol": "AMD",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Semiconductors"
+              },
+
+              {
+                  "name": "Intel",
+                  "symbol": "INTC",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Semiconductors"
+              },
+
+              {
+                  "name": "IBM",
+                  "symbol": "IBM",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Enterprise Software"
+              },
+
+              {
+                  "name": "Cisco",
+                  "symbol": "CSCO",
+                  "country": "US",
+                  "sector": "Technology",
+                  "industry": "Networking"
+              },
+
+              {
+                  "name": "Boeing",
+                  "symbol": "BA",
+                  "country": "US",
+                  "sector": "Industrials",
+                  "industry": "Aerospace"
+              },
+
+              {
+                  "name": "Exxon Mobil",
+                  "symbol": "XOM",
+                  "country": "US",
+                  "sector": "Energy",
+                  "industry": "Oil & Gas"
+              },
+
+              {
+                  "name": "Chevron",
+                  "symbol": "CVX",
+                  "country": "US",
+                  "sector": "Energy",
+                  "industry": "Oil & Gas"
+              },
+
+              {
+                  "name": "Johnson & Johnson",
+                  "symbol": "JNJ",
+                  "country": "US",
+                  "sector": "Healthcare",
+                  "industry": "Pharmaceuticals"
+              },
+
+              {
+                  "name": "UnitedHealth Group",
+                  "symbol": "UNH",
+                  "country": "US",
+                  "sector": "Healthcare",
+                  "industry": "Healthcare"
+              },
+
+              {
+                  "name": "Procter & Gamble",
+                  "symbol": "PG",
+                  "country": "US",
+                  "sector": "Consumer",
+                  "industry": "Consumer Goods"
+              },
+
+              {
+                  "name": "PepsiCo",
+                  "symbol": "PEP",
+                  "country": "US",
+                  "sector": "Consumer",
+                  "industry": "Food & Beverages"
+              },
+
+              {
+                  "name": "LVMH",
+                  "symbol": "MC.PA",
+                  "country": "FR",
+                  "sector": "Consumer",
+                  "industry": "Luxury"
+              },
+
+              {
+                  "name": "Toyota",
+                  "symbol": "TM",
+                  "country": "JP",
+                  "sector": "Automotive",
+                  "industry": "Automobiles"
+              },
+
+              {
+                  "name": "Sony",
+                  "symbol": "SONY",
+                  "country": "JP",
+                  "sector": "Technology",
+                  "industry": "Electronics"
+              },
+
+              {
+                  "name": "Samsung Electronics",
+                  "symbol": "005930.KS",
+                  "country": "KR",
+                  "sector": "Technology",
+                  "industry": "Electronics"
+              },
+
+              {
+                  "name": "Alibaba",
+                  "symbol": "BABA",
+                  "country": "CN",
+                  "sector": "Technology",
+                  "industry": "E-Commerce"
+              },
+
+              {
+                  "name": "Tencent",
+                  "symbol": "TCEHY",
+                  "country": "CN",
+                  "sector": "Technology",
+                  "industry": "Internet Services"
+              },
+
+              {
+                  "name": "Shell",
+                  "symbol": "SHEL",
+                  "country": "GB",
+                  "sector": "Energy",
+                  "industry": "Oil & Gas"
+              },
+
+              {
+                  "name": "HSBC",
+                  "symbol": "HSBC",
+                  "country": "GB",
+                  "sector": "Financial Services",
+                  "industry": "Banking"
+              },
+
+              {
+                  "name": "AstraZeneca",
+                  "symbol": "AZN",
+                  "country": "GB",
+                  "sector": "Healthcare",
+                  "industry": "Pharmaceuticals"
+              },
+
+              {
+                  "name": "Unilever",
+                  "symbol": "UL",
+                  "country": "GB",
+                  "sector": "Consumer",
+                  "industry": "Consumer Goods"
+              },
+
+              {
+                  "name": "SAP",
+                  "symbol": "SAP",
+                  "country": "DE",
+                  "sector": "Technology",
+                  "industry": "Software"
+              },
+
+              {
+                  "name": "Siemens",
+                  "symbol": "SIEGY",
+                  "country": "DE",
+                  "sector": "Industrials",
+                  "industry": "Engineering"
+              },
+
+              {
+                  "name": "Ferrari",
+                  "symbol": "RACE",
+                  "country": "IT",
+                  "sector": "Automotive",
+                  "industry": "Luxury Automobiles"
+              },
+
+              {
+                  "name": "Airbus",
+                  "symbol": "AIR.PA",
+                  "country": "FR",
+                  "sector": "Industrials",
+                  "industry": "Aerospace"
+              }
+
+          ]
+
+
+          # =================================================
+          # MERGE COMPANY DATA
+          # =================================================
+
+          existing_by_symbol = {}
+
+          for company in companies:
+
+              if not isinstance(company, dict):
+                  continue
+
+              symbol = (
+                  company.get("symbol")
+                  or company.get("ticker")
+                  or company.get("tickerSymbol")
+              )
+
+              if symbol:
+
+                  existing_by_symbol[
+                      str(symbol).upper()
+                  ] = company
+
+
+          merged_companies = []
+
+
+          for template in COMPANY_UNIVERSE:
+
+              symbol = template["symbol"].upper()
+
+              existing = existing_by_symbol.get(
+                  symbol,
+                  {}
+              )
+
+              merged = {
+                  **template,
+                  **existing
+              }
+
+              merged["name"] = (
+                  existing.get("name")
+                  or template["name"]
+              )
+
+              merged["symbol"] = symbol
+
+              merged.setdefault(
+                  "biography",
+                  ""
+              )
+
+              merged.setdefault(
+                  "investments",
+                  []
+              )
+
+              merged.setdefault(
+                  "stakes",
+                  []
+              )
+
+              merged.setdefault(
+                  "revenue",
+                  0
+              )
+
+              merged.setdefault(
+                  "profit",
+                  0
+              )
+
+              merged.setdefault(
+                  "grossProfit",
+                  0
+              )
+
+              merged_companies.append(
+                  merged
+              )
+
+
+          companies = merged_companies
+
+
           print(
-              "Downloading SEC company universe..."
+              "Company universe:",
+              len(companies)
           )
 
 
-          ticker_url = (
-              "https://www.sec.gov/files/"
-              "company_tickers.json"
+          # =================================================
+          # OPTIONAL FMP FINANCIAL DATA
+          #
+          # FMP IS OPTIONAL.
+          # 402 WILL NOT BREAK THE UPDATE.
+          # =================================================
+
+          API_KEY = os.environ.get(
+              "FMP_API_KEY"
           )
 
 
-          try:
+          financial_updates = 0
 
-              response = requests.get(
 
-                  ticker_url,
+          if API_KEY:
 
-                  headers=SEC_HEADERS,
-
-                  timeout=60
-
+              print(
+                  "FMP key detected. "
+                  "Attempting financial updates..."
               )
 
-          except Exception as error:
 
-              raise SystemExit(
-                  "SEC request failed: "
-                  + str(error)
+              for company in companies:
+
+                  symbol = company.get(
+                      "symbol"
+                  )
+
+                  if not symbol:
+                      continue
+
+
+                  try:
+
+                      response = requests.get(
+
+                          "https://financialmodelingprep.com/"
+                          "stable/income-statement",
+
+                          params={
+                              "symbol": symbol,
+                              "apikey": API_KEY
+                          },
+
+                          timeout=15
+                      )
+
+
+                      if response.status_code != 200:
+
+                          print(
+                              f"FMP {symbol}: "
+                              f"HTTP {response.status_code}"
+                          )
+
+                          continue
+
+
+                      result = response.json()
+
+
+                      if (
+                          not isinstance(
+                              result,
+                              list
+                          )
+                          or not result
+                      ):
+
+                          continue
+
+
+                      latest = result[0]
+
+
+                      if latest.get(
+                          "revenue"
+                      ) is not None:
+
+                          company["revenue"] = (
+                              latest["revenue"]
+                          )
+
+
+                      if latest.get(
+                          "grossProfit"
+                      ) is not None:
+
+                          company[
+                              "grossProfit"
+                          ] = latest[
+                              "grossProfit"
+                          ]
+
+
+                      if latest.get(
+                          "netIncome"
+                      ) is not None:
+
+                          company["profit"] = (
+                              latest["netIncome"]
+                          )
+
+
+                      company[
+                          "financialSource"
+                      ] = "Financial Modeling Prep"
+
+
+                      company[
+                          "financialUpdated"
+                      ] = latest.get(
+                          "date"
+                      )
+
+
+                      financial_updates += 1
+
+
+                  except Exception as error:
+
+                      print(
+                          f"FMP failed for "
+                          f"{symbol}: {error}"
+                      )
+
+
+          else:
+
+              print(
+                  "No FMP key. "
+                  "Continuing with company universe."
               )
 
 
           print(
-              "SEC status:",
-              response.status_code
+              "Financial updates:",
+              financial_updates
           )
 
 
-          if response.status_code != 200:
-
-              raise SystemExit(
-                  "SEC company list request failed."
-              )
-
-
-          sec_data = response.json()
-
-
-          if not isinstance(
-              sec_data,
-              dict
-          ):
-
-              raise SystemExit(
-                  "SEC returned invalid company data."
-              )
-
-
           # =================================================
-          # CREATE COMPANY LIST
+          # WIKIPEDIA BIOGRAPHIES
+          #
+          # Only enrich top 100 by wealth.
+          # This avoids thousands of requests.
           # =================================================
 
-          companies = []
+          session = requests.Session()
+
+          session.headers.update({
+              "User-Agent":
+                  "WorldElite/1.0 "
+                  "(https://yunispashaev19-jpg.github.io/)"
+          })
 
 
-          for item in sec_data.values():
+          sorted_people = sorted(
+              billionaires,
+
+              key=lambda x:
+                  float(
+                      x.get("netWorth")
+                      or x.get("net_worth")
+                      or x.get("worth")
+                      or 0
+                  )
+                  if isinstance(x, dict)
+                  else 0,
+
+              reverse=True
+          )
+
+
+          biography_updates = 0
+
+
+          for person in sorted_people[:100]:
 
               if not isinstance(
-                  item,
+                  person,
                   dict
               ):
-
                   continue
 
 
-              cik = item.get(
-                  "cik_str"
+              name = (
+                  person.get("name")
+                  or person.get("fullName")
+                  or person.get("full_name")
               )
-
-
-              ticker = item.get(
-                  "ticker"
-              )
-
-
-              name = item.get(
-                  "title"
-              )
-
-
-              if not cik:
-                  continue
-
-
-              if not ticker:
-                  continue
 
 
               if not name:
                   continue
 
 
-              companies.append({
-
-                  "name":
-                      str(name).strip(),
-
-                  "ticker":
-                      str(ticker)
-                      .strip()
-                      .upper(),
-
-                  "symbol":
-                      str(ticker)
-                      .strip()
-                      .upper(),
-
-                  "cik":
-                      str(cik)
-                      .zfill(10),
-
-                  "country":
-                      "United States",
-
-                  "biography":
-                      (
-                          "Public company filing "
-                          "information available "
-                          "through SEC EDGAR."
-                      ),
-
-                  "investments":
-                      [],
-
-                  "stakes":
-                      [],
-
-                  "revenue":
-                      0,
-
-                  "netProfit":
-                      0,
-
-                  "grossProfit":
-                      0,
-
-                  "financialSource":
-                      "SEC EDGAR"
-
-              })
-
-
-          print(
-              "SEC companies downloaded:",
-              len(companies)
-          )
-
-
-          if len(companies) < 1000:
-
-              raise SystemExit(
-                  "ERROR: SEC returned fewer than 1000 companies."
+              existing_bio = (
+                  person.get("biography")
+                  or person.get("bio")
+                  or ""
               )
 
 
-          # =================================================
-          # KEEP EXISTING COMPANY INFORMATION
-          # =================================================
-
-          old_by_ticker = {}
-
-
-          for company in old_companies:
-
-              if not isinstance(
-                  company,
-                  dict
-              ):
-
+              if existing_bio:
                   continue
-
-
-              ticker = (
-
-                  company.get("ticker")
-
-                  or company.get("symbol")
-
-                  or company.get("tickerSymbol")
-
-              )
-
-
-              if ticker:
-
-                  old_by_ticker[
-                      str(ticker)
-                      .strip()
-                      .upper()
-                  ] = company
-
-
-          # =================================================
-          # MERGE OLD + NEW
-          # =================================================
-
-          merged_companies = []
-
-
-          for company in companies:
-
-              ticker = company["ticker"]
-
-
-              old = old_by_ticker.get(
-                  ticker
-              )
-
-
-              if old:
-
-                  merged = dict(
-                      company
-                  )
-
-
-                  # Preserve useful existing fields.
-
-                  for key, value in old.items():
-
-                      if value not in (
-                          None,
-                          "",
-                          [],
-                          {}
-                      ):
-
-                          merged[key] = value
-
-
-                  # Never lose SEC identity.
-
-                  merged["ticker"] = ticker
-
-                  merged["symbol"] = ticker
-
-                  merged["cik"] = company["cik"]
-
-                  merged_companies.append(
-                      merged
-                  )
-
-              else:
-
-                  merged_companies.append(
-                      company
-                  )
-
-
-          companies = merged_companies
-
-
-          # =================================================
-          # IMPORTANT
-          #
-          # Limit is 1500 companies.
-          # This gives us a guaranteed 1000+ dataset
-          # without making thousands of requests.
-          # =================================================
-
-          companies = companies[:1500]
-
-
-          print(
-              "Final company universe:",
-              len(companies)
-          )
-
-
-          if len(companies) < 1000:
-
-              raise SystemExit(
-                  "ERROR: Final company list is below 1000."
-              )
-
-
-          # =================================================
-          # FINANCIAL DATA
-          #
-          # Update SEC financial information for the first
-          # 300 companies.
-          #
-          # The other companies remain in the database.
-          # =================================================
-
-          print()
-          print(
-              "Updating financial information..."
-          )
-
-
-          financial_updates = 0
-
-          financial_failures = 0
-
-
-          def find_fact(
-              facts,
-              tags
-          ):
-
-              us_gaap = (
-
-                  facts
-                  .get("facts", {})
-                  .get("us-gaap", {})
-
-              )
-
-
-              for tag in tags:
-
-                  concept = us_gaap.get(
-                      tag
-                  )
-
-
-                  if not concept:
-                      continue
-
-
-                  units = concept.get(
-                      "units",
-                      {}
-                  )
-
-
-                  candidates = []
-
-
-                  for unit_name, values in units.items():
-
-                      if not isinstance(
-                          values,
-                          list
-                      ):
-
-                          continue
-
-
-                      for value in values:
-
-                          if not isinstance(
-                              value,
-                              dict
-                          ):
-
-                              continue
-
-
-                          if value.get(
-                              "form"
-                          ) not in (
-                              "10-K",
-                              "20-F",
-                              "40-F"
-                          ):
-
-                              continue
-
-
-                          if value.get(
-                              "val"
-                          ) is None:
-
-                              continue
-
-
-                          if not value.get(
-                              "end"
-                          ):
-
-                              continue
-
-
-                          candidates.append(
-                              value
-                          )
-
-
-                  if candidates:
-
-                      candidates.sort(
-
-                          key=lambda x:
-                              x.get(
-                                  "end",
-                                  ""
-                              ),
-
-                          reverse=True
-
-                      )
-
-
-                      return candidates[0].get(
-                          "val"
-                      )
-
-
-              return None
-
-
-          # =================================================
-          # SEC REQUESTS
-          # =================================================
-
-          for number, company in enumerate(
-              companies[:300],
-              start=1
-          ):
-
-              cik = company.get(
-                  "cik"
-              )
-
-
-              if not cik:
-                  continue
-
-
-              url = (
-
-                  "https://data.sec.gov/api/xbrl/"
-                  "companyfacts/CIK"
-                  + str(cik).zfill(10)
-                  + ".json"
-
-              )
 
 
               try:
 
-                  request = requests.get(
-
-                      url,
-
-                      headers=SEC_HEADERS,
-
-                      timeout=30
-
+                  search_url = (
+                      "https://en.wikipedia.org/"
+                      "w/rest.php/v1/search/page"
                   )
 
 
-                  if request.status_code != 200:
+                  search_response = (
+                      session.get(
 
-                      financial_failures += 1
+                          search_url,
 
-                      print(
+                          params={
+                              "q": name,
+                              "limit": 3
+                          },
 
-                          f"[{number}/300] "
-                          f"{company.get('ticker')} "
-                          f"HTTP {request.status_code}"
-
+                          timeout=15
                       )
+                  )
 
+
+                  if (
+                      search_response.status_code
+                      != 200
+                  ):
                       continue
 
 
-                  facts = request.json()
-
-
-                  revenue = find_fact(
-
-                      facts,
-
-                      [
-
-                          "RevenueFromContractWithCustomerExcludingAssessedTax",
-
-                          "Revenues",
-
-                          "SalesRevenueNet"
-
-                      ]
-
+                  search_data = (
+                      search_response.json()
                   )
 
 
-                  net_profit = find_fact(
-
-                      facts,
-
-                      [
-
-                          "NetIncomeLoss",
-
-                          "ProfitLoss"
-
-                      ]
-
+                  pages = (
+                      search_data.get(
+                          "pages",
+                          []
+                      )
                   )
 
 
-                  gross_profit = find_fact(
+                  if not pages:
+                      continue
 
-                      facts,
 
-                      [
-
-                          "GrossProfit"
-
-                      ]
-
+                  title = pages[0].get(
+                      "title"
                   )
 
 
-                  if revenue is not None:
-
-                      company[
-                          "revenue"
-                      ] = revenue
+                  if not title:
+                      continue
 
 
-                  if net_profit is not None:
-
-                      company[
-                          "netProfit"
-                      ] = net_profit
-
-
-                  if gross_profit is not None:
-
-                      company[
-                          "grossProfit"
-                      ] = gross_profit
-
-
-                  company[
-                      "financialSource"
-                  ] = "SEC EDGAR XBRL"
-
-
-                  company[
-                      "financialUpdated"
-                  ] = datetime.now(
-                      timezone.utc
-                  ).isoformat()
-
-
-                  financial_updates += 1
-
-
-                  print(
-
-                      f"[{number}/300] "
-                      f"{company.get('ticker')} "
-                      f"updated"
-
+                  summary_url = (
+                      "https://en.wikipedia.org/"
+                      "api/rest_v1/page/summary/"
+                      + quote(
+                          title.replace(
+                              " ",
+                              "_"
+                          )
+                      )
                   )
+
+
+                  summary_response = (
+                      session.get(
+
+                          summary_url,
+
+                          timeout=15
+                      )
+                  )
+
+
+                  if (
+                      summary_response.status_code
+                      != 200
+                  ):
+                      continue
+
+
+                  summary = (
+                      summary_response.json()
+                  )
+
+
+                  extract = (
+                      summary.get(
+                          "extract"
+                      )
+                  )
+
+
+                  if extract:
+
+                      person[
+                          "biography"
+                      ] = extract
+
+                      person[
+                          "biographySource"
+                      ] = "Wikipedia"
+
+                      person[
+                          "biographyUpdated"
+                      ] = datetime.now(
+                          timezone.utc
+                      ).isoformat()
+
+                      biography_updates += 1
 
 
               except Exception as error:
 
-                  financial_failures += 1
-
                   print(
-
-                      f"[{number}/300] "
-                      f"{company.get('ticker')} "
-                      f"failed: {error}"
-
+                      "Wikipedia failed for",
+                      name,
+                      error
                   )
+
+
+              time.sleep(
+                  0.15
+              )
+
+
+          print(
+              "Biography updates:",
+              biography_updates
+          )
+
+
+          # =================================================
+          # KNOWN COMPANY RELATIONSHIPS
+          # =================================================
+
+          known_relationships = {
+
+              "Elon Musk": {
+
+                  "companies": [
+                      "Tesla",
+                      "SpaceX",
+                      "xAI",
+                      "X"
+                  ],
+
+                  "investmentFocus": [
+                      "Artificial Intelligence",
+                      "Space technology",
+                      "Electric vehicles",
+                      "Energy"
+                  ],
+
+                  "investmentWhy":
+                      "Long-term focus on technology that can change major industries, especially AI, transportation, energy and space technology."
+
+              },
+
+              "Jeff Bezos": {
+
+                  "companies": [
+                      "Amazon",
+                      "Blue Origin"
+                  ],
+
+                  "investmentFocus": [
+                      "Technology",
+                      "Space",
+                      "Artificial Intelligence",
+                      "Consumer businesses"
+                  ],
+
+                  "investmentWhy":
+                      "Focuses on large markets with long-term growth potential, technology infrastructure and businesses capable of scaling globally."
+
+              },
+
+              "Bill Gates": {
+
+                  "companies": [
+                      "Microsoft"
+                  ],
+
+                  "investmentFocus": [
+                      "Technology",
+                      "Healthcare",
+                      "Climate technology",
+                      "Energy"
+                  ],
+
+                  "investmentWhy":
+                      "Focuses on technologies that can improve productivity, healthcare, energy systems and long-term global problems."
+
+              },
+
+              "Mark Zuckerberg": {
+
+                  "companies": [
+                      "Meta"
+                  ],
+
+                  "investmentFocus": [
+                      "Artificial Intelligence",
+                      "Social technology",
+                      "Virtual and augmented reality"
+                  ],
+
+                  "investmentWhy":
+                      "Focuses heavily on AI and computing infrastructure because these technologies are central to Meta's future products and platforms."
+
+              },
+
+              "Warren Buffett": {
+
+                  "companies": [
+                      "Berkshire Hathaway"
+                  ],
+
+                  "investmentFocus": [
+                      "Financial services",
+                      "Consumer brands",
+                      "Energy",
+                      "Infrastructure"
+                  ],
+
+                  "investmentWhy":
+                      "Typically favors businesses with durable competitive advantages, strong cash generation and attractive long-term economics."
+
+              }
+
+          }
+
+
+          for person in billionaires:
+
+              if not isinstance(
+                  person,
+                  dict
+              ):
+                  continue
+
+
+              name = person.get(
+                  "name"
+              )
+
+
+              relationship = (
+                  known_relationships.get(
+                      name
+                  )
+              )
+
+
+              if not relationship:
+                  continue
+
+
+              person[
+                  "companies"
+              ] = relationship[
+                  "companies"
+              ]
+
+
+              person[
+                  "investmentFocus"
+              ] = relationship[
+                  "investmentFocus"
+              ]
+
+
+              person[
+                  "investmentWhy"
+              ] = relationship[
+                  "investmentWhy"
+              ]
 
 
           # =================================================
           # METADATA
           # =================================================
 
-          metadata[
-              "lastAutomaticUpdate"
-          ] = datetime.now(
+          now = datetime.now(
               timezone.utc
           ).isoformat()
 
 
           metadata[
-              "companyCount"
-          ] = len(companies)
+              "lastAutomaticUpdate"
+          ] = now
 
 
           metadata[
-              "companyFinancialUpdates"
+              "billionaireCount"
+          ] = len(
+              billionaires
+          )
+
+
+          metadata[
+              "companyCount"
+          ] = len(
+              companies
+          )
+
+
+          metadata[
+              "financialUpdates"
           ] = financial_updates
 
 
           metadata[
-              "companyFinancialFailures"
-          ] = financial_failures
+              "biographyUpdates"
+          ] = biography_updates
 
 
           metadata[
-              "companySource"
-          ] = "SEC EDGAR"
+              "dataSources"
+          ] = [
 
+              "Existing WorldElite billionaire dataset",
 
-          metadata[
-              "companyUniverseSource"
-          ] = (
-              "SEC company_tickers.json"
-          )
+              "Wikimedia / Wikipedia REST API",
+
+              "Financial Modeling Prep (optional)"
+
+          ]
 
 
           # =================================================
-          # FINAL DATA
+          # SAVE
           # =================================================
 
-          final_data = {
+          output = {
 
               "billionaires":
                   billionaires,
@@ -828,49 +1172,103 @@ jobs:
 
               "metadata":
                   metadata
-
           }
 
 
-          # =================================================
-          # WRITE DATA.JSON
-          # =================================================
-
           with open(
-
               DATA_FILE,
-
               "w",
-
               encoding="utf-8"
-
           ) as f:
 
               json.dump(
-
-                  final_data,
-
+                  output,
                   f,
-
                   ensure_ascii=False,
-
                   indent=2
-
               )
 
 
-          # =================================================
-          # FINAL CHECK
-          # =================================================
-
           print()
           print(
-              "=========================================="
+              "========================================"
           )
 
           print(
-              "FINAL DATA"
+              "FINAL BILLIONAIRES:",
+              len(billionaires)
           )
+
+          print(
+              "FINAL COMPANIES:",
+              len(companies)
+          )
+
+          print(
+              "FINANCIAL UPDATES:",
+              financial_updates
+          )
+
+          print(
+              "BIOGRAPHY UPDATES:",
+              biography_updates
+          )
+
+          print(
+              "========================================"
+
+
+          if len(companies) == 0:
+
+              raise SystemExit(
+                  "ERROR: companies are still zero."
+              )
+
+
+          PY
+
+
+      # =====================================================
+      # VALIDATE
+      # =====================================================
+
+      - name: Validate final data
+        shell: bash
+        run: |
+
+          python - <<'PY'
+
+          import json
+
+          with open(
+              "data.json",
+              "r",
+              encoding="utf-8"
+          ) as f:
+
+              data = json.load(f)
+
+
+          if not isinstance(
+              data,
+              dict
+          ):
+
+              raise SystemExit(
+                  "ERROR: data.json is not an object."
+              )
+
+
+          billionaires = data.get(
+              "billionaires",
+              []
+          )
+
+          companies = data.get(
+              "companies",
+              []
+          )
+
 
           print(
               "Billionaires:",
@@ -882,148 +1280,34 @@ jobs:
               len(companies)
           )
 
-          print(
-              "Financial updates:",
-              financial_updates
-          )
-
-          print(
-              "Financial failures:",
-              financial_failures
-          )
-
-          print(
-              "=========================================="
-          )
-
 
           if len(billionaires) < 3000:
 
               raise SystemExit(
-                  "ERROR: Billionaires disappeared."
+                  "ERROR: billionaire dataset is corrupted."
               )
 
 
-          if len(companies) < 1000:
+          if len(companies) < 40:
 
               raise SystemExit(
-                  "ERROR: Companies were not created."
+                  "ERROR: company dataset is unexpectedly small."
               )
 
 
           print(
-              "DATA UPDATE SUCCESSFUL"
+              "DATA VALIDATION PASSED"
           )
 
           PY
 
 
       # =====================================================
-      # 4. VALIDATE JSON
-      # =====================================================
-
-      - name: Validate data.json
-
-        shell: bash
-
-        run: |
-
-          python - <<'PY'
-
-          import json
-
-
-          with open(
-              "data.json",
-              "r",
-              encoding="utf-8"
-          ) as f:
-
-              data = json.load(f)
-
-
-          billionaires = data.get(
-              "billionaires",
-              []
-          )
-
-
-          companies = data.get(
-              "companies",
-              []
-          )
-
-
-          print(
-              "Validated billionaires:",
-              len(billionaires)
-          )
-
-
-          print(
-              "Validated companies:",
-              len(companies)
-          )
-
-
-          if len(billionaires) < 3000:
-
-              raise SystemExit(
-                  "Billionaire validation failed."
-              )
-
-
-          if len(companies) < 1000:
-
-              raise SystemExit(
-                  "Company validation failed."
-              )
-
-
-          print(
-              "JSON VALIDATION PASSED"
-          )
-
-          PY
-
-
-      # =====================================================
-      # 5. CONFIGURE GITHUB PAGES
-      # =====================================================
-
-      - name: Configure Pages
-
-        uses: actions/configure-pages@v5
-
-
-      # =====================================================
-      # 6. UPLOAD THE ACTUAL CURRENT WORKSPACE
-      #
-      # IMPORTANT:
-      #
-      # This is the SAME workspace in which data.json
-      # was just generated.
-      #
-      # There is no second checkout.
-      # =====================================================
-
-      - name: Upload Pages artifact
-
-        uses: actions/upload-pages-artifact@v3
-
-        with:
-
-          path: .
-
-
-      # =====================================================
-      # 7. SAVE DATA.JSON TO REPOSITORY
+      # COMMIT
       # =====================================================
 
       - name: Commit updated data
-
         shell: bash
-
         run: |
 
           git config user.name "WorldElite Bot"
@@ -1037,36 +1321,63 @@ jobs:
 
           if git diff --cached --quiet; then
 
-            echo "No data changes."
+              echo "No data changes."
 
           else
 
-            git commit \
-              -m "Auto update WorldElite data"
+              git commit \
+                -m "Update WorldElite data"
 
-            git push
+              git push
 
           fi
 
 
-  # =========================================================
-  # DEPLOY
-  # =========================================================
+  # =======================================================
+  # BUILD
+  # =======================================================
 
-  deploy:
+  build:
 
     runs-on: ubuntu-latest
 
     needs:
-      - build-and-deploy
+      - update-data
 
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+
+        with:
+          path: .
+
+
+  # =======================================================
+  # DEPLOY
+  # =======================================================
+
+  deploy:
 
     environment:
 
       name: github-pages
 
-      url: ${{ steps.deployment.outputs.page_url }}
+      url:
+        ${{ steps.deployment.outputs.page_url }}
 
+    runs-on: ubuntu-latest
+
+    needs:
+      - build
 
     steps:
 
