@@ -1,27 +1,21 @@
-name: WorldElite Automatic Data Update
+name: WorldElite Data Update
 
 on:
-
-  push:
-    branches:
-      - main
-
   workflow_dispatch:
 
   schedule:
     - cron: "0 6 * * *"
 
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
 
 concurrency:
-  group: worldelite
+  group: worldelite-data
   cancel-in-progress: false
-
 
 jobs:
 
@@ -31,110 +25,162 @@ jobs:
 
     steps:
 
+      # =====================================================
+      # CHECKOUT
+      # =====================================================
+
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
-
-      # =====================================================
-      # CHECK EXISTING DATA
-      # =====================================================
-
-      - name: Check existing billionaire dataset
-        shell: bash
-        run: |
-
-          python - <<'PY'
-
-          import json
-
-          with open(
-              "data.json",
-              "r",
-              encoding="utf-8"
-          ) as f:
-              data = json.load(f)
-
-
-          if isinstance(data, list):
-
-              billionaires = data
-
-          elif isinstance(data, dict):
-
-              billionaires = (
-                  data.get("billionaires")
-                  or data.get("Billionaires")
-                  or data.get("people")
-                  or []
-              )
-
-          else:
-
-              billionaires = []
-
-
-          print(
-              "Billionaires before update:",
-              len(billionaires)
-          )
-
-
-          if len(billionaires) < 3000:
-
-              raise SystemExit(
-                  "ERROR: billionaire dataset is unexpectedly small."
-              )
-
-          PY
 
 
       # =====================================================
       # PYTHON
       # =====================================================
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+
+      # =====================================================
+      # DEPENDENCIES
+      # =====================================================
+
       - name: Install dependencies
         run: |
-
           python -m pip install --upgrade pip
-
-          pip install \
-            requests \
-            beautifulsoup4 \
-            pandas \
-            lxml
+          pip install requests
 
 
       # =====================================================
-      # BUILD COMPANY DATABASE
-      #
-      # No FMP.
-      # No API key.
-      # No 402.
-      #
-      # Existing companies are NEVER deleted.
+      # UPDATE DATA
       # =====================================================
 
-      - name: Build global company database
+      - name: Update WorldElite data
         shell: bash
+        env:
+          SEC_USER_AGENT: "WorldElite contact@worldelite.app"
         run: |
 
           python - <<'PY'
 
           import json
-          import re
+          import os
+          import time
           import requests
-          import pandas as pd
           from datetime import datetime, timezone
+          from concurrent.futures import ThreadPoolExecutor, as_completed
 
+
+          # =================================================
+          # CONFIG
+          # =================================================
 
           DATA_FILE = "data.json"
 
+          COMPANY_TARGET = 1200
 
-          # -------------------------------------------------
-          # Load existing data
-          # -------------------------------------------------
+          USER_AGENT = os.environ.get(
+              "SEC_USER_AGENT",
+              "WorldElite worldelite@example.com"
+          )
+
+          SEC_HEADERS = {
+              "User-Agent": USER_AGENT,
+              "Accept-Encoding": "gzip, deflate",
+              "Host": "www.sec.gov"
+          }
+
+
+          # =================================================
+          # HELPERS
+          # =================================================
+
+          def safe_number(value):
+
+              if value is None:
+                  return 0
+
+              try:
+                  return float(value)
+              except:
+                  return 0
+
+
+          def first(obj, keys, default=""):
+
+              if not isinstance(obj, dict):
+                  return default
+
+              for key in keys:
+
+                  value = obj.get(key)
+
+                  if value not in (
+                      None,
+                      "",
+                      [],
+                      {}
+                  ):
+                      return value
+
+              return default
+
+
+          def normalize_name(name):
+
+              return (
+                  str(name)
+                  .lower()
+                  .strip()
+                  .replace(",", "")
+                  .replace(".", "")
+                  .replace("-", " ")
+              )
+
+
+          def request_json(url, params=None):
+
+              try:
+
+                  response = requests.get(
+                      url,
+                      headers=SEC_HEADERS,
+                      params=params,
+                      timeout=30
+                  )
+
+                  if response.status_code != 200:
+
+                      print(
+                          "HTTP",
+                          response.status_code,
+                          url
+                      )
+
+                      return None
+
+                  return response.json()
+
+              except Exception as error:
+
+                  print(
+                      "Request failed:",
+                      error
+                  )
+
+                  return None
+
+
+          # =================================================
+          # LOAD EXISTING DATA
+          # =================================================
+
+          print("")
+          print("======================================")
+          print("Loading existing data.json")
+          print("======================================")
 
           with open(
               DATA_FILE,
@@ -142,408 +188,779 @@ jobs:
               encoding="utf-8"
           ) as f:
 
-              data = json.load(f)
+              raw = json.load(f)
 
 
-          if isinstance(data, list):
+          if isinstance(raw, list):
 
-              billionaires = data
-              existing_companies = []
+              billionaires = raw
+              companies = []
               metadata = {}
 
-          else:
+          elif isinstance(raw, dict):
 
               billionaires = (
-                  data.get("billionaires")
-                  or data.get("Billionaires")
-                  or data.get("people")
+                  raw.get("billionaires")
+                  or raw.get("Billionaires")
+                  or raw.get("people")
                   or []
               )
 
-              existing_companies = (
-                  data.get("companies")
-                  or data.get("Companies")
+              companies = (
+                  raw.get("companies")
+                  or raw.get("Companies")
+                  or raw.get("businesses")
                   or []
               )
 
               metadata = (
-                  data.get("metadata")
+                  raw.get("metadata")
                   or {}
               )
 
-
-          if len(billionaires) < 3000:
+          else:
 
               raise SystemExit(
-                  "Refusing update because billionaire dataset is too small."
+                  "Invalid data.json format."
               )
 
 
           print(
-              "Billionaires:",
+              "Billionaires before update:",
               len(billionaires)
           )
 
           print(
-              "Existing companies:",
-              len(existing_companies)
+              "Companies before update:",
+              len(companies)
           )
 
 
-          # -------------------------------------------------
-          # Preserve every existing company.
-          # -------------------------------------------------
+          # =================================================
+          # SAFETY CHECK
+          # =================================================
+
+          if len(billionaires) < 3000:
+
+              raise SystemExit(
+                  "STOP: billionaire dataset is too small."
+              )
+
+
+          # =================================================
+          # EXISTING COMPANY MAP
+          # =================================================
 
           company_map = {}
 
+          for company in companies:
 
-          for company in existing_companies:
+              if not isinstance(company, dict):
+                  continue
 
-              if not isinstance(
+              name = first(
                   company,
-                  dict
-              ):
-                  continue
+                  [
+                      "name",
+                      "companyName",
+                      "company_name",
+                      "title"
+                  ]
+              )
+
+              if name:
+
+                  company_map[
+                      normalize_name(name)
+                  ] = company
 
 
-              name = (
-                  company.get("name")
-                  or company.get("companyName")
-                  or company.get("company_name")
+          # =================================================
+          # SEC COMPANY UNIVERSE
+          #
+          # NO API KEY
+          # =================================================
+
+          print("")
+          print("======================================")
+          print("Downloading SEC company universe")
+          print("======================================")
+
+
+          ticker_url = (
+              "https://www.sec.gov/files/"
+              "company_tickers.json"
+          )
+
+
+          ticker_data = request_json(
+              ticker_url
+          )
+
+
+          if not ticker_data:
+
+              raise SystemExit(
+                  "Could not download SEC company universe."
               )
 
 
-              if not name:
+          sec_companies = []
+
+
+          for item in ticker_data.values():
+
+              if not isinstance(item, dict):
+                  continue
+
+              cik = item.get("cik_str")
+              ticker = item.get("ticker")
+              title = item.get("title")
+
+
+              if not cik or not ticker or not title:
                   continue
 
 
-              key = re.sub(
-                  r"\s+",
-                  " ",
-                  str(name)
-                      .strip()
-                      .lower()
+              sec_companies.append({
+
+                  "cik": str(cik).zfill(10),
+
+                  "ticker": str(
+                      ticker
+                  ).upper().strip(),
+
+                  "name": str(
+                      title
+                  ).strip()
+
+              })
+
+
+          # Remove duplicates
+
+          unique = {}
+
+          for company in sec_companies:
+
+              key = company["ticker"]
+
+              unique[key] = company
+
+
+          sec_companies = list(
+              unique.values()
+          )
+
+
+          print(
+              "SEC companies available:",
+              len(sec_companies)
+          )
+
+
+          # =================================================
+          # MERGE EXISTING + NEW COMPANIES
+          # =================================================
+
+          added = 0
+
+
+          for sec_company in sec_companies:
+
+              if len(company_map) >= COMPANY_TARGET:
+                  break
+
+
+              key = normalize_name(
+                  sec_company["name"]
               )
 
+
+              if key in company_map:
+
+                  company = company_map[key]
+
+                  # Never remove existing data
+
+                  company.setdefault(
+                      "symbol",
+                      sec_company["ticker"]
+                  )
+
+                  company.setdefault(
+                      "ticker",
+                      sec_company["ticker"]
+                  )
+
+                  company.setdefault(
+                      "cik",
+                      sec_company["cik"]
+                  )
+
+                  continue
+
+
+              company = {
+
+                  "name":
+                      sec_company["name"],
+
+                  "companyName":
+                      sec_company["name"],
+
+                  "symbol":
+                      sec_company["ticker"],
+
+                  "ticker":
+                      sec_company["ticker"],
+
+                  "cik":
+                      sec_company["cik"],
+
+                  "country":
+                      "United States",
+
+                  "countryCode":
+                      "US",
+
+                  "biography":
+                      "",
+
+                  "description":
+                      "",
+
+                  "industry":
+                      "",
+
+                  "sector":
+                      "",
+
+                  "revenue":
+                      0,
+
+                  "grossProfit":
+                      0,
+
+                  "netProfit":
+                      0,
+
+                  "investments":
+                      [],
+
+                  "stakes":
+                      [],
+
+                  "investmentReasons":
+                      [],
+
+                  "financialSource":
+                      "SEC EDGAR",
+
+                  "dataSource":
+                      "SEC EDGAR",
+
+                  "financialUpdated":
+                      None
+
+              }
+
+
+              companies.append(
+                  company
+              )
 
               company_map[key] = company
 
+              added += 1
 
-          # -------------------------------------------------
-          # Public company universe
+
+          print(
+              "Companies added:",
+              added
+          )
+
+          print(
+              "Company universe now:",
+              len(companies)
+          )
+
+
+          # =================================================
+          # LIMIT TO AT LEAST 1000
+          # =================================================
+
+          if len(companies) < 1000:
+
+              raise SystemExit(
+                  "ERROR: Could not create 1000+ companies."
+              )
+
+
+          # =================================================
+          # COMPANY ENRICHMENT
           #
-          # Wikipedia's company lists are used only to
-          # create/enrich the company universe.
-          #
-          # Existing records are preserved.
-          # -------------------------------------------------
+          # SEC SUBMISSIONS
+          # =================================================
 
-          urls = [
-
-              "https://en.wikipedia.org/wiki/"
-              "List_of_largest_companies_by_revenue",
-
-              "https://en.wikipedia.org/wiki/"
-              "List_of_largest_companies_in_the_United_States_by_revenue",
-
-              "https://en.wikipedia.org/wiki/"
-              "List_of_largest_technology_companies_by_revenue"
-
-          ]
+          print("")
+          print("======================================")
+          print("Enriching company profiles")
+          print("======================================")
 
 
-          session = requests.Session()
+          def enrich_company(company):
 
-          session.headers.update({
-              "User-Agent":
-                  "WorldElite/1.0 "
-                  "(educational data project)"
-          })
+              cik = company.get("cik")
 
-
-          discovered = {}
+              if not cik:
+                  return
 
 
-          for url in urls:
+              url = (
+                  "https://data.sec.gov/submissions/"
+                  f"CIK{cik}.json"
+              )
+
 
               try:
 
-                  print(
-                      "Reading:",
-                      url
+                  response = requests.get(
+                      url,
+                      headers={
+                          "User-Agent":
+                              USER_AGENT,
+                          "Accept-Encoding":
+                              "gzip, deflate"
+                      },
+                      timeout=30
                   )
 
 
-                  tables = pd.read_html(
-                      url
+                  if response.status_code != 200:
+
+                      return
+
+
+                  data = response.json()
+
+
+                  sic_description = data.get(
+                      "sicDescription"
+                  )
+
+                  sic = data.get(
+                      "sic"
                   )
 
 
-                  for table in tables:
-
-                      if table.empty:
-                          continue
-
-
-                      columns = [
-                          str(c).lower()
-                          for c in table.columns
-                      ]
+                  addresses = data.get(
+                      "addresses",
+                      {}
+                  )
 
 
-                      # Find company/name column
-
-                      name_column = None
-
-
-                      for original, lower in zip(
-                          table.columns,
-                          columns
-                      ):
-
-                          if (
-                              "company" in lower
-                              or lower == "name"
-                          ):
-
-                              name_column = original
-                              break
+                  business = addresses.get(
+                      "business",
+                      {}
+                  )
 
 
-                      if name_column is None:
-                          continue
+                  state = business.get(
+                      "stateOrCountry",
+                      ""
+                  )
 
 
-                      for _, row in table.iterrows():
-
-                          raw_name =
-                              row.get(
-                                  name_column
-                              )
+                  city = business.get(
+                      "city",
+                      ""
+                  )
 
 
-                          if pd.isna(raw_name):
-                              continue
+                  if sic_description:
+
+                      company[
+                          "industry"
+                      ] = sic_description
 
 
-                          name = str(
-                              raw_name
-                          ).strip()
+                      company[
+                          "sector"
+                      ] = sic_description
 
 
-                          if (
-                              not name
-                              or
-                              len(name) < 2
-                          ):
-                              continue
+                  if not company.get(
+                      "biography"
+                  ):
+
+                      description_parts = []
 
 
-                          # Ignore table headers
-
-                          if name.lower() in {
-                              "company",
-                              "name",
-                              "company name"
-                          }:
-                              continue
+                      description_parts.append(
+                          f"{company.get('name')} "
+                          f"is a publicly listed company "
+                          f"tracked through SEC EDGAR."
+                      )
 
 
-                          key = re.sub(
-                              r"\s+",
-                              " ",
-                              name.lower()
+                      if sic_description:
+
+                          description_parts.append(
+                              f"It operates in the "
+                              f"{sic_description} industry."
                           )
 
 
-                          item = {
-                              "name": name,
-                              "dataSource":
-                                  "Wikimedia / Wikipedia",
-                              "sourceUrl":
-                                  url
-                          }
+                      if city or state:
+
+                          location = ", ".join(
+                              x
+                              for x in [
+                                  city,
+                                  state
+                              ]
+                              if x
+                          )
 
 
-                          # Revenue column
-
-                          for original, lower in zip(
-                              table.columns,
-                              columns
-                          ):
-
-                              if (
-                                  "revenue"
-                                  in lower
-                              ):
-
-                                  value = row.get(
-                                      original
-                                  )
-
-                                  if (
-                                      pd.notna(value)
-                                  ):
-
-                                      text = str(
-                                          value
-                                      )
+                          description_parts.append(
+                              f"Its reported business "
+                              f"location is {location}."
+                          )
 
 
-                                      numbers = re.findall(
-                                          r"[-+]?[0-9]*\.?[0-9]+",
-                                          text
-                                      )
+                      company[
+                          "biography"
+                      ] = " ".join(
+                          description_parts
+                      )
 
 
-                                      if numbers:
-
-                                          try:
-
-                                              number = float(
-                                                  numbers[0]
-                                              )
+                  company[
+                      "description"
+                  ] = company[
+                      "biography"
+                  ]
 
 
-                                              # Wikipedia tables
-                                              # frequently report
-                                              # revenue in millions.
-
-                                              if (
-                                                  "million"
-                                                  in lower
-                                                  or
-                                                  "usd million"
-                                                  in lower
-                                              ):
-
-                                                  number *= 1_000_000
+                  company[
+                      "sic"
+                  ] = sic or ""
 
 
-                                              item[
-                                                  "revenue"
-                                              ] = number
-
-                                          except:
-                                              pass
-
-                                  break
-
-
-                          # Profit column
-
-                          for original, lower in zip(
-                              table.columns,
-                              columns
-                          ):
-
-                              if (
-                                  "profit"
-                                  in lower
-                                  or
-                                  "net income"
-                                  in lower
-                              ):
-
-                                  value = row.get(
-                                      original
-                                  )
-
-                                  if pd.notna(value):
-
-                                      numbers = re.findall(
-                                          r"[-+]?[0-9]*\.?[0-9]+",
-                                          str(value)
-                                      )
-
-                                      if numbers:
-
-                                          try:
-
-                                              number = float(
-                                                  numbers[0]
-                                              )
-
-                                              if (
-                                                  "million"
-                                                  in lower
-                                              ):
-
-                                                  number *= 1_000_000
-
-                                              item[
-                                                  "netProfit"
-                                              ] = number
-
-                                          except:
-                                              pass
-
-                                  break
+                  company[
+                      "headquarters"
+                  ] = ", ".join(
+                      x
+                      for x in [
+                          city,
+                          state
+                      ]
+                      if x
+                  )
 
 
-                          discovered[
-                              key
-                          ] = item
+                  company[
+                      "profileSource"
+                  ] = "SEC EDGAR"
 
 
               except Exception as error:
 
                   print(
-                      "Source failed:",
+                      "Company profile failed:",
+                      company.get("symbol"),
                       error
                   )
 
 
-          print(
-              "Discovered company records:",
-              len(discovered)
-          )
+          # =================================================
+          # ENRICH COMPANIES
+          # =================================================
+
+          with ThreadPoolExecutor(
+              max_workers=5
+          ) as executor:
+
+              futures = [
+
+                  executor.submit(
+                      enrich_company,
+                      company
+                  )
+
+                  for company in companies[:COMPANY_TARGET]
+              ]
 
 
-          # -------------------------------------------------
-          # Merge discovered companies with existing data.
-          # Existing data always wins where it has richer
-          # information.
-          # -------------------------------------------------
+              for future in as_completed(
+                  futures
+              ):
 
-          for key, incoming in discovered.items():
-
-              if key in company_map:
-
-                  company =
-                      company_map[key]
+                  try:
+                      future.result()
+                  except:
+                      pass
 
 
-                  # Add missing values only
+          # =================================================
+          # FINANCIAL DATA
+          #
+          # SEC COMPANYFACTS
+          # =================================================
 
-                  for field, value in incoming.items():
+          print("")
+          print("======================================")
+          print("Downloading SEC financial data")
+          print("======================================")
 
-                      if (
-                          field not in company
-                          or
-                          company[field] in (
-                              None,
-                              "",
-                              0,
-                              []
+
+          def get_fact(facts, taxonomy, key):
+
+              try:
+
+                  units = (
+                      facts
+                      .get("facts", {})
+                      .get(taxonomy, {})
+                      .get(key, {})
+                      .get("units", {})
+                  )
+
+
+                  if "USD" not in units:
+                      return None
+
+
+                  values = units["USD"]
+
+
+                  if not values:
+                      return None
+
+
+                  annual = [
+                      x
+                      for x in values
+                      if x.get("fp") == "FY"
+                  ]
+
+
+                  source = (
+                      annual
+                      if annual
+                      else values
+                  )
+
+
+                  source = sorted(
+                      source,
+                      key=lambda x:
+                          x.get(
+                              "filed",
+                              ""
                           )
-                      ):
-
-                          company[field] = value
-
-              else:
-
-                  company_map[key] = incoming
+                  )
 
 
-          companies = list(
-              company_map.values()
-          )
+                  return source[-1].get(
+                      "val"
+                  )
 
 
-          # -------------------------------------------------
-          # Add useful metadata.
-          # -------------------------------------------------
+              except:
+
+                  return None
+
+
+          def enrich_financials(company):
+
+              cik = company.get("cik")
+
+              if not cik:
+                  return
+
+
+              url = (
+                  "https://data.sec.gov/api/xbrl/"
+                  f"companyfacts/CIK{cik}.json"
+              )
+
+
+              try:
+
+                  response = requests.get(
+                      url,
+                      headers={
+                          "User-Agent":
+                              USER_AGENT,
+                          "Accept-Encoding":
+                              "gzip, deflate"
+                      },
+                      timeout=30
+                  )
+
+
+                  if response.status_code != 200:
+                      return
+
+
+                  facts = response.json()
+
+
+                  revenue = None
+
+                  for key in [
+                      "RevenueFromContractWithCustomerExcludingAssessedTax",
+                      "Revenues",
+                      "SalesRevenueNet"
+                  ]:
+
+                      revenue = get_fact(
+                          facts,
+                          "us-gaap",
+                          key
+                      )
+
+                      if revenue is not None:
+                          break
+
+
+                  gross_profit = get_fact(
+                      facts,
+                      "us-gaap",
+                      "GrossProfit"
+                  )
+
+
+                  net_profit = None
+
+                  for key in [
+                      "NetIncomeLoss",
+                      "ProfitLoss"
+                  ]:
+
+                      net_profit = get_fact(
+                          facts,
+                          "us-gaap",
+                          key
+                      )
+
+                      if net_profit is not None:
+                          break
+
+
+                  if revenue is not None:
+
+                      company[
+                          "revenue"
+                      ] = revenue
+
+
+                  if gross_profit is not None:
+
+                      company[
+                          "grossProfit"
+                      ] = gross_profit
+
+
+                  if net_profit is not None:
+
+                      company[
+                          "netProfit"
+                      ] = net_profit
+
+
+                  company[
+                      "financialSource"
+                  ] = "SEC EDGAR"
+
+
+                  company[
+                      "financialUpdated"
+                  ] = datetime.now(
+                      timezone.utc
+                  ).isoformat()
+
+
+              except Exception as error:
+
+                  print(
+                      "Financial update failed:",
+                      company.get("symbol"),
+                      error
+                  )
+
+
+          with ThreadPoolExecutor(
+              max_workers=5
+          ) as executor:
+
+              futures = [
+
+                  executor.submit(
+                      enrich_financials,
+                      company
+                  )
+
+                  for company in companies[
+                      :COMPANY_TARGET
+                  ]
+
+              ]
+
+
+              for future in as_completed(
+                  futures
+              ):
+
+                  try:
+                      future.result()
+                  except:
+                      pass
+
+
+          # =================================================
+          # BILLIONAIRE SAFETY
+          # =================================================
+
+          for person in billionaires:
+
+              if not isinstance(
+                  person,
+                  dict
+              ):
+                  continue
+
+
+              person.setdefault(
+                  "biography",
+                  ""
+              )
+
+
+              person.setdefault(
+                  "investments",
+                  []
+              )
+
+
+              person.setdefault(
+                  "stakes",
+                  []
+              )
+
+
+              person.setdefault(
+                  "investmentReasons",
+                  []
+              )
+
+
+          # =================================================
+          # METADATA
+          # =================================================
 
           metadata[
               "lastAutomaticUpdate"
@@ -553,39 +970,32 @@ jobs:
 
 
           metadata[
-              "companySource"
-          ] = (
-              "Wikimedia / Wikipedia public company lists"
+              "dataSource"
+          ] = "SEC EDGAR"
+
+
+          metadata[
+              "billionaireCount"
+          ] = len(
+              billionaires
           )
 
 
           metadata[
-              "companyRecords"
-          ] = len(companies)
+              "companyCount"
+          ] = len(
+              companies
+          )
 
 
-          # -------------------------------------------------
-          # SAFETY:
-          # Never destroy companies.
-          # -------------------------------------------------
-
-          if (
-              len(existing_companies) > 0
-              and
-              len(companies) <
-              len(existing_companies)
-          ):
-
-              print(
-                  "Safety check: keeping existing company dataset."
-              )
-
-              companies = existing_companies
+          metadata[
+              "automaticUpdates"
+          ] = True
 
 
-          # -------------------------------------------------
-          # Write data
-          # -------------------------------------------------
+          # =================================================
+          # SAVE
+          # =================================================
 
           output = {
 
@@ -614,36 +1024,55 @@ jobs:
               )
 
 
+          # =================================================
+          # FINAL CHECK
+          # =================================================
+
+          print("")
+          print("======================================")
+          print("FINAL RESULT")
+          print("======================================")
+
+
           print(
-              "FINAL BILLIONAIRES:",
+              "Billionaires:",
               len(billionaires)
           )
 
+
           print(
-              "FINAL COMPANIES:",
+              "Companies:",
               len(companies)
           )
 
 
+          if len(billionaires) < 3000:
+
+              raise SystemExit(
+                  "ERROR: Billionaire data was lost."
+              )
+
+
           if len(companies) < 1000:
 
-              print(
-                  "WARNING: fewer than 1000 companies were discovered."
+              raise SystemExit(
+                  "ERROR: Company dataset is below 1000."
               )
 
-              print(
-                  "Existing company records were preserved."
-              )
+
+          print("")
+          print(
+              "WorldElite data update successful."
+          )
 
           PY
 
 
       # =====================================================
-      # VALIDATE
+      # VALIDATE JSON
       # =====================================================
 
-      - name: Validate final data
-        shell: bash
+      - name: Validate data.json
         run: |
 
           python - <<'PY'
@@ -659,28 +1088,26 @@ jobs:
               data = json.load(f)
 
 
-          billionaires =
-              data.get(
-                  "billionaires",
-                  []
-              )
+          billionaires = data.get(
+              "billionaires",
+              []
+          )
 
 
-          companies =
-              data.get(
-                  "companies",
-                  []
-              )
+          companies = data.get(
+              "companies",
+              []
+          )
 
 
           print(
-              "Final billionaire count:",
+              "Billionaires:",
               len(billionaires)
           )
 
 
           print(
-              "Final company count:",
+              "Companies:",
               len(companies)
           )
 
@@ -688,25 +1115,20 @@ jobs:
           if len(billionaires) < 3000:
 
               raise SystemExit(
-                  "ERROR: billionaire data corrupted."
+                  "Billionaire dataset corrupted."
               )
 
 
-          if "companies" not in data:
+          if len(companies) < 1000:
 
               raise SystemExit(
-                  "ERROR: companies field disappeared."
+                  "Company dataset corrupted."
               )
 
 
-          if not isinstance(
-              companies,
-              list
-          ):
-
-              raise SystemExit(
-                  "ERROR: companies is not a list."
-              )
+          print(
+              "JSON validation successful."
+          )
 
           PY
 
@@ -716,17 +1138,14 @@ jobs:
       # =====================================================
 
       - name: Commit updated data
-        shell: bash
         run: |
 
           git config user.name "WorldElite Bot"
 
           git config user.email \
-              "worldelite-bot@users.noreply.github.com"
-
+            "worldelite-bot@users.noreply.github.com"
 
           git add data.json
-
 
           if git diff --cached --quiet; then
 
@@ -735,34 +1154,18 @@ jobs:
           else
 
               git commit \
-                  -m "Auto update WorldElite data"
+                -m "Auto update WorldElite data"
 
               git push
 
           fi
 
+      # =====================================================
+      # DEPLOY
+      # =====================================================
 
-
-  # =======================================================
-  # GITHUB PAGES BUILD
-  # =======================================================
-
-  build:
-
-    runs-on: ubuntu-latest
-
-    needs:
-      - update-data
-
-    steps:
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-
-      - name: Configure Pages
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -770,24 +1173,22 @@ jobs:
           path: .
 
 
-
-  # =======================================================
-  # DEPLOY
-  # =======================================================
-
   deploy:
 
     runs-on: ubuntu-latest
 
     needs:
-      - build
+      - update-data
+
+    permissions:
+      pages: write
+      id-token: write
 
     environment:
 
       name: github-pages
 
       url: ${{ steps.deployment.outputs.page_url }}
-
 
     steps:
 
