@@ -1138,3 +1138,179 @@ button {
     }
 
 }
+/* =========================================================
+   LEARN / FINANCIAL LITERACY
+========================================================= */
+
+.learn-intro {
+    margin: 8px 0 20px;
+    color: rgba(255,255,255,0.65);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.learn-topics {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.learn-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    text-align: left;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 14px 16px;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.learn-card:hover,
+.learn-card:active {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.16);
+}
+
+.learn-card-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+}
+
+.learn-card-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.learn-card-label {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 2px;
+}
+
+.learn-card-body strong {
+    display: block;
+    font-size: 0.98rem;
+    margin-bottom: 3px;
+}
+
+.learn-card-body p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.35;
+}
+
+.learn-card-arrow {
+    color: rgba(255,255,255,0.35);
+    font-size: 1.1rem;
+}
+
+.learn-topic-content {
+    padding-bottom: 40px;
+}
+
+.learn-section {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+}
+
+.learn-section h3 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+}
+
+.learn-section p {
+    margin: 0 0 8px;
+    color: rgba(255,255,255,0.78);
+    line-height: 1.55;
+    font-size: 0.92rem;
+}
+
+.learn-section ul {
+    margin: 0;
+    padding-left: 18px;
+    color: rgba(255,255,255,0.78);
+}
+
+.learn-section li {
+    margin-bottom: 6px;
+    line-height: 1.45;
+    font-size: 0.92rem;
+}
+
+.learn-section.warning {
+    border-color: rgba(255, 120, 80, 0.35);
+    background: rgba(255, 80, 40, 0.08);
+}
+
+.key-terms {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.key-term {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.key-term strong {
+    font-size: 0.9rem;
+}
+
+.key-term span {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.4;
+}
+
+.calc-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.calc-card {
+    text-align: left;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 14px 16px;
+    color: #fff;
+    cursor: pointer;
+}
+
+.calc-card strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.calc-card span {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.55);
+}
+
+.calc-note {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.4);
+}
+

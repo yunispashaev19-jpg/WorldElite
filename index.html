@@ -232,6 +232,45 @@
     </section>
 
     <!-- ==================== NAV ==================== -->
+
+    <!-- ==================== LEARN ==================== -->
+    <section id="learnPage" class="page hidden">
+        <div class="page-title">
+            <button class="back-button" onclick="openPage('homePage')">←</button>
+            <div>
+                <span>FINANCIAL EDUCATION</span>
+                <h1>Learn</h1>
+                <p>Understand money, markets and wealth</p>
+            </div>
+        </div>
+
+        <div class="learn-intro">
+            <p>Practical knowledge about investing, markets, credit, risk and how wealth is actually built.</p>
+        </div>
+
+        <div id="learnTopics" class="learn-topics"></div>
+
+        <div class="section-heading" style="margin-top:28px;">
+            <div>
+                <span>TOOLS</span>
+                <h2>Calculators</h2>
+            </div>
+        </div>
+        <div id="learnCalculators" class="learn-calculators"></div>
+    </section>
+
+    <!-- ==================== LEARN TOPIC ==================== -->
+    <section id="learnTopicPage" class="page hidden">
+        <div class="page-title">
+            <button class="back-button" onclick="openPage('learnPage')">←</button>
+            <div>
+                <span id="learnTopicLabel">TOPIC</span>
+                <h1 id="learnTopicTitle">Topic</h1>
+            </div>
+        </div>
+        <div id="learnTopicContent" class="learn-topic-content"></div>
+    </section>
+
     <nav class="navigation">
         <button id="navHome" class="nav active" onclick="openPage('homePage')">
             <span>⌂</span> Home
@@ -247,6 +286,9 @@
         </button>
         <button id="navInvestments" class="nav" onclick="openPage('investmentsPage')">
             <span>↗</span> Invest
+        </button>
+        <button id="navLearn" class="nav" onclick="openPage('learnPage')">
+            <span>📚</span> Learn
         </button>
         <button id="navProfile" class="nav" onclick="openPage('profilePage')">
             <span>○</span> Profile
