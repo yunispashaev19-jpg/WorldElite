@@ -2038,6 +2038,9 @@ function renderProfile() {
             <p>Your account is currently stored locally on this device.</p>
             <div class="hero-actions">
                 <button class="secondary-button" onclick="logoutUser()">Logout</button>
+                <a class="secondary-button" href="privacy.html" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
+                    Privacy Policy
+                </a>
             </div>
         </div>
     `;
