@@ -3042,7 +3042,110 @@ function openLearnTopic(id) {
 
 
 function openCalculator(type) {
-    alert("Calculator \"" + type + "\" will be added in the next step.");
+    if (type === "loan" && !canAccessPremiumContent()) {
+        alert("Loan calculator is available in Premium.");
+        openPage("profilePage");
+        return;
+    }
+
+    const titles = {
+        compound: "Compound Interest Calculator",
+        inflation: "Inflation Calculator",
+        loan: "Loan Calculator"
+    };
+
+    let form = "";
+
+    if (type === "compound") {
+        form = `
+        <div class="learn-section">
+            <h3>Compound Interest Calculator</h3>
+            <p>Start amount ($)</p>
+            <input id="cP" type="number" value="1000" class="country-select">
+            <p>Annual return (%)</p>
+            <input id="cR" type="number" value="8" class="country-select">
+            <p>Years</p>
+            <input id="cY" type="number" value="10" class="country-select">
+            <p>Monthly contribution ($)</p>
+            <input id="cM" type="number" value="100" class="country-select">
+            <div class="hero-actions" style="margin-top:12px;">
+                <button class="primary-button" onclick="runCompoundCalc()">Calculate</button>
+            </div>
+            <p id="calcResult" class="calc-note"></p>
+        </div>`;
+    } else if (type === "inflation") {
+        form = `
+        <div class="learn-section">
+            <h3>Inflation Calculator</h3>
+            <p>Amount today ($)</p>
+            <input id="iA" type="number" value="1000" class="country-select">
+            <p>Inflation per year (%)</p>
+            <input id="iR" type="number" value="5" class="country-select">
+            <p>Years</p>
+            <input id="iY" type="number" value="10" class="country-select">
+            <div class="hero-actions" style="margin-top:12px;">
+                <button class="primary-button" onclick="runInflationCalc()">Calculate</button>
+            </div>
+            <p id="calcResult" class="calc-note"></p>
+        </div>`;
+    } else {
+        form = `
+        <div class="learn-section">
+            <h3>Loan Calculator</h3>
+            <p>Loan amount ($)</p>
+            <input id="lA" type="number" value="10000" class="country-select">
+            <p>Interest rate per year (%)</p>
+            <input id="lR" type="number" value="12" class="country-select">
+            <p>Months</p>
+            <input id="lN" type="number" value="24" class="country-select">
+            <div class="hero-actions" style="margin-top:12px;">
+                <button class="primary-button" onclick="runLoanCalc()">Calculate</button>
+            </div>
+            <p id="calcResult" class="calc-note"></p>
+        </div>`;
+    }
+
+    const body = document.getElementById("learnTopicContent");
+    const labelEl = document.getElementById("learnTopicLabel");
+    const titleEl = document.getElementById("learnTopicTitle");
+    if (labelEl) labelEl.textContent = "TOOLS";
+    if (titleEl) titleEl.textContent = titles[type] || "Calculator";
+    if (body) body.innerHTML = form;
+    openPage("learnTopicPage");
+}
+
+function runCompoundCalc() {
+    const p = Number(document.getElementById("cP").value) || 0;
+    const r = (Number(document.getElementById("cR").value) || 0) / 100;
+    const y = Number(document.getElementById("cY").value) || 0;
+    const m = Number(document.getElementById("cM").value) || 0;
+    let total = p;
+    for (let i = 0; i < y * 12; i++) total = total * (1 + r / 12) + m;
+    const invested = p + m * y * 12;
+    document.getElementById("calcResult").innerHTML =
+        "Future value: <strong>$" + total.toFixed(2) + "</strong><br>Invested: $" +
+        invested.toFixed(2) + "<br>Profit: $" + (total - invested).toFixed(2);
+}
+
+function runInflationCalc() {
+    const a = Number(document.getElementById("iA").value) || 0;
+    const r = (Number(document.getElementById("iR").value) || 0) / 100;
+    const y = Number(document.getElementById("iY").value) || 0;
+    const future = a * Math.pow(1 + r, y);
+    document.getElementById("calcResult").innerHTML =
+        "In " + y + " years you need about <strong>$" + future.toFixed(2) +
+        "</strong><br>Lost purchasing power: $" + (future - a).toFixed(2);
+}
+
+function runLoanCalc() {
+    const a = Number(document.getElementById("lA").value) || 0;
+    const r = (Number(document.getElementById("lR").value) || 0) / 100 / 12;
+    const n = Number(document.getElementById("lN").value) || 1;
+    const pay = r === 0 ? a / n : a * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    const total = pay * n;
+    document.getElementById("calcResult").innerHTML =
+        "Monthly payment: <strong>$" + pay.toFixed(2) + "</strong><br>Total paid: $" +
+        total.toFixed(2) + "<br>Interest: $" + (total - a).toFixed(2);
 }
 
 /* =========================================================
@@ -3052,12 +3155,7 @@ function openCalculator(type) {
 document.addEventListener(
     "DOMContentLoaded",
     () => {
-
-        openPage(
-            "homePage"
-        );
-
+        openPage("homePage");
         loadData();
-
     }
 );
