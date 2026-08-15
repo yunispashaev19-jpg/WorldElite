@@ -2154,6 +2154,13 @@ function openPage(pageId) {
         "learnPage"
     ) {
         renderLearn();
+        if (window._fromCalculator) {
+            window._fromCalculator = false;
+            setTimeout(() => {
+                const el = document.getElementById("learnCalculators");
+                if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 50);
+        }
     }
 }
 
@@ -3111,6 +3118,9 @@ function openCalculator(type) {
     if (labelEl) labelEl.textContent = "TOOLS";
     if (titleEl) titleEl.textContent = titles[type] || "Calculator";
     if (body) body.innerHTML = form;
+
+    // mark that we came from calculators for better back behavior
+    window._fromCalculator = true;
     openPage("learnTopicPage");
 }
 
