@@ -1314,3 +1314,70 @@ button {
     color: rgba(255,255,255,0.4);
 }
 
+
+/* =========================================================
+   PREMIUM
+========================================================= */
+
+.premium-card {
+    border-color: rgba(255, 215, 120, 0.25);
+    background: linear-gradient(
+        180deg,
+        rgba(255, 200, 80, 0.08),
+        rgba(255,255,255,0.03)
+    );
+}
+
+.premium-list {
+    margin: 10px 0 14px;
+    padding-left: 18px;
+    color: rgba(255,255,255,0.75);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.premium-list li {
+    margin-bottom: 4px;
+}
+
+.premium-badge {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: #1a1200;
+    background: linear-gradient(90deg, #ffd56a, #f5b942);
+}
+
+.learn-card.locked {
+    opacity: 0.72;
+}
+
+.learn-card-lock {
+    font-size: 0.85rem;
+    color: rgba(255, 215, 120, 0.9);
+    margin-left: 6px;
+}
+
+.paywall-box {
+    background: rgba(255, 200, 80, 0.08);
+    border: 1px solid rgba(255, 215, 120, 0.25);
+    border-radius: 16px;
+    padding: 18px;
+    margin-top: 12px;
+    text-align: center;
+}
+
+.paywall-box h3 {
+    margin: 0 0 8px;
+}
+
+.paywall-box p {
+    color: rgba(255,255,255,0.7);
+    margin: 0 0 14px;
+    line-height: 1.45;
+}
+

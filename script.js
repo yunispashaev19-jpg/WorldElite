@@ -1925,124 +1925,123 @@ function signupUser(event) {
 }
 
 
-function renderProfile() {
+/* =========================================================
+   PREMIUM
+========================================================= */
 
-    const container =
-        document.getElementById(
-            "profileContent"
-        );
-
-    if (!container) {
-        return;
-    }
-
-
-    const stored =
-        localStorage.getItem(
-            "worldelite_user"
-        );
-
-
-    if (!stored) {
-
-        container.innerHTML = `
-
-            <div class="info-card">
-
-                <h3>Welcome to WorldElite</h3>
-
-                <p>
-                    Login or create an account to
-                    personalize your experience.
-                </p>
-
-                <div class="hero-actions">
-
-                    <button
-                        class="primary-button"
-                        onclick="showLogin()"
-                    >
-                        Login
-                    </button>
-
-                    <button
-                        class="secondary-button"
-                        onclick="showSignup()"
-                    >
-                        Sign Up
-                    </button>
-
-                </div>
-
-            </div>
-        `;
-
-        return;
-    }
-
-
-    let user;
-
+function getPremiumState() {
     try {
-        user = JSON.parse(stored);
+        const raw = localStorage.getItem("worldelite_premium");
+        if (!raw) return { isPremium: false, removeAds: false, plan: null };
+        return JSON.parse(raw);
     } catch {
-        user = {};
+        return { isPremium: false, removeAds: false, plan: null };
+    }
+}
+
+function setPremiumState(next) {
+    localStorage.setItem("worldelite_premium", JSON.stringify(next));
+}
+
+function isPremiumUser() {
+    const s = getPremiumState();
+    return !!(s.isPremium || s.removeAds);
+}
+
+function canAccessPremiumContent() {
+    return !!getPremiumState().isPremium;
+}
+
+function activatePremium(plan) {
+    setPremiumState({ isPremium: true, removeAds: true, plan: plan || "premium" });
+    renderProfile();
+    alert("Premium activated (demo). Real Google Play Billing comes later.");
+}
+
+function activateRemoveAds() {
+    const s = getPremiumState();
+    setPremiumState({ isPremium: s.isPremium, removeAds: true, plan: s.plan || "remove_ads" });
+    renderProfile();
+    alert("Ads removed (demo). Real IAP comes later.");
+}
+
+function deactivatePremiumDemo() {
+    setPremiumState({ isPremium: false, removeAds: false, plan: null });
+    renderProfile();
+}
+
+function renderProfile() {
+    const container = document.getElementById("profileContent");
+    if (!container) return;
+
+    const premium = getPremiumState();
+    const stored = localStorage.getItem("worldelite_user");
+    let user = null;
+    if (stored) {
+        try { user = JSON.parse(stored); } catch { user = {}; }
     }
 
+    const premiumCard = `
+        <div class="info-card premium-card">
+            <h3>${premium.isPremium ? "✦ WorldElite Premium" : "Upgrade to Premium"}</h3>
+            <p>${premium.isPremium
+                ? "Full access is on. Ads are off. All Learn topics are unlocked."
+                : "Unlock full data, all lessons, calculators, and remove ads."}</p>
+            <ul class="premium-list">
+                <li>No ads</li>
+                <li>Full billionaire & company lists</li>
+                <li>All Learn topics</li>
+                <li>All calculators</li>
+            </ul>
+            ${premium.isPremium ? `
+                <div class="hero-actions">
+                    <button class="secondary-button" onclick="deactivatePremiumDemo()">Reset demo Premium</button>
+                </div>
+            ` : `
+                <div class="hero-actions">
+                    <button class="primary-button" onclick="activatePremium('monthly')">Premium — $3.99/mo</button>
+                    <button class="secondary-button" onclick="activatePremium('yearly')">Premium — $29.99/yr</button>
+                </div>
+                <div class="hero-actions" style="margin-top:10px;">
+                    <button class="secondary-button" onclick="activateRemoveAds()">Remove Ads — $6.99</button>
+                </div>
+                <p class="calc-note">Demo mode. Google Play Billing will be connected later.</p>
+            `}
+        </div>
+    `;
+
+    if (!user) {
+        container.innerHTML = `
+            <div class="info-card">
+                <h3>Welcome to WorldElite</h3>
+                <p>Login or create an account to personalize your experience.</p>
+                <div class="hero-actions">
+                    <button class="primary-button" onclick="showLogin()">Login</button>
+                    <button class="secondary-button" onclick="showSignup()">Sign Up</button>
+                </div>
+            </div>
+            ${premiumCard}
+        `;
+        return;
+    }
 
     container.innerHTML = `
-
         <div class="profile-hero">
-
-            <div class="large-avatar">
-                ◉
-            </div>
-
-            <h2>
-                ${escapeHTML(
-                    user.name ||
-                    user.email ||
-                    "WorldElite User"
-                )}
-            </h2>
-
-            ${
-                user.email
-                    ? `
-                        <p>
-                            ${escapeHTML(user.email)}
-                        </p>
-                    `
-                    : ""
-            }
-
+            <div class="large-avatar">◉</div>
+            <h2>${escapeHTML(user.name || user.email || "WorldElite User")}</h2>
+            ${user.email ? `<p>${escapeHTML(user.email)}</p>` : ""}
+            ${premium.isPremium ? `<div class="premium-badge">PREMIUM</div>` : premium.removeAds ? `<div class="premium-badge">ADS OFF</div>` : ""}
         </div>
-
-
+        ${premiumCard}
         <div class="info-card">
-
             <h3>Your WorldElite account</h3>
-
-            <p>
-                Your account is currently stored
-                locally on this device.
-            </p>
-
+            <p>Your account is currently stored locally on this device.</p>
             <div class="hero-actions">
-
-                <button
-                    class="secondary-button"
-                    onclick="logoutUser()"
-                >
-                    Logout
-                </button>
-
+                <button class="secondary-button" onclick="logoutUser()">Logout</button>
             </div>
-
         </div>
     `;
 }
-
 
 function logoutUser() {
 
@@ -2858,6 +2857,9 @@ const LEARN_CONTENT = {
 };
 
 
+const FREE_LEARN_IDS = ["stock-market", "stocks", "inflation", "compound-interest", "risk"];
+function isLearnTopicFree(id) { return FREE_LEARN_IDS.includes(id); }
+
 function renderLearn() {
 
     const container =
@@ -2926,6 +2928,19 @@ function openLearnTopic(id) {
         LEARN_CONTENT[id];
 
     if (!topic || !content) {
+        return;
+    }
+
+    if (!canAccessPremiumContent() && !isLearnTopicFree(id)) {
+        const labelEl = document.getElementById("learnTopicLabel");
+        const titleEl = document.getElementById("learnTopicTitle");
+        const body = document.getElementById("learnTopicContent");
+        if (labelEl) labelEl.textContent = topic.label;
+        if (titleEl) titleEl.textContent = topic.title;
+        if (body) {
+            body.innerHTML = '<div class="paywall-box"><h3>Premium topic</h3><p>This lesson is available with WorldElite Premium.</p><div class="hero-actions"><button class="primary-button" onclick="openPage(\'profilePage\')">View Premium</button><button class="secondary-button" onclick="openPage(\'learnPage\')">Back</button></div></div>';
+        }
+        openPage("learnTopicPage");
         return;
     }
 
