@@ -806,7 +806,7 @@ function billionaireCard(
             <div class="wealth">
                 ${money(person.netWorth)}
             </div>
-            <span class="fav-star" onclick="event.stopPropagation(); toggleFavorite('${String(person.name).replace(/'/g, "\'")}')">${(typeof getFavorites === "function" && getFavorites().includes(person.name)) ? "★" : "☆"}</span>
+            <span class="fav-star" onclick="event.stopPropagation();toggleFavorite('${person.name.replace(/'/g, "\'")}')">${getFavorites().includes(person.name) ? "★" : "☆"}</span>
 
         </button>
     `;
