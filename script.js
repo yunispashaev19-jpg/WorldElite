@@ -1983,12 +1983,11 @@ function loginUser(event) {
         return;
     }
 
-    auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
+    supabase.auth.signInWithPassword({ email, password })
+        .then(({ data, error }) => {
+            if (error) { alert(error.message || "Login failed"); return; }
             openPage("profilePage");
-        })
-        .catch((err) => {
-            alert(err.message || "Login failed");
+            renderProfile();
         });
 }
 
@@ -3162,24 +3161,6 @@ document.addEventListener(
                 localStorage.removeItem("worldelite_user");
             }
             if (state.currentPage === "profilePage") renderProfile();
-        });
-                        if (Array.isArray(data.learnProgress)) {
-                            setLearnProgress(data.learnProgress);
-                        }
-                        if (Array.isArray(data.favorites)) {
-                            setFavorites(data.favorites);
-                        }
-                    }
-                } catch (e) {
-                    console.log("profile load error", e);
-                }
-                localStorage.setItem("worldelite_user", JSON.stringify(profile));
-            } else {
-                localStorage.removeItem("worldelite_user");
-            }
-            if (state.currentPage === "profilePage") {
-                renderProfile();
-            }
         });
     }
 );
