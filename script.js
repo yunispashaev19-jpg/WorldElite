@@ -24,16 +24,10 @@ const state = {
 const SUPABASE_URL = "https://dxvfihckfhrhdxebinfm.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dmZpaGNrZmhyaGR4ZWJpbmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MDcyOTUsImV4cCI6MjEwMjQ4MzI5NX0.8U_TuPW9qIdHFCglkr4x1ub8zeOvGXdwz3_U7ihW9lg";
 
-let supabase = null;
-try {
-  if (window.supabase && window.supabase.createClient) {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  } else {
-    console.error("Supabase SDK not loaded");
-  }
-} catch (e) {
-  console.error("Supabase init error", e);
-}
+const { createClient } = window.supabase || {};
+const sb = createClient ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+if (!sb) console.error("Supabase SDK not loaded");
+
 
 
 
@@ -89,7 +83,7 @@ function setFavorites(list) {
 }
 
 async function saveUserCloud(extra) {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
     const payload = Object.assign({
         id: user.id,
@@ -102,7 +96,7 @@ async function saveUserCloud(extra) {
     if ("removeAds" in payload) { payload.remove_ads = payload.removeAds; delete payload.removeAds; }
     if ("learnProgress" in payload) { payload.learn_progress = payload.learnProgress; delete payload.learnProgress; }
     if ("favorites" in payload) { /* keep */ }
-    const { error } = await supabase.from("profiles").upsert(payload, { onConflict: "id" });
+    const { error } = await sb.from("profiles").upsert(payload, { onConflict: "id" });
     if (error) console.log("saveUserCloud", error.message);
 }
 
@@ -1993,7 +1987,7 @@ function loginUser(event) {
         return;
     }
 
-    supabase.auth.signInWithPassword({ email, password })
+    sb.auth.signInWithPassword({ email, password })
         .then(({ data, error }) => {
             if (error) { alert(error.message || "Login failed"); return; }
             openPage("profilePage");
@@ -2009,14 +2003,14 @@ function signupUser(event) {
     const password = document.getElementById("signupPassword")?.value || "";
     if (!email || !password) { alert("Enter email and password"); return; }
     if (password.length < 6) { alert("Password must be at least 6 characters"); return; }
-    supabase.auth.signUp({
+    sb.auth.signUp({
       email,
       password,
       options: { data: { name } }
     }).then(async ({ data, error }) => {
       if (error) { alert(error.message); return; }
       if (data.user) {
-        await supabase.from("profiles").upsert({
+        await sb.from("profiles").upsert({
           id: data.user.id,
           email,
           name: name || "",
@@ -2032,7 +2026,7 @@ function signupUser(event) {
 }
 
 function logoutUser() {
-    supabase.auth.signOut().then(() => {
+    sb.auth.signOut().then(() => {
       localStorage.removeItem("worldelite_user");
       localStorage.removeItem("worldelite_premium");
       renderProfile();
@@ -3143,7 +3137,7 @@ document.addEventListener(
         openPage("homePage");
         loadData();
 
-        supabase.auth.onAuthStateChange(async (event, session) => {
+        sb && sb.auth.onAuthStateChange(async (event, session) => {
             const user = session && session.user ? session.user : null;
             if (user) {
                 let profile = {
@@ -3151,7 +3145,7 @@ document.addEventListener(
                     email: user.email || ""
                 };
                 try {
-                    const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+                    const { data } = await sb.from("profiles").select("*").eq("id", user.id).maybeSingle();
                     if (data) {
                         profile = {
                             name: data.name || profile.name,
