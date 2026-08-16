@@ -34,6 +34,132 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+/* =========================================================
+   PREMIUM + CLOUD USER DATA
+========================================================= */
+
+function getPremiumState() {
+    try {
+        const raw = localStorage.getItem("worldelite_premium");
+        if (!raw) return { isPremium: false, removeAds: false, plan: null };
+        return JSON.parse(raw);
+    } catch {
+        return { isPremium: false, removeAds: false, plan: null };
+    }
+}
+
+function setPremiumState(next) {
+    localStorage.setItem("worldelite_premium", JSON.stringify(next));
+}
+
+function isPremiumUser() {
+    const s = getPremiumState();
+    return !!(s.isPremium || s.removeAds);
+}
+
+function canAccessPremiumContent() {
+    return !!getPremiumState().isPremium;
+}
+
+function getLearnProgress() {
+    try {
+        return JSON.parse(localStorage.getItem("worldelite_learn_progress") || "[]");
+    } catch {
+        return [];
+    }
+}
+
+function setLearnProgress(ids) {
+    localStorage.setItem("worldelite_learn_progress", JSON.stringify(ids));
+}
+
+function getFavorites() {
+    try {
+        return JSON.parse(localStorage.getItem("worldelite_favorites") || "[]");
+    } catch {
+        return [];
+    }
+}
+
+function setFavorites(list) {
+    localStorage.setItem("worldelite_favorites", JSON.stringify(list));
+}
+
+async function saveUserCloud(extra) {
+    const user = auth.currentUser;
+    if (!user) return;
+    const payload = Object.assign({
+        email: user.email || "",
+        name: user.displayName || "",
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, extra || {});
+    await db.collection("users").doc(user.uid).set(payload, { merge: true });
+}
+
+async function activatePremium(plan) {
+    const next = { isPremium: true, removeAds: true, plan: plan || "premium" };
+    setPremiumState(next);
+    try {
+        await saveUserCloud({
+            isPremium: true,
+            removeAds: true,
+            plan: next.plan
+        });
+    } catch (e) {
+        console.log(e);
+    }
+    renderProfile();
+    alert("Premium activated and saved to your account (demo payment).");
+}
+
+async function activateRemoveAds() {
+    const s = getPremiumState();
+    const next = { isPremium: s.isPremium, removeAds: true, plan: s.plan || "remove_ads" };
+    setPremiumState(next);
+    try {
+        await saveUserCloud({
+            isPremium: !!next.isPremium,
+            removeAds: true,
+            plan: next.plan
+        });
+    } catch (e) {
+        console.log(e);
+    }
+    renderProfile();
+    alert("Ads removed and saved to your account (demo).");
+}
+
+async function deactivatePremiumDemo() {
+    setPremiumState({ isPremium: false, removeAds: false, plan: null });
+    try {
+        await saveUserCloud({ isPremium: false, removeAds: false, plan: null });
+    } catch (e) {
+        console.log(e);
+    }
+    renderProfile();
+}
+
+function markLearnCompleted(id) {
+    const list = getLearnProgress();
+    if (!list.includes(id)) {
+        list.push(id);
+        setLearnProgress(list);
+        saveUserCloud({ learnProgress: list }).catch(() => {});
+    }
+}
+
+function toggleFavorite(name) {
+    if (!name) return;
+    let list = getFavorites();
+    if (list.includes(name)) list = list.filter(x => x !== name);
+    else list.push(name);
+    setFavorites(list);
+    saveUserCloud({ favorites: list }).catch(() => {});
+    alert(list.includes(name) ? "Added to favorites" : "Removed from favorites");
+}
+
+
+
 
 
 /* =========================================================
@@ -2793,7 +2919,8 @@ function openLearnTopic(id) {
         if (body) {
             body.innerHTML = '<div class="paywall-box"><h3>Premium topic</h3><p>This lesson is available with WorldElite Premium.</p><div class="hero-actions"><button class="primary-button" onclick="openPage(\'profilePage\')">View Premium</button><button class="secondary-button" onclick="openPage(\'learnPage\')">Back</button></div></div>';
         }
-        openPage("learnTopicPage");
+        markLearnCompleted(id);
+    openPage("learnTopicPage");
         return;
     }
 
@@ -3025,12 +3152,16 @@ document.addEventListener(
                             name: data.name || user.displayName || "",
                             email: data.email || user.email || ""
                         };
-                        if (data.isPremium || data.removeAds) {
-                            setPremiumState({
-                                isPremium: !!data.isPremium,
-                                removeAds: !!data.removeAds,
-                                plan: data.plan || null
-                            });
+                        setPremiumState({
+                            isPremium: !!data.isPremium,
+                            removeAds: !!data.removeAds,
+                            plan: data.plan || null
+                        });
+                        if (Array.isArray(data.learnProgress)) {
+                            setLearnProgress(data.learnProgress);
+                        }
+                        if (Array.isArray(data.favorites)) {
+                            setFavorites(data.favorites);
                         }
                     }
                 } catch (e) {
