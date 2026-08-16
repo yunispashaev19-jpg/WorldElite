@@ -2027,85 +2027,106 @@ function renderProfile() {
     const container = document.getElementById("profileContent");
     if (!container) return;
 
-    const premium = getPremiumState();
-    const progress = getLearnProgress();
-    const favorites = getFavorites();
-    const stored = localStorage.getItem("worldelite_user");
-    let user = null;
-    if (stored) {
-        try { user = JSON.parse(stored); } catch { user = {}; }
-    }
+    try {
+        const premium = (typeof getPremiumState === "function")
+            ? getPremiumState()
+            : { isPremium: false, removeAds: false };
 
-    const premiumCard = `
-        <div class="info-card premium-card">
-            <h3>${premium.isPremium ? "WorldElite Premium" : "Upgrade to Premium"}</h3>
-            <p>${premium.isPremium
-                ? "Full access is on. Status is saved to your account."
-                : "Unlock lessons, calculators, and remove limits."}</p>
-            <ul class="premium-list">
-                <li>No ads</li>
-                <li>All Learn topics</li>
-                <li>All calculators</li>
-                <li>Cloud sync</li>
-            </ul>
-            ${premium.isPremium ? `
-                <div class="hero-actions">
-                    <button class="secondary-button" onclick="deactivatePremiumDemo()">Reset demo Premium</button>
-                </div>
-            ` : `
-                <div class="hero-actions">
-                    <button class="primary-button" onclick="activatePremium('monthly')">Premium — $3.99/mo</button>
-                    <button class="secondary-button" onclick="activatePremium('yearly')">Premium — $29.99/yr</button>
-                </div>
-                <div class="hero-actions" style="margin-top:10px;">
-                    <button class="secondary-button" onclick="activateRemoveAds()">Remove Ads — $6.99</button>
-                </div>
-                <p class="calc-note">Demo mode. Real Google Play Billing comes later.</p>
-            `}
-        </div>
-    `;
+        const progress = (typeof getLearnProgress === "function")
+            ? getLearnProgress()
+            : [];
 
-    if (!user || (!user.email && !auth.currentUser)) {
+        const favorites = (typeof getFavorites === "function")
+            ? getFavorites()
+            : [];
+
+        let user = null;
+        try {
+            const stored = localStorage.getItem("worldelite_user");
+            if (stored) user = JSON.parse(stored);
+        } catch (e) {}
+
+        let currentEmail = "";
+        try {
+            if (typeof auth !== "undefined" && auth.currentUser) {
+                currentEmail = auth.currentUser.email || "";
+                if (!user) {
+                    user = {
+                        email: currentEmail,
+                        name: auth.currentUser.displayName || ""
+                    };
+                }
+            }
+        } catch (e) {}
+
+        const loggedIn = !!(user && (user.email || currentEmail));
+
+        if (!loggedIn) {
+            container.innerHTML = `
+                <div class="info-card">
+                    <h3>Welcome to WorldElite</h3>
+                    <p>Login or create an account to sync your data.</p>
+                    <div class="hero-actions">
+                        <button class="primary-button" onclick="showLogin()">Login</button>
+                        <button class="secondary-button" onclick="showSignup()">Sign Up</button>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <h3>Upgrade to Premium</h3>
+                    <p>Demo mode. Real payments come later.</p>
+                    <div class="hero-actions">
+                        <button class="primary-button" onclick="activatePremium('monthly')">Premium — $3.99/mo</button>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const email = user.email || currentEmail || "";
+        const name = user.name || "WorldElite User";
+
+        container.innerHTML = `
+            <div class="profile-hero">
+                <div class="large-avatar">◉</div>
+                <h2>${escapeHTML(String(name))}</h2>
+                <p>${escapeHTML(String(email))}</p>
+                ${premium.isPremium ? '<div class="premium-badge">PREMIUM</div>' : ''}
+            </div>
+            <div class="info-card">
+                <h3>${premium.isPremium ? "WorldElite Premium" : "Upgrade to Premium"}</h3>
+                <p>${premium.isPremium ? "Saved to your cloud account." : "Demo unlock for testing."}</p>
+                <div class="hero-actions">
+                    ${premium.isPremium
+                        ? '<button class="secondary-button" onclick="deactivatePremiumDemo()">Reset demo Premium</button>'
+                        : '<button class="primary-button" onclick="activatePremium(\'monthly\')">Premium — $3.99/mo</button>'}
+                </div>
+            </div>
+            <div class="info-card">
+                <h3>Your progress</h3>
+                <p>Lessons opened: <strong>${progress.length}</strong></p>
+                <p>Favorites: <strong>${favorites.length}</strong></p>
+            </div>
+            <div class="info-card">
+                <h3>Account</h3>
+                <div class="hero-actions">
+                    <button class="secondary-button" onclick="logoutUser()">Logout</button>
+                    <a class="secondary-button" href="privacy.html" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">Privacy Policy</a>
+                </div>
+            </div>
+        `;
+    } catch (err) {
+        console.error(err);
         container.innerHTML = `
             <div class="info-card">
-                <h3>Welcome to WorldElite</h3>
-                <p>Login or create an account to sync your data.</p>
+                <h3>Profile error</h3>
+                <p>${escapeHTML(String(err && err.message ? err.message : err))}</p>
                 <div class="hero-actions">
                     <button class="primary-button" onclick="showLogin()">Login</button>
                     <button class="secondary-button" onclick="showSignup()">Sign Up</button>
                 </div>
             </div>
-            ${premiumCard}
         `;
-        return;
     }
-
-    const email = user.email || (auth.currentUser && auth.currentUser.email) || "";
-    const name = user.name || (auth.currentUser && auth.currentUser.displayName) || "WorldElite User";
-
-    container.innerHTML = `
-        <div class="profile-hero">
-            <div class="large-avatar">◉</div>
-            <h2>${escapeHTML(name)}</h2>
-            ${email ? `<p>${escapeHTML(email)}</p>` : ""}
-            ${premium.isPremium ? `<div class="premium-badge">PREMIUM</div>` : premium.removeAds ? `<div class="premium-badge">ADS OFF</div>` : ""}
-        </div>
-        ${premiumCard}
-        <div class="info-card">
-            <h3>Your progress</h3>
-            <p>Lessons opened: <strong>${progress.length}</strong></p>
-            <p>Favorites: <strong>${favorites.length}</strong></p>
-            ${favorites.length ? `<p>${favorites.map(f => escapeHTML(f)).join(", ")}</p>` : "<p>No favorites yet.</p>"}
-        </div>
-        <div class="info-card">
-            <h3>Account</h3>
-            <p>Your account is synced with the cloud.</p>
-            <div class="hero-actions">
-                <button class="secondary-button" onclick="logoutUser()">Logout</button>
-                <a class="secondary-button" href="privacy.html" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">Privacy Policy</a>
-            </div>
-        </div>
-    `;
 }
 
 function logoutUser() {
