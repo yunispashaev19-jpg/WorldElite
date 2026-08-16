@@ -1381,3 +1381,13 @@ button {
     line-height: 1.45;
 }
 
+
+.fav-star {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    font-size: 1.1rem;
+    color: #f5c84c;
+    z-index: 2;
+}
+.person-card { position: relative; }

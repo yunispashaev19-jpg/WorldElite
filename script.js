@@ -806,6 +806,7 @@ function billionaireCard(
             <div class="wealth">
                 ${money(person.netWorth)}
             </div>
+            <span class="fav-star" onclick="event.stopPropagation(); toggleFavorite('${String(person.name).replace(/'/g, "\'")}')">${(typeof getFavorites === "function" && getFavorites().includes(person.name)) ? "★" : "☆"}</span>
 
         </button>
     `;
@@ -855,13 +856,15 @@ function companyCard(
 
             <div class="company-revenue">
 
-                <small>Revenue</small>
+                <small>${company.revenue ? "Revenue" : "Linked"}</small>
 
                 <strong>
                     ${
                         company.revenue
                             ? money(company.revenue)
-                            : "N/A"
+                            : ((company.relatedBillionaires && company.relatedBillionaires.length)
+                                ? (company.relatedBillionaires.length + " people")
+                                : "Label")
                     }
                 </strong>
 
