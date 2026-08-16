@@ -24,7 +24,17 @@ const state = {
 const SUPABASE_URL = "https://dxvfihckfhrhdxebinfm.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dmZpaGNrZmhyaGR4ZWJpbmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MDcyOTUsImV4cCI6MjEwMjQ4MzI5NX0.8U_TuPW9qIdHFCglkr4x1ub8zeOvGXdwz3_U7ihW9lg";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabase = null;
+try {
+  if (window.supabase && window.supabase.createClient) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } else {
+    console.error("Supabase SDK not loaded");
+  }
+} catch (e) {
+  console.error("Supabase init error", e);
+}
+
 
 
 /* =========================================================
