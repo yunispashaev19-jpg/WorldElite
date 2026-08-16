@@ -18,21 +18,14 @@ const state = {
 };
 
 /* =========================================================
-   FIREBASE
+   SUPABASE
 ========================================================= */
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBSVQmPvH4-T8P13NKiFeDVMDT9s2gwOPM",
-  authDomain: "worldelite-ed40e.firebaseapp.com",
-  projectId: "worldelite-ed40e",
-  storageBucket: "worldelite-ed40e.firebasestorage.app",
-  messagingSenderId: "919986353438",
-  appId: "1:919986353438:web:91b90f2f226afb0dfc050f"
-};
+const SUPABASE_URL = "https://dxvfihckfhrhdxebinfm.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4dmZpaGNrZmhyaGR4ZWJpbmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MDcyOTUsImV4cCI6MjEwMjQ4MzI5NX0.8U_TuPW9qIdHFCglkr4x1ub8zeOvGXdwz3_U7ihW9lg";
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 
 /* =========================================================
    PREMIUM + CLOUD USER DATA
@@ -86,14 +79,21 @@ function setFavorites(list) {
 }
 
 async function saveUserCloud(extra) {
-    const user = auth.currentUser;
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const payload = Object.assign({
+        id: user.id,
         email: user.email || "",
-        name: user.displayName || "",
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        name: (user.user_metadata && user.user_metadata.name) || "",
+        updated_at: new Date().toISOString()
     }, extra || {});
-    await db.collection("users").doc(user.uid).set(payload, { merge: true });
+    // map camelCase helpers to db columns
+    if ("isPremium" in payload) { payload.is_premium = payload.isPremium; delete payload.isPremium; }
+    if ("removeAds" in payload) { payload.remove_ads = payload.removeAds; delete payload.removeAds; }
+    if ("learnProgress" in payload) { payload.learn_progress = payload.learnProgress; delete payload.learnProgress; }
+    if ("favorites" in payload) { /* keep */ }
+    const { error } = await supabase.from("profiles").upsert(payload, { onConflict: "id" });
+    if (error) console.log("saveUserCloud", error.message);
 }
 
 async function activatePremium(plan) {
@@ -1995,160 +1995,40 @@ function loginUser(event) {
 
 function signupUser(event) {
     event.preventDefault();
-
     const name = document.getElementById("signupName")?.value?.trim() || "";
     const email = document.getElementById("signupEmail")?.value?.trim() || "";
     const password = document.getElementById("signupPassword")?.value || "";
-
-    if (!email || !password) {
-        alert("Enter email and password");
-        return;
-    }
-
-    if (password.length < 6) {
-        alert("Password must be at least 6 characters");
-        return;
-    }
-
-    auth.createUserWithEmailAndPassword(email, password)
-        .then(async (cred) => {
-            const user = cred.user;
-            await db.collection("users").doc(user.uid).set({
-                name: name || "",
-                email: email,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                isPremium: false,
-                removeAds: false
-            });
-            if (name) {
-                await user.updateProfile({ displayName: name });
-            }
-            openPage("profilePage");
-        })
-        .catch((err) => {
-            alert(err.message || "Sign up failed");
+    if (!email || !password) { alert("Enter email and password"); return; }
+    if (password.length < 6) { alert("Password must be at least 6 characters"); return; }
+    supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name } }
+    }).then(async ({ data, error }) => {
+      if (error) { alert(error.message); return; }
+      if (data.user) {
+        await supabase.from("profiles").upsert({
+          id: data.user.id,
+          email,
+          name: name || "",
+          is_premium: false,
+          remove_ads: false,
+          learn_progress: [],
+          favorites: []
         });
-}
-
-
-
-function renderProfile() {
-    const container = document.getElementById("profileContent");
-    if (!container) return;
-
-    try {
-        const premium = (typeof getPremiumState === "function")
-            ? getPremiumState()
-            : { isPremium: false, removeAds: false };
-
-        const progress = (typeof getLearnProgress === "function")
-            ? getLearnProgress()
-            : [];
-
-        const favorites = (typeof getFavorites === "function")
-            ? getFavorites()
-            : [];
-
-        let user = null;
-        try {
-            const stored = localStorage.getItem("worldelite_user");
-            if (stored) user = JSON.parse(stored);
-        } catch (e) {}
-
-        let currentEmail = "";
-        try {
-            if (typeof auth !== "undefined" && auth.currentUser) {
-                currentEmail = auth.currentUser.email || "";
-                if (!user) {
-                    user = {
-                        email: currentEmail,
-                        name: auth.currentUser.displayName || ""
-                    };
-                }
-            }
-        } catch (e) {}
-
-        const loggedIn = !!(user && (user.email || currentEmail));
-
-        if (!loggedIn) {
-            container.innerHTML = `
-                <div class="info-card">
-                    <h3>Welcome to WorldElite</h3>
-                    <p>Login or create an account to sync your data.</p>
-                    <div class="hero-actions">
-                        <button class="primary-button" onclick="showLogin()">Login</button>
-                        <button class="secondary-button" onclick="showSignup()">Sign Up</button>
-                    </div>
-                </div>
-                <div class="info-card">
-                    <h3>Upgrade to Premium</h3>
-                    <p>Demo mode. Real payments come later.</p>
-                    <div class="hero-actions">
-                        <button class="primary-button" onclick="activatePremium('monthly')">Premium — $3.99/mo</button>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-
-        const email = user.email || currentEmail || "";
-        const name = user.name || "WorldElite User";
-
-        container.innerHTML = `
-            <div class="profile-hero">
-                <div class="large-avatar">◉</div>
-                <h2>${escapeHTML(String(name))}</h2>
-                <p>${escapeHTML(String(email))}</p>
-                ${premium.isPremium ? '<div class="premium-badge">PREMIUM</div>' : ''}
-            </div>
-            <div class="info-card">
-                <h3>${premium.isPremium ? "WorldElite Premium" : "Upgrade to Premium"}</h3>
-                <p>${premium.isPremium ? "Saved to your cloud account." : "Demo unlock for testing."}</p>
-                <div class="hero-actions">
-                    ${premium.isPremium
-                        ? '<button class="secondary-button" onclick="deactivatePremiumDemo()">Reset demo Premium</button>'
-                        : '<button class="primary-button" onclick="activatePremium(\'monthly\')">Premium — $3.99/mo</button>'}
-                </div>
-            </div>
-            <div class="info-card">
-                <h3>Your progress</h3>
-                <p>Lessons opened: <strong>${progress.length}</strong></p>
-                <p>Favorites: <strong>${favorites.length}</strong></p>
-            </div>
-            <div class="info-card">
-                <h3>Account</h3>
-                <div class="hero-actions">
-                    <button class="secondary-button" onclick="logoutUser()">Logout</button>
-                    <a class="secondary-button" href="privacy.html" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">Privacy Policy</a>
-                </div>
-            </div>
-        `;
-    } catch (err) {
-        console.error(err);
-        container.innerHTML = `
-            <div class="info-card">
-                <h3>Profile error</h3>
-                <p>${escapeHTML(String(err && err.message ? err.message : err))}</p>
-                <div class="hero-actions">
-                    <button class="primary-button" onclick="showLogin()">Login</button>
-                    <button class="secondary-button" onclick="showSignup()">Sign Up</button>
-                </div>
-            </div>
-        `;
-    }
+      }
+      openPage("profilePage");
+      renderProfile();
+    });
 }
 
 function logoutUser() {
-    auth.signOut()
-        .then(() => {
-            localStorage.removeItem("worldelite_user");
-            localStorage.removeItem("worldelite_premium");
-            renderProfile();
-            openPage("profilePage");
-        })
-        .catch((err) => {
-            alert(err.message || "Logout failed");
-        });
+    supabase.auth.signOut().then(() => {
+      localStorage.removeItem("worldelite_user");
+      localStorage.removeItem("worldelite_premium");
+      renderProfile();
+      openPage("profilePage");
+    });
 }
 
 
@@ -3254,25 +3134,35 @@ document.addEventListener(
         openPage("homePage");
         loadData();
 
-        auth.onAuthStateChanged(async (user) => {
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            const user = session && session.user ? session.user : null;
             if (user) {
                 let profile = {
-                    name: user.displayName || "",
+                    name: (user.user_metadata && user.user_metadata.name) || "",
                     email: user.email || ""
                 };
                 try {
-                    const snap = await db.collection("users").doc(user.uid).get();
-                    if (snap.exists) {
-                        const data = snap.data() || {};
+                    const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+                    if (data) {
                         profile = {
-                            name: data.name || user.displayName || "",
-                            email: data.email || user.email || ""
+                            name: data.name || profile.name,
+                            email: data.email || profile.email
                         };
                         setPremiumState({
-                            isPremium: !!data.isPremium,
-                            removeAds: !!data.removeAds,
+                            isPremium: !!data.is_premium,
+                            removeAds: !!data.remove_ads,
                             plan: data.plan || null
                         });
+                        if (Array.isArray(data.learn_progress)) setLearnProgress(data.learn_progress);
+                        if (Array.isArray(data.favorites)) setFavorites(data.favorites);
+                    }
+                } catch (e) { console.log(e); }
+                localStorage.setItem("worldelite_user", JSON.stringify(profile));
+            } else {
+                localStorage.removeItem("worldelite_user");
+            }
+            if (state.currentPage === "profilePage") renderProfile();
+        });
                         if (Array.isArray(data.learnProgress)) {
                             setLearnProgress(data.learnProgress);
                         }
