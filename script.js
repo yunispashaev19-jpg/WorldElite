@@ -444,6 +444,40 @@ function normalizeBillionaire(item) {
    NORMALIZE COMPANIES
 ========================================================= */
 
+
+function companySortValue(c) {
+    if (!c) return 0;
+    if (c.revenue && Number(c.revenue) > 0) return Number(c.revenue);
+    const n = (c.relatedBillionaires && c.relatedBillionaires.length) ? c.relatedBillionaires.length : 0;
+    return n;
+}
+
+function sortedCompanies(list) {
+    const arr = (list || []).slice();
+    const mode = state.companySort || "revenue";
+    if (mode === "az" || mode === "A-Z" || mode === "name") {
+        arr.sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+        return arr;
+    }
+    if (mode === "profit") {
+        arr.sort((a, b) => (Number(b.profit) || 0) - (Number(a.profit) || 0));
+        return arr;
+    }
+    // revenue / default: real revenue first, then by linked people
+    arr.sort((a, b) => {
+        const ar = Number(a.revenue) || 0;
+        const br = Number(b.revenue) || 0;
+        if (ar > 0 && br > 0) return br - ar;
+        if (ar > 0) return -1;
+        if (br > 0) return 1;
+        const al = (a.relatedBillionaires && a.relatedBillionaires.length) || 0;
+        const bl = (b.relatedBillionaires && b.relatedBillionaires.length) || 0;
+        if (bl !== al) return bl - al;
+        return String(a.name || "").localeCompare(String(b.name || ""));
+    });
+    return arr;
+}
+
 function normalizeCompany(item) {
 
     if (!item || typeof item !== "object") {
@@ -864,7 +898,7 @@ function companyCard(
                             ? money(company.revenue)
                             : ((company.relatedBillionaires && company.relatedBillionaires.length)
                                 ? (company.relatedBillionaires.length + " people")
-                                : "Label")
+                                : "No financials")
                     }
                 </strong>
 
@@ -1354,36 +1388,8 @@ function renderCompanies() {
     }
 
 
-    if (
-        state.companySort ===
-        "profit"
-    ) {
-
-        list.sort(
-            (a,b) =>
-                b.profit - a.profit
-        );
-
-    } else if (
-        state.companySort ===
-        "name"
-    ) {
-
-        list.sort(
-            (a,b) =>
-                a.name.localeCompare(
-                    b.name
-                )
-        );
-
-    } else {
-
-        list.sort(
-            (a,b) =>
-                b.revenue - a.revenue
-        );
-    }
-
+    // Smart sort: real revenue first, then by linked billionaires
+    list = sortedCompanies(list);
 
     state.filteredCompanies =
         list;
