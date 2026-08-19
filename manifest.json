@@ -2,8 +2,8 @@
   "name": "WorldElite",
   "short_name": "WorldElite",
   "description": "Global wealth intelligence and financial literacy",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "https://yunispashaev19-jpg.github.io/WorldElite/",
+  "scope": "https://yunispashaev19-jpg.github.io/WorldElite/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0B0B0B",
@@ -11,16 +11,22 @@
   "lang": "en",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "https://yunispashaev19-jpg.github.io/WorldElite/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "https://yunispashaev19-jpg.github.io/WorldElite/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "https://yunispashaev19-jpg.github.io/WorldElite/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
