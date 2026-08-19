@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.yunispashaev.worldelite",
+    "sha256_cert_fingerprints": ["85:F5:0C:48:F8:BB:99:C1:67:49:F4:31:11:0A:EB:24:87:2A:1B:EA:5D:49:7A:A4:2B:A5:E0:87:95:EA:61:36"]
+  }
+}]
